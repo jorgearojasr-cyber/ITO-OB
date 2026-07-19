@@ -1,0 +1,65 @@
+.sectionPad {
+  padding: 0 20px;
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16.5px;
+  color: var(--ink-900);
+  letter-spacing: -0.2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.seeAll {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--blue-600);
+}
+
+.scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin: 0 -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.card {
+  flex: 0 0 128px;
+  background: var(--white);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--ink-200);
+}
+
+.thumb {
+  height: 96px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #dadfe6, #b7c0cc);
+}
+
+.body {
+  padding: 9px 11px 12px;
+}
+
+.body .t {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink-900);
+  font-family: var(--font-display);
+}
+
+.body .n {
+  font-size: 11px;
+  color: var(--ink-400);
+  margin-top: 1px;
+}

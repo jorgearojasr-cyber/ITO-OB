@@ -1,0 +1,61 @@
+.card {
+  background: var(--green-100);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin: 0 20px 24px;
+  position: relative;
+  border: 1px solid #cff1df;
+}
+
+.icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px -4px rgba(63, 201, 138, 0.4);
+}
+
+.content .title {
+  font-weight: 800;
+  font-size: 13.5px;
+  color: #0f4a32;
+  margin-bottom: 3px;
+  font-family: var(--font-display);
+}
+
+.content p {
+  margin: 0;
+  font-size: 12.8px;
+  color: #2c6b4e;
+  line-height: 1.45;
+}
+
+.dots {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 5px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #b7e4cb;
+  border: none;
+  padding: 0;
+}
+
+.dotOn {
+  background: #0f4a32;
+  width: 14px;
+  border-radius: 4px;
+}

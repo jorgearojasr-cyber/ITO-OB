@@ -1,4 +1,8 @@
-import { PrismaClient, RoomFeatureRequirement } from "@prisma/client";
+import {
+  PrismaClient,
+  RoomFeatureRequirement,
+  type Priority,
+} from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -385,7 +389,23 @@ const roomTemplates = [
   },
 ];
 
-async function main() {
+type SeededElement = {
+  id: string;
+  slug: string;
+  name: string;
+  order: number;
+  checklistItemIds: string[];
+};
+
+type SeededRoom = {
+  id: string;
+  slug: string;
+  name: string;
+  order: number;
+  elements: SeededElement[];
+};
+
+async function seedCatalog(): Promise<SeededRoom[]> {
   const articleBySlug = new Map<string, string>();
 
   for (const category of libraryCategories) {
@@ -422,6 +442,8 @@ async function main() {
     }
   }
 
+  const seededRooms: SeededRoom[] = [];
+
   for (const room of roomTemplates) {
     const createdRoom = await prisma.roomTemplate.upsert({
       where: { slug: room.slug },
@@ -439,6 +461,8 @@ async function main() {
         requiredFeature: room.requiredFeature,
       },
     });
+
+    const seededElements: SeededElement[] = [];
 
     for (const [elementIndex, element] of room.elements.entries()) {
       const referenceLibraryArticleId = element.libraryArticleSlug
@@ -466,6 +490,8 @@ async function main() {
         },
       });
 
+      const checklistItemIds: string[] = [];
+
       for (const [questionIndex, question] of element.checklist.entries()) {
         const existing = await prisma.checklistItemTemplate.findFirst({
           where: { elementTemplateId: createdElement.id, question },
@@ -475,18 +501,191 @@ async function main() {
             where: { id: existing.id },
             data: { order: questionIndex },
           });
+          checklistItemIds.push(existing.id);
         } else {
-          await prisma.checklistItemTemplate.create({
+          const created = await prisma.checklistItemTemplate.create({
             data: {
               elementTemplateId: createdElement.id,
               question,
               order: questionIndex,
             },
           });
+          checklistItemIds.push(created.id);
+        }
+      }
+
+      seededElements.push({
+        id: createdElement.id,
+        slug: element.slug,
+        name: element.name,
+        order: elementIndex,
+        checklistItemIds,
+      });
+    }
+
+    seededRooms.push({
+      id: createdRoom.id,
+      slug: room.slug,
+      name: room.name,
+      order: room.order,
+      elements: seededElements,
+    });
+  }
+
+  return seededRooms;
+}
+
+// Recintos que se dejan completamente revisados en la inspección demo.
+// El resto queda pendiente, para que el primero de ellos ("cocina") sea
+// el "siguiente paso" natural en la pantalla de Inicio.
+const DEMO_PROJECT_NAME = "Condominio Los Robles";
+const DEMO_UNIT_LABEL = "Casa 15";
+const DEMO_COMPLETED_ROOM_SLUGS = new Set(["exterior", "living", "comedor"]);
+
+// Dentro de cada recinto completo, un elemento queda marcado con una
+// observación (no todo perfecto), con su prioridad y si lleva foto.
+const DEMO_FLAGGED_ELEMENTS: Record<
+  string,
+  { elementSlug: string; comment: string; priority: Priority; photoCount: number }
+> = {
+  exterior: {
+    elementSlug: "puerta-de-acceso",
+    comment: "La bisagra inferior está floja y la puerta roza levemente el marco.",
+    priority: "MEDIA",
+    photoCount: 1,
+  },
+  living: {
+    elementSlug: "ventanas",
+    comment: "La silicona de la ventana orientada al patio tiene un tramo sin sellar.",
+    priority: "ALTA",
+    photoCount: 2,
+  },
+  comedor: {
+    elementSlug: "piso",
+    comment: "Se escucha un leve crujido al pisar cerca de la unión con el living.",
+    priority: "BAJA",
+    photoCount: 0,
+  },
+};
+
+async function seedDemoInspection(seededRooms: SeededRoom[]) {
+  const existingInspection = await prisma.inspection.findFirst({
+    where: { projectName: DEMO_PROJECT_NAME, unitLabel: DEMO_UNIT_LABEL },
+  });
+  if (existingInspection) {
+    // Ya sembrada en una corrida anterior del seed: no duplicar.
+    return;
+  }
+
+  let organization = await prisma.organization.findFirst({
+    where: { name: "Familia Rojas (demo)" },
+  });
+  if (!organization) {
+    organization = await prisma.organization.create({
+      data: { name: "Familia Rojas (demo)", type: "PARTICULAR", plan: "GRATUITO" },
+    });
+  }
+
+  let user = await prisma.user.findUnique({
+    where: { email: "demo@obrabien.cl" },
+  });
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        organizationId: organization.id,
+        email: "demo@obrabien.cl",
+        name: "Usuario Demo",
+        role: "PROPIETARIO",
+      },
+    });
+  }
+
+  const inspection = await prisma.inspection.create({
+    data: {
+      organizationId: organization.id,
+      createdByUserId: user.id,
+      projectName: DEMO_PROJECT_NAME,
+      unitLabel: DEMO_UNIT_LABEL,
+      address: "Av. Los Robles 1234, Santiago",
+      developerName: "Inmobiliaria GranVista",
+      propertyType: "CASA",
+      hasTerrace: true,
+      hasRoofSpace: true,
+      status: "IN_PROGRESS",
+      receptionDate: new Date(),
+    },
+  });
+
+  for (const room of seededRooms) {
+    const roomInstance = await prisma.roomInstance.create({
+      data: {
+        inspectionId: inspection.id,
+        roomTemplateId: room.id,
+        name: room.name,
+        order: room.order,
+      },
+    });
+
+    const isCompletedRoom = DEMO_COMPLETED_ROOM_SLUGS.has(room.slug);
+    const flagged = DEMO_FLAGGED_ELEMENTS[room.slug];
+
+    for (const element of room.elements) {
+      if (!isCompletedRoom) {
+        await prisma.elementInstance.create({
+          data: {
+            roomInstanceId: roomInstance.id,
+            elementTemplateId: element.id,
+            name: element.name,
+            order: element.order,
+            status: "PENDING",
+          },
+        });
+        continue;
+      }
+
+      const isFlaggedElement = flagged?.elementSlug === element.slug;
+
+      const elementInstance = await prisma.elementInstance.create({
+        data: {
+          roomInstanceId: roomInstance.id,
+          elementTemplateId: element.id,
+          name: element.name,
+          order: element.order,
+          status: isFlaggedElement ? "OBSERVED" : "CORRECT",
+        },
+      });
+
+      for (const [i, checklistItemId] of element.checklistItemIds.entries()) {
+        const isFlaggedQuestion = isFlaggedElement && i === 0;
+
+        const observation = await prisma.observation.create({
+          data: {
+            elementInstanceId: elementInstance.id,
+            checklistItemTemplateId: checklistItemId,
+            status: isFlaggedQuestion ? "OBSERVATION" : "CORRECT",
+            comment: isFlaggedQuestion ? flagged.comment : null,
+            priority: isFlaggedQuestion ? flagged.priority : null,
+          },
+        });
+
+        if (isFlaggedQuestion && flagged.photoCount > 0) {
+          for (let photoIndex = 0; photoIndex < flagged.photoCount; photoIndex++) {
+            await prisma.photo.create({
+              data: {
+                observationId: observation.id,
+                storageKey: `demo/${room.slug}-${element.slug}-${photoIndex + 1}.jpg`,
+              },
+            });
+          }
         }
       }
     }
   }
+}
+
+async function main() {
+  const seededRooms = await seedCatalog();
+  await seedDemoInspection(seededRooms);
 }
 
 main()
