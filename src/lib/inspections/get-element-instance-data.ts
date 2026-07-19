@@ -21,7 +21,7 @@ export type ElementInstanceData = {
       status: "CORRECT" | "OBSERVATION";
       comment: string | null;
       priority: "ALTA" | "MEDIA" | "BAJA" | null;
-      photoCount: number;
+      photos: { id: string; url: string }[];
     } | null;
   }[];
 };
@@ -40,7 +40,7 @@ export async function getElementInstanceData(
           checklistItemTemplates: { orderBy: { order: "asc" } },
         },
       },
-      observations: { include: { _count: { select: { photos: true } } } },
+      observations: { include: { photos: { orderBy: { createdAt: "asc" } } } },
     },
   });
 
@@ -64,7 +64,7 @@ export async function getElementInstanceData(
             status: observation.status,
             comment: observation.comment,
             priority: observation.priority,
-            photoCount: observation._count.photos,
+            photos: observation.photos.map((photo) => ({ id: photo.id, url: photo.url })),
           }
         : null,
     };

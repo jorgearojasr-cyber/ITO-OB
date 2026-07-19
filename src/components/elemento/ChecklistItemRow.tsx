@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { upload } from "@vercel/blob/client";
 import type { ObservationStatus, Priority } from "@prisma/client";
-import { addDemoPhoto, saveChecklistAnswer } from "@/lib/inspections/actions";
+import { attachPhoto, saveChecklistAnswer } from "@/lib/inspections/actions";
 import styles from "./ChecklistItemRow.module.css";
+
+type Photo = { id: string; url: string };
 
 type ChecklistItemRowProps = {
   inspectionId: string;
@@ -16,7 +19,7 @@ type ChecklistItemRowProps = {
     status: ObservationStatus;
     comment: string | null;
     priority: Priority | null;
-    photoCount: number;
+    photos: Photo[];
   } | null;
 };
 
@@ -34,8 +37,11 @@ export function ChecklistItemRow({
   const [comment, setComment] = useState(initialObservation?.comment ?? "");
   const [priority, setPriority] = useState<Priority>(initialObservation?.priority ?? "MEDIA");
   const [observationId, setObservationId] = useState<string | null>(initialObservation?.id ?? null);
-  const [photoCount, setPhotoCount] = useState(initialObservation?.photoCount ?? 0);
+  const [photos, setPhotos] = useState<Photo[]>(initialObservation?.photos ?? []);
   const [isPending, startTransition] = useTransition();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function persist(nextStatus: ObservationStatus, nextComment: string, nextPriority: Priority) {
     startTransition(async () => {
@@ -74,12 +80,38 @@ export function ChecklistItemRow({
     }
   }
 
-  function handleAddPhoto() {
+  function handlePhotoButtonClick() {
     if (!observationId) return;
-    startTransition(async () => {
-      await addDemoPhoto({ inspectionId, elementInstanceId, observationId });
-      setPhotoCount((count) => count + 1);
-    });
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !observationId) return;
+
+    setUploadError(null);
+    setIsUploading(true);
+    try {
+      const blob = await upload(`observations/${observationId}/${crypto.randomUUID()}-${file.name}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/blob/upload",
+      });
+
+      const result = await attachPhoto({
+        inspectionId,
+        elementInstanceId,
+        observationId,
+        url: blob.url,
+        contentType: blob.contentType,
+      });
+
+      setPhotos((current) => [...current, { id: result.photoId, url: result.url }]);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "No se pudo subir la foto");
+    } finally {
+      setIsUploading(false);
+    }
   }
 
   return (
@@ -107,14 +139,34 @@ export function ChecklistItemRow({
         <button
           type="button"
           className={`${styles.actionBtn} ${styles.photoBtn}`}
-          onClick={handleAddPhoto}
-          disabled={isPending || !observationId}
+          onClick={handlePhotoButtonClick}
+          disabled={isPending || isUploading || !observationId}
           aria-label="Agregar fotografía"
           title={observationId ? "Agregar fotografía" : "Marca ✔ u ⚠ primero"}
         >
-          📷{photoCount > 0 && <span className={styles.photoCount}>{photoCount}</span>}
+          {isUploading ? "…" : "📷"}
+          {photos.length > 0 && <span className={styles.photoCount}>{photos.length}</span>}
         </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden
+          onChange={handleFileSelected}
+        />
       </div>
+
+      {uploadError && <div className={styles.uploadError}>{uploadError}</div>}
+
+      {photos.length > 0 && (
+        <div className={styles.thumbnails}>
+          {photos.map((photo) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={photo.id} src={photo.url} alt="" className={styles.thumbnail} />
+          ))}
+        </div>
+      )}
 
       {status === "OBSERVATION" && (
         <div className={styles.observationPanel}>

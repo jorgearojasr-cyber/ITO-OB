@@ -76,19 +76,24 @@ export async function saveChecklistAnswer(
   return { observationId: observation.id };
 }
 
-type AddDemoPhotoInput = {
+type AttachPhotoInput = {
   inspectionId: string;
   elementInstanceId: string;
   observationId: string;
+  url: string;
+  contentType?: string | null;
 };
 
-export async function addDemoPhoto(input: AddDemoPhotoInput): Promise<void> {
-  const { inspectionId, elementInstanceId, observationId } = input;
+export async function attachPhoto(
+  input: AttachPhotoInput,
+): Promise<{ photoId: string; url: string }> {
+  const { inspectionId, elementInstanceId, observationId, url, contentType } = input;
 
-  await prisma.photo.create({
+  const photo = await prisma.photo.create({
     data: {
       observationId,
-      storageKey: `demo/${observationId}-${Date.now()}.jpg`,
+      url,
+      contentType: contentType ?? null,
     },
   });
 
@@ -98,4 +103,6 @@ export async function addDemoPhoto(input: AddDemoPhotoInput): Promise<void> {
   });
 
   revalidateInspectionPaths(inspectionId, element.roomInstanceId, elementInstanceId);
+
+  return { photoId: photo.id, url: photo.url };
 }
