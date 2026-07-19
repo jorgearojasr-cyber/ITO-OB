@@ -25,6 +25,8 @@ export default async function InformePage({ params }: PageProps) {
         title="Informe final"
         subtitle={`${data.inspection.projectName} — ${data.inspection.unitLabel}`}
         backHref={`/inspecciones/${inspectionId}/resumen`}
+        shareUrl={`/inspecciones/${inspectionId}/informe`}
+        shareText={`Informe de recepción - ${data.inspection.projectName} — ${data.inspection.unitLabel}`}
       />
       <div className={styles.paper}>
         <InformeCover inspection={data.inspection} percent={data.summary.percent} />

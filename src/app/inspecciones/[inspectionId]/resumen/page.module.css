@@ -7,6 +7,12 @@
   padding-bottom: 24px;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .informeLink {
   display: flex;
   align-items: center;

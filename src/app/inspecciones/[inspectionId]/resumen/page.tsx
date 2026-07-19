@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
+import { ShareReportButton } from "@/components/ui/ShareReportButton";
 import { ObservationsSummaryList } from "@/components/resumen/ObservationsSummaryList";
 import { prisma } from "@/lib/db/prisma";
 import { getObservationsSummaryData } from "@/lib/inspections/get-observations-summary-data";
@@ -33,9 +34,16 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
         subtitle={`${inspection.projectName} — ${inspection.unitLabel}`}
         backHref="/"
         action={
-          <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeLink}>
-            Ver informe
-          </Link>
+          <div className={styles.actions}>
+            <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeLink}>
+              Ver informe
+            </Link>
+            <ShareReportButton
+              url={`/inspecciones/${inspectionId}/informe`}
+              title="Informe de recepción"
+              text={`Informe de recepción - ${inspection.projectName} — ${inspection.unitLabel}`}
+            />
+          </div>
         }
       />
       <ObservationsSummaryList inspectionId={inspectionId} data={data} />
