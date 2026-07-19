@@ -1,0 +1,15 @@
+.section {
+  margin-bottom: 24px;
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ink-900);
+  margin-bottom: 6px;
+}

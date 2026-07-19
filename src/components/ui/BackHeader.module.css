@@ -19,6 +19,11 @@
 
 .titles {
   min-width: 0;
+  flex: 1;
+}
+
+.action {
+  flex-shrink: 0;
 }
 
 .title {

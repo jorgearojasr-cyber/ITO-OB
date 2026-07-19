@@ -1,0 +1,25 @@
+@page {
+  size: A4;
+  margin: 18mm 16mm;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+.informe-cover,
+.informe-room,
+.informe-observation {
+  break-inside: avoid;
+}
+
+.informe-cover {
+  break-after: page;
+}

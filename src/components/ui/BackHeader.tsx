@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import styles from "./BackHeader.module.css";
 
@@ -5,9 +6,10 @@ type BackHeaderProps = {
   title: string;
   subtitle?: string;
   backHref: string;
+  action?: ReactNode;
 };
 
-export function BackHeader({ title, subtitle, backHref }: BackHeaderProps) {
+export function BackHeader({ title, subtitle, backHref, action }: BackHeaderProps) {
   return (
     <div className={styles.header}>
       <Link className={styles.backBtn} href={backHref} aria-label="Volver">
@@ -25,6 +27,7 @@ export function BackHeader({ title, subtitle, backHref }: BackHeaderProps) {
         <div className={styles.title}>{title}</div>
         {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
       </div>
+      {action && <div className={styles.action}>{action}</div>}
     </div>
   );
 }

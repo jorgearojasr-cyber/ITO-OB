@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { ObservationsSummaryList } from "@/components/resumen/ObservationsSummaryList";
@@ -29,6 +30,11 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
         title="Resumen de observaciones"
         subtitle={`${inspection.projectName} — ${inspection.unitLabel}`}
         backHref="/"
+        action={
+          <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeLink}>
+            Ver informe
+          </Link>
+        }
       />
       <ObservationsSummaryList inspectionId={inspectionId} data={data} />
     </div>
