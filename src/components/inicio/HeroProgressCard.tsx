@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import type { InicioData } from "@/lib/inspections/get-inicio-data";
 import styles from "./HeroProgressCard.module.css";
@@ -131,12 +132,12 @@ export function HeroProgressCard({ inspection, progress }: HeroProgressCardProps
         </div>
       </div>
 
-      <button className={styles.cta} type="button">
+      <Link className={styles.cta} href={`/inspecciones/${inspection.id}/resumen`}>
         Ver información
         <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
           <path d="M7.5 4.5L13 10L7.5 15.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-      </button>
+      </Link>
     </div>
   );
 }

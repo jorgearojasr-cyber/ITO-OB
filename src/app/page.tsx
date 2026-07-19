@@ -17,7 +17,7 @@ export default async function InicioPage() {
       <div className={styles.content}>
         <HeroProgressCard inspection={data.inspection} progress={data.progress} />
         <NextStepCard inspectionId={data.inspection?.id ?? ""} nextStep={data.nextStep} />
-        <QuickAccessGrid inspectionId={data.inspection?.id ?? null} />
+        <QuickAccessGrid inspectionId={data.inspection?.id ?? null} firstRoomId={data.firstRoomId} />
         <TipOfTheDayCard />
         <LibraryCarousel categories={data.libraryCategories} />
         <div className={styles.bottomSpacer} />
