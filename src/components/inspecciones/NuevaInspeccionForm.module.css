@@ -27,6 +27,10 @@
   font-weight: 500;
 }
 
+.checkboxRowNested {
+  margin-left: 24px;
+}
+
 .formError {
   background: #fde8e6;
   color: #b3261e;

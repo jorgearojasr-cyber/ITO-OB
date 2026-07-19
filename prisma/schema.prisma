@@ -60,7 +60,7 @@ enum Priority {
   BAJA
 }
 
-// Condiciona si un RoomTemplate (o, desde REJA en adelante, un
+// Condiciona si un RoomTemplate (o, desde ESCALERA en adelante, un
 // ElementTemplate individual dentro de un recinto siempre presente)
 // aplica según features de la vivienda
 enum RoomFeatureRequirement {
@@ -68,7 +68,8 @@ enum RoomFeatureRequirement {
   TERRAZA
   TECHUMBRE
   ESCALERA
-  REJA
+  REJA_PEATONAL
+  PORTON_VEHICULAR
 }
 
 // ---------- Tenant root ----------
@@ -161,21 +162,23 @@ model Inspection {
   createdByUserId String
   createdBy       User         @relation("InspectionCreator", fields: [createdByUserId], references: [id])
 
-  projectName   String // ej. "Condominio Los Robles"
-  unitLabel     String // ej. "Casa 15"
-  address       String
-  developerName String? // inmobiliaria
-  builderName   String? // constructora
-  propertyType  PropertyType
-  hasTerrace    Boolean           @default(false)
-  hasRoofSpace  Boolean           @default(false)
-  hasStairs     Boolean           @default(false)
-  hasGate       Boolean           @default(false)
-  receptionDate   DateTime?
-  receptionNumber String? // número de acta de recepción
-  status          InspectionStatus @default(DRAFT)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  projectName            String // ej. "Condominio Los Robles"
+  unitLabel              String // ej. "Casa 15"
+  address                String
+  developerName          String? // inmobiliaria
+  builderName            String? // constructora
+  propertyType           PropertyType
+  hasTerrace             Boolean          @default(false)
+  hasRoofSpace           Boolean          @default(false)
+  hasStairs              Boolean          @default(false)
+  hasPedestrianGate      Boolean          @default(false)
+  hasVehicleGate         Boolean          @default(false)
+  isVehicleGateAutomatic Boolean          @default(false)
+  receptionDate          DateTime?
+  receptionNumber        String? // número de acta de recepción
+  status                 InspectionStatus @default(DRAFT)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
   rooms         RoomInstance[]
   collaborators InspectionCollaborator[]
@@ -200,16 +203,16 @@ model InspectionCollaborator {
 // ---------- Catálogo maestro (Template) ----------
 
 model RoomTemplate {
-  id              String                  @id @default(cuid())
+  id              String                 @id @default(cuid())
   name            String // "Cocina", "Dormitorio"
-  slug            String                  @unique
-  order           Int                     @default(0)
+  slug            String                 @unique
+  order           Int                    @default(0)
   icon            String?
-  requiredFeature RoomFeatureRequirement  @default(NINGUNA)
-  appliesToCasa   Boolean                 @default(true)
-  appliesToDepto  Boolean                 @default(true)
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
+  requiredFeature RoomFeatureRequirement @default(NINGUNA)
+  appliesToCasa   Boolean                @default(true)
+  appliesToDepto  Boolean                @default(true)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
 
   elementTemplates ElementTemplate[]
   roomInstances    RoomInstance[]

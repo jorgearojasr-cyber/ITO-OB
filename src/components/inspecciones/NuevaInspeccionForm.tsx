@@ -15,7 +15,9 @@ export function NuevaInspeccionForm() {
   const [hasTerrace, setHasTerrace] = useState(true);
   const [hasRoofSpace, setHasRoofSpace] = useState(true);
   const [hasStairs, setHasStairs] = useState(false);
-  const [hasGate, setHasGate] = useState(false);
+  const [hasPedestrianGate, setHasPedestrianGate] = useState(false);
+  const [hasVehicleGate, setHasVehicleGate] = useState(false);
+  const [isVehicleGateAutomatic, setIsVehicleGateAutomatic] = useState(false);
   const [terraceTouched, setTerraceTouched] = useState(false);
   const [roofTouched, setRoofTouched] = useState(false);
 
@@ -103,14 +105,39 @@ export function NuevaInspeccionForm() {
       </div>
       <div className={styles.checkboxRow}>
         <input
-          id="hasGate"
-          name="hasGate"
+          id="hasPedestrianGate"
+          name="hasPedestrianGate"
           type="checkbox"
-          checked={hasGate}
-          onChange={(event) => setHasGate(event.target.checked)}
+          checked={hasPedestrianGate}
+          onChange={(event) => setHasPedestrianGate(event.target.checked)}
         />
-        <label htmlFor="hasGate">¿Tiene reja o portón de acceso?</label>
+        <label htmlFor="hasPedestrianGate">¿Tiene reja peatonal de acceso?</label>
       </div>
+      <div className={styles.checkboxRow}>
+        <input
+          id="hasVehicleGate"
+          name="hasVehicleGate"
+          type="checkbox"
+          checked={hasVehicleGate}
+          onChange={(event) => {
+            setHasVehicleGate(event.target.checked);
+            if (!event.target.checked) setIsVehicleGateAutomatic(false);
+          }}
+        />
+        <label htmlFor="hasVehicleGate">¿Tiene portón vehicular?</label>
+      </div>
+      {hasVehicleGate && (
+        <div className={`${styles.checkboxRow} ${styles.checkboxRowNested}`}>
+          <input
+            id="isVehicleGateAutomatic"
+            name="isVehicleGateAutomatic"
+            type="checkbox"
+            checked={isVehicleGateAutomatic}
+            onChange={(event) => setIsVehicleGateAutomatic(event.target.checked)}
+          />
+          <label htmlFor="isVehicleGateAutomatic">¿Es automático?</label>
+        </div>
+      )}
 
       <button type="submit" className={styles.submitBtn} disabled={isPending}>
         {isPending ? "Creando…" : "Crear inspección"}

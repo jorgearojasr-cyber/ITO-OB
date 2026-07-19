@@ -2,52 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { Prisma, ObservationStatus, Priority, PropertyType, RoomFeatureRequirement } from "@prisma/client";
+import type { Prisma, ObservationStatus, Priority, PropertyType } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
-
-type HouseFeatureFlags = {
-  hasTerrace: boolean;
-  hasRoofSpace: boolean;
-  hasStairs: boolean;
-  hasGate: boolean;
-};
-
-// Compartida entre recintos (RoomTemplate) y elementos individuales
-// (ElementTemplate) — un elemento condicional como "Reja o portón" vive
-// dentro de un recinto que siempre aplica (Exterior), así que la misma
-// condición de feature se evalúa a ambos niveles.
-function hasRequiredFeature(requiredFeature: RoomFeatureRequirement, flags: HouseFeatureFlags): boolean {
-  switch (requiredFeature) {
-    case "NINGUNA":
-      return true;
-    case "TERRAZA":
-      return flags.hasTerrace;
-    case "TECHUMBRE":
-      return flags.hasRoofSpace;
-    case "ESCALERA":
-      return flags.hasStairs;
-    case "REJA":
-      return flags.hasGate;
-  }
-}
-
-function roomTemplateApplies(
-  room: { appliesToCasa: boolean; appliesToDepto: boolean; requiredFeature: RoomFeatureRequirement },
-  propertyType: PropertyType,
-  flags: HouseFeatureFlags,
-): boolean {
-  const appliesToPropertyType = propertyType === "CASA" ? room.appliesToCasa : room.appliesToDepto;
-  if (!appliesToPropertyType) return false;
-  return hasRequiredFeature(room.requiredFeature, flags);
-}
-
-function elementTemplateApplies(
-  element: { requiredFeature: RoomFeatureRequirement },
-  flags: HouseFeatureFlags,
-): boolean {
-  return hasRequiredFeature(element.requiredFeature, flags);
-}
+import {
+  type HouseFeatureFlags,
+  roomTemplateApplies,
+  elementTemplateApplies,
+  vehicleGateVariantApplies,
+} from "@/lib/inspections/feature-flags";
 
 async function recomputeElementInstanceStatus(elementInstanceId: string) {
   const element = await prisma.elementInstance.findUniqueOrThrow({
@@ -205,8 +168,16 @@ export async function createInspection(
   const hasTerrace = formData.get("hasTerrace") === "on";
   const hasRoofSpace = formData.get("hasRoofSpace") === "on";
   const hasStairs = formData.get("hasStairs") === "on";
-  const hasGate = formData.get("hasGate") === "on";
-  const featureFlags: HouseFeatureFlags = { hasTerrace, hasRoofSpace, hasStairs, hasGate };
+  const hasPedestrianGate = formData.get("hasPedestrianGate") === "on";
+  const hasVehicleGate = formData.get("hasVehicleGate") === "on";
+  const isVehicleGateAutomatic = hasVehicleGate && formData.get("isVehicleGateAutomatic") === "on";
+  const featureFlags: HouseFeatureFlags = {
+    hasTerrace,
+    hasRoofSpace,
+    hasStairs,
+    hasPedestrianGate,
+    hasVehicleGate,
+  };
 
   if (!projectName || !unitLabel || !address) {
     return { error: "Completa proyecto inmobiliario, unidad y dirección." };
@@ -242,6 +213,7 @@ export async function createInspection(
 
     for (const element of room.elementTemplates) {
       if (!elementTemplateApplies(element, featureFlags)) continue;
+      if (!vehicleGateVariantApplies(element.slug, isVehicleGateAutomatic)) continue;
       elementsData.push({
         id: crypto.randomUUID(),
         roomInstanceId,
@@ -278,7 +250,9 @@ export async function createInspection(
         hasTerrace,
         hasRoofSpace,
         hasStairs,
-        hasGate,
+        hasPedestrianGate,
+        hasVehicleGate,
+        isVehicleGateAutomatic,
         status: "IN_PROGRESS",
       },
     }),
