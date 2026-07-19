@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "./QuickAccessGrid.module.css";
 
 const items = [
@@ -48,22 +49,40 @@ const items = [
   },
 ];
 
-export function QuickAccessGrid() {
+type QuickAccessGridProps = {
+  inspectionId: string | null;
+};
+
+export function QuickAccessGrid({ inspectionId }: QuickAccessGridProps) {
   return (
     <div className={styles.sectionPad}>
       <div className={styles.sectionTitle}>Acceso rápido</div>
       <div className={styles.grid}>
-        {items.map((item) => (
-          <div
-            key={item.label}
-            className={item.active ? `${styles.item} ${styles.itemActive}` : styles.item}
-          >
-            <div className={styles.icon} style={{ background: item.background }}>
-              {item.icon}
+        {items.map((item) => {
+          const className = item.active ? `${styles.item} ${styles.itemActive}` : styles.item;
+          const content = (
+            <>
+              <div className={styles.icon} style={{ background: item.background }}>
+                {item.icon}
+              </div>
+              <span className={styles.label}>{item.label}</span>
+            </>
+          );
+
+          if (item.label === "Observaciones" && inspectionId) {
+            return (
+              <Link key={item.label} href={`/inspecciones/${inspectionId}/resumen`} className={className}>
+                {content}
+              </Link>
+            );
+          }
+
+          return (
+            <div key={item.label} className={className}>
+              {content}
             </div>
-            <span className={styles.label}>{item.label}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

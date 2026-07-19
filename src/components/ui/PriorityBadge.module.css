@@ -1,0 +1,40 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.alta {
+  background: var(--amber-100);
+  color: #8a5a0f;
+}
+.alta .dot {
+  background: var(--amber-500);
+}
+
+.media {
+  background: var(--purple-100);
+  color: #4a3a8a;
+}
+.media .dot {
+  background: var(--purple-500);
+}
+
+.baja {
+  background: var(--ink-200);
+  color: var(--ink-600);
+}
+.baja .dot {
+  background: var(--ink-400);
+}
