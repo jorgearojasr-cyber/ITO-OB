@@ -6,11 +6,29 @@
   padding: 14px;
 }
 
+.questionRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .question {
   font-size: 14px;
   font-weight: 600;
   color: var(--ink-900);
   line-height: 1.4;
+}
+
+.savedBadge {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #0f4a32;
+  background: var(--green-100);
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 .helpText {

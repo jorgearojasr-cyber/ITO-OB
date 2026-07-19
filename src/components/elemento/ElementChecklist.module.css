@@ -1,0 +1,21 @@
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.completeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 20px 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--green-500);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  text-align: center;
+  box-shadow: 0 8px 16px -6px rgba(63, 201, 138, 0.55);
+}

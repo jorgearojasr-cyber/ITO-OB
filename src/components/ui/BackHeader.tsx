@@ -7,11 +7,12 @@ type BackHeaderProps = {
   subtitle?: string;
   backHref: string;
   action?: ReactNode;
+  sticky?: boolean;
 };
 
-export function BackHeader({ title, subtitle, backHref, action }: BackHeaderProps) {
+export function BackHeader({ title, subtitle, backHref, action, sticky }: BackHeaderProps) {
   return (
-    <div className={styles.header}>
+    <div className={sticky ? `${styles.header} ${styles.sticky}` : styles.header}>
       <Link className={styles.backBtn} href={backHref} aria-label="Volver">
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
           <path

@@ -7,6 +7,7 @@ import { attachPhoto, saveChecklistAnswer } from "@/lib/inspections/actions";
 import styles from "./ChecklistItemRow.module.css";
 
 type Photo = { id: string; url: string };
+type SaveState = "idle" | "saved" | "error";
 
 type ChecklistItemRowProps = {
   inspectionId: string;
@@ -21,6 +22,7 @@ type ChecklistItemRowProps = {
     priority: Priority | null;
     photos: Photo[];
   } | null;
+  onAnswered?: (checklistItemTemplateId: string) => void;
 };
 
 const PRIORITIES: Priority[] = ["ALTA", "MEDIA", "BAJA"];
@@ -32,6 +34,7 @@ export function ChecklistItemRow({
   question,
   helpText,
   initialObservation,
+  onAnswered,
 }: ChecklistItemRowProps) {
   const [status, setStatus] = useState<ObservationStatus | null>(initialObservation?.status ?? null);
   const [comment, setComment] = useState(initialObservation?.comment ?? "");
@@ -41,30 +44,39 @@ export function ChecklistItemRow({
   const [isPending, startTransition] = useTransition();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function persist(nextStatus: ObservationStatus, nextComment: string, nextPriority: Priority) {
     startTransition(async () => {
-      const result = await saveChecklistAnswer({
-        inspectionId,
-        elementInstanceId,
-        checklistItemTemplateId,
-        status: nextStatus,
-        comment: nextStatus === "OBSERVATION" ? nextComment : null,
-        priority: nextStatus === "OBSERVATION" ? nextPriority : null,
-      });
-      setObservationId(result.observationId);
+      try {
+        const result = await saveChecklistAnswer({
+          inspectionId,
+          elementInstanceId,
+          checklistItemTemplateId,
+          status: nextStatus,
+          comment: nextStatus === "OBSERVATION" ? nextComment : null,
+          priority: nextStatus === "OBSERVATION" ? nextPriority : null,
+        });
+        setObservationId(result.observationId);
+        setSaveState("saved");
+        setTimeout(() => setSaveState((current) => (current === "saved" ? "idle" : current)), 1500);
+      } catch {
+        setSaveState("error");
+      }
     });
   }
 
   function handleMarkCorrect() {
     setStatus("CORRECT");
     persist("CORRECT", comment, priority);
+    onAnswered?.(checklistItemTemplateId);
   }
 
   function handleMarkObservation() {
     setStatus("OBSERVATION");
     persist("OBSERVATION", comment, priority);
+    onAnswered?.(checklistItemTemplateId);
   }
 
   function handleCommentBlur() {
@@ -116,8 +128,13 @@ export function ChecklistItemRow({
 
   return (
     <div className={styles.row}>
-      <div className={styles.question}>{question}</div>
-      {helpText && <div className={styles.helpText}>{helpText}</div>}
+      <div className={styles.questionRow}>
+        <div>
+          <div className={styles.question}>{question}</div>
+          {helpText && <div className={styles.helpText}>{helpText}</div>}
+        </div>
+        {saveState === "saved" && <span className={styles.savedBadge}>Guardado ✓</span>}
+      </div>
 
       <div className={styles.actions}>
         <button
@@ -156,6 +173,10 @@ export function ChecklistItemRow({
           onChange={handleFileSelected}
         />
       </div>
+
+      {saveState === "error" && (
+        <div className={styles.uploadError}>No se pudo guardar, reintenta.</div>
+      )}
 
       {uploadError && <div className={styles.uploadError}>{uploadError}</div>}
 

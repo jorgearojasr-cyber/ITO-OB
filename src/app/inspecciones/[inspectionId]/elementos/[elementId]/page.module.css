@@ -6,8 +6,3 @@
   background: var(--paper);
   padding-bottom: 24px;
 }
-
-.list {
-  display: flex;
-  flex-direction: column;
-}
