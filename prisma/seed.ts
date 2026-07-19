@@ -323,8 +323,28 @@ const ILUMINACION_CHECKLIST = [
   "¿Si es un foco empotrado, está bien fijo al cielo, sin quedar colgando o torcido?",
 ];
 
+type SeedElementDef = {
+  slug: string;
+  name: string;
+  libraryArticleSlug: string | null;
+  // Por defecto NINGUNA (siempre se incluye); solo se declara cuando el
+  // elemento es condicional dentro de un recinto que sí siempre aplica
+  // (ej. "Reja o portón" dentro de Exterior).
+  requiredFeature?: RoomFeatureRequirement;
+  checklist: string[];
+};
+
+type SeedRoomDef = {
+  slug: string;
+  name: string;
+  order: number;
+  icon: string;
+  requiredFeature: RoomFeatureRequirement;
+  elements: SeedElementDef[];
+};
+
 // Estructura de recintos del recorrido sugerido (sección 7)
-const roomTemplates = [
+const roomTemplates: SeedRoomDef[] = [
   {
     slug: "exterior",
     name: "Exterior",
@@ -354,6 +374,19 @@ const roomTemplates = [
           "¿La hoja de la puerta se ve plana, sin pandeos ni curvaturas?",
           "¿La manilla está firme, sin holgura al moverla?",
           "Si la puerta es de dos hojas, ¿la separación entre ambas es pareja en toda su altura?",
+        ],
+      },
+      {
+        slug: "reja-o-porton",
+        name: "Reja o portón",
+        libraryArticleSlug: null,
+        requiredFeature: RoomFeatureRequirement.REJA,
+        checklist: [
+          "¿La reja o portón abre y cierra correctamente, sin trabarse?",
+          "¿El candado, cerradura o sistema eléctrico (si es automático) funciona bien?",
+          "¿No hay óxido avanzado ni pintura descascarada?",
+          "¿Está bien fijada, sin moverse al empujarla?",
+          "¿Si es automática, el control remoto o la app funcionan correctamente?",
         ],
       },
     ],
@@ -895,6 +928,8 @@ async function seedCatalog(): Promise<SeededRoom[]> {
         ? articleBySlug.get(element.libraryArticleSlug)
         : undefined;
 
+      const requiredFeature = element.requiredFeature ?? RoomFeatureRequirement.NINGUNA;
+
       const createdElement = await prisma.elementTemplate.upsert({
         where: {
           roomTemplateId_slug: {
@@ -905,6 +940,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
         update: {
           name: element.name,
           order: elementIndex,
+          requiredFeature,
           referenceLibraryArticleId,
         },
         create: {
@@ -912,6 +948,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
           slug: element.slug,
           name: element.name,
           order: elementIndex,
+          requiredFeature,
           referenceLibraryArticleId,
         },
       });
@@ -1052,6 +1089,7 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
       hasTerrace: true,
       hasRoofSpace: true,
       hasStairs: true,
+      hasGate: true,
       status: "IN_PROGRESS",
       receptionDate: new Date(),
     },
