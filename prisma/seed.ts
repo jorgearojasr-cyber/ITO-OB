@@ -673,7 +673,7 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
             await prisma.photo.create({
               data: {
                 observationId: observation.id,
-                storageKey: `demo/${room.slug}-${element.slug}-${photoIndex + 1}.jpg`,
+                url: `https://placehold.co/600x400?text=${encodeURIComponent(`${room.name} — ${element.name}`)}`,
               },
             });
           }

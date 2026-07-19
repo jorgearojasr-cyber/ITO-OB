@@ -258,7 +258,8 @@ model Photo {
   id            String      @id @default(cuid())
   observationId String
   observation   Observation @relation(fields: [observationId], references: [id])
-  storageKey    String // path en el bucket S3/R2
+  url           String // URL pública del blob en Vercel Blob
+  contentType   String?
   width         Int?
   height        Int?
   // Extensible sin migración futura: metadatos de análisis de imagen IA.
