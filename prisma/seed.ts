@@ -3,8 +3,12 @@ import {
   RoomFeatureRequirement,
   type Priority,
 } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+
+// Contraseña de desarrollo del usuario demo — solo para la base local/dev.
+const DEMO_USER_PASSWORD = "demo1234";
 
 // Categorías de la biblioteca técnica (sección 10 / prototipo de Inicio)
 const libraryCategories = [
@@ -569,14 +573,6 @@ const DEMO_FLAGGED_ELEMENTS: Record<
 };
 
 async function seedDemoInspection(seededRooms: SeededRoom[]) {
-  const existingInspection = await prisma.inspection.findFirst({
-    where: { projectName: DEMO_PROJECT_NAME, unitLabel: DEMO_UNIT_LABEL },
-  });
-  if (existingInspection) {
-    // Ya sembrada en una corrida anterior del seed: no duplicar.
-    return;
-  }
-
   let organization = await prisma.organization.findFirst({
     where: { name: "Familia Rojas (demo)" },
   });
@@ -586,18 +582,28 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
     });
   }
 
-  let user = await prisma.user.findUnique({
+  // Upsert (no solo create): así, si el usuario demo ya existía de una
+  // corrida anterior sin passwordHash, correr el seed de nuevo se lo
+  // asigna igual, sin necesidad de recrear la inspección.
+  const passwordHash = await bcrypt.hash(DEMO_USER_PASSWORD, 10);
+  const user = await prisma.user.upsert({
     where: { email: "demo@obrabien.cl" },
+    update: { passwordHash },
+    create: {
+      organizationId: organization.id,
+      email: "demo@obrabien.cl",
+      name: "Usuario Demo",
+      role: "PROPIETARIO",
+      passwordHash,
+    },
   });
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        organizationId: organization.id,
-        email: "demo@obrabien.cl",
-        name: "Usuario Demo",
-        role: "PROPIETARIO",
-      },
-    });
+
+  const existingInspection = await prisma.inspection.findFirst({
+    where: { projectName: DEMO_PROJECT_NAME, unitLabel: DEMO_UNIT_LABEL },
+  });
+  if (existingInspection) {
+    // Ya sembrada en una corrida anterior del seed: no duplicar.
+    return;
   }
 
   const inspection = await prisma.inspection.create({

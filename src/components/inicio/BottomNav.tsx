@@ -41,13 +41,13 @@ export function BottomNav() {
         </svg>
         <span>Biblioteca</span>
       </button>
-      <button className={styles.navItem} type="button">
+      <Link className={styles.navItem} href="/perfil">
         <svg width="21" height="21" viewBox="0 0 20 20" fill="none">
           <circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.6" />
           <path d="M3.5 17C4.3 13.8 6.9 12 10 12C13.1 12 15.7 13.8 16.5 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
         <span>Perfil</span>
-      </button>
+      </Link>
     </div>
   );
 }
