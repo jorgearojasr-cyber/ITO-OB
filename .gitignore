@@ -42,3 +42,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# documentos de referencia comerciales/de terceros, no redistribuibles
+docs/manual-tolerancia-cchc.pdf
