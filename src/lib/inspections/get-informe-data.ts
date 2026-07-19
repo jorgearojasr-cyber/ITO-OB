@@ -2,6 +2,7 @@ import "server-only";
 
 import type { ElementInstanceStatus, ObservationStatus, Priority, PropertyType } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
+import { requireSession } from "@/lib/auth/session";
 
 export type InformeObservation = {
   question: string;
@@ -48,8 +49,10 @@ export type InformeData = {
 };
 
 export async function getInformeData(inspectionId: string): Promise<InformeData | null> {
-  const inspection = await prisma.inspection.findUnique({
-    where: { id: inspectionId },
+  const session = await requireSession();
+
+  const inspection = await prisma.inspection.findFirst({
+    where: { id: inspectionId, organizationId: session.user.organizationId },
     include: {
       organization: true,
       createdBy: true,

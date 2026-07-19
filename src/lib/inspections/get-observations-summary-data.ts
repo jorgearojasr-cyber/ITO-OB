@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Priority } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
+import { requireSession } from "@/lib/auth/session";
 
 export type ObservationSummaryItem = {
   id: string;
@@ -28,10 +29,17 @@ const PRIORITY_RANK: Record<Priority, number> = {
 export async function getObservationsSummaryData(
   inspectionId: string,
 ): Promise<ObservationsSummaryData> {
+  const session = await requireSession();
+
   const rows = await prisma.observation.findMany({
     where: {
       status: "OBSERVATION",
-      elementInstance: { roomInstance: { inspectionId } },
+      elementInstance: {
+        roomInstance: {
+          inspectionId,
+          inspection: { organizationId: session.user.organizationId },
+        },
+      },
     },
     include: {
       elementInstance: { include: { roomInstance: true } },

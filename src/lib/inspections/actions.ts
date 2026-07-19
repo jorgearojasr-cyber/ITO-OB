@@ -4,11 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ObservationStatus, Priority, PropertyType, RoomFeatureRequirement } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
-
-// TODO(auth): reemplazar por el usuario/organización de la sesión real
-// cuando exista autenticación. Por ahora se usa el usuario sembrado por
-// prisma/seed.ts (mismo criterio ya documentado en getInicioData).
-const DEMO_USER_EMAIL = "demo@obrabien.cl";
+import { requireSession } from "@/lib/auth/session";
 
 function roomTemplateApplies(
   room: { appliesToCasa: boolean; appliesToDepto: boolean; requiredFeature: RoomFeatureRequirement },
@@ -74,6 +70,22 @@ export async function saveChecklistAnswer(
 ): Promise<{ observationId: string }> {
   const { inspectionId, elementInstanceId, checklistItemTemplateId, status, comment, priority } = input;
 
+  const session = await requireSession();
+
+  const ownedElement = await prisma.elementInstance.findFirst({
+    where: {
+      id: elementInstanceId,
+      roomInstance: {
+        inspectionId,
+        inspection: { organizationId: session.user.organizationId },
+      },
+    },
+    select: { id: true },
+  });
+  if (!ownedElement) {
+    throw new Error("Elemento no encontrado en esta organización.");
+  }
+
   const observation = await prisma.observation.upsert({
     where: {
       elementInstanceId_checklistItemTemplateId: {
@@ -113,6 +125,25 @@ export async function attachPhoto(
   input: AttachPhotoInput,
 ): Promise<{ photoId: string; url: string }> {
   const { inspectionId, elementInstanceId, observationId, url, contentType } = input;
+
+  const session = await requireSession();
+
+  const ownedObservation = await prisma.observation.findFirst({
+    where: {
+      id: observationId,
+      elementInstanceId,
+      elementInstance: {
+        roomInstance: {
+          inspectionId,
+          inspection: { organizationId: session.user.organizationId },
+        },
+      },
+    },
+    select: { id: true },
+  });
+  if (!ownedObservation) {
+    throw new Error("Observación no encontrada en esta organización.");
+  }
 
   const photo = await prisma.photo.create({
     data: {
@@ -157,10 +188,7 @@ export async function createInspection(
     return { error: "Selecciona el tipo de vivienda." };
   }
 
-  const user = await prisma.user.findUnique({ where: { email: DEMO_USER_EMAIL } });
-  if (!user) {
-    return { error: "No se encontró el usuario de prueba. Corre `npm run db:seed` primero." };
-  }
+  const session = await requireSession();
 
   const roomTemplates = await prisma.roomTemplate.findMany({
     orderBy: { order: "asc" },
@@ -173,8 +201,8 @@ export async function createInspection(
   const inspection = await prisma.$transaction(async (tx) => {
     const created = await tx.inspection.create({
       data: {
-        organizationId: user.organizationId,
-        createdByUserId: user.id,
+        organizationId: session.user.organizationId,
+        createdByUserId: session.user.id,
         projectName,
         unitLabel,
         address,

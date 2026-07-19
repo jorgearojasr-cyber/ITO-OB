@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/db/prisma";
+import { requireSession } from "@/lib/auth/session";
 
 export type ElementInstanceData = {
   id: string;
@@ -30,8 +31,16 @@ export async function getElementInstanceData(
   inspectionId: string,
   elementInstanceId: string,
 ): Promise<ElementInstanceData | null> {
-  const element = await prisma.elementInstance.findUnique({
-    where: { id: elementInstanceId },
+  const session = await requireSession();
+
+  const element = await prisma.elementInstance.findFirst({
+    where: {
+      id: elementInstanceId,
+      roomInstance: {
+        inspectionId,
+        inspection: { organizationId: session.user.organizationId },
+      },
+    },
     include: {
       roomInstance: true,
       elementTemplate: {
@@ -44,7 +53,7 @@ export async function getElementInstanceData(
     },
   });
 
-  if (!element || element.roomInstance.inspectionId !== inspectionId) {
+  if (!element) {
     return null;
   }
 

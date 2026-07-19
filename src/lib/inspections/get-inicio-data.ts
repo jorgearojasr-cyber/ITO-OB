@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/db/prisma";
+import { requireSession } from "@/lib/auth/session";
 
 export type InicioData = {
   inspection: {
@@ -40,9 +41,11 @@ const EMPTY_PROGRESS: InicioData["progress"] = {
 };
 
 export async function getInicioData(): Promise<InicioData> {
+  const session = await requireSession();
+
   const [inspection, libraryCategories] = await Promise.all([
     prisma.inspection.findFirst({
-      where: { status: "IN_PROGRESS" },
+      where: { status: "IN_PROGRESS", organizationId: session.user.organizationId },
       orderBy: { updatedAt: "desc" },
     }),
     prisma.libraryCategory.findMany({

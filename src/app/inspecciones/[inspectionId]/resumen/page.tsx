@@ -4,6 +4,7 @@ import { BackHeader } from "@/components/ui/BackHeader";
 import { ObservationsSummaryList } from "@/components/resumen/ObservationsSummaryList";
 import { prisma } from "@/lib/db/prisma";
 import { getObservationsSummaryData } from "@/lib/inspections/get-observations-summary-data";
+import { requireSession } from "@/lib/auth/session";
 import styles from "./page.module.css";
 
 type PageProps = {
@@ -12,9 +13,10 @@ type PageProps = {
 
 export default async function ObservationsSummaryPage({ params }: PageProps) {
   const { inspectionId } = await params;
+  const session = await requireSession();
 
-  const inspection = await prisma.inspection.findUnique({
-    where: { id: inspectionId },
+  const inspection = await prisma.inspection.findFirst({
+    where: { id: inspectionId, organizationId: session.user.organizationId },
     select: { projectName: true, unitLabel: true },
   });
 

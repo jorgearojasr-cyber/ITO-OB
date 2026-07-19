@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/db/prisma";
+import { requireSession } from "@/lib/auth/session";
 
 export type RoomInstanceData = {
   id: string;
@@ -23,8 +24,14 @@ export async function getRoomInstanceData(
   inspectionId: string,
   roomInstanceId: string,
 ): Promise<RoomInstanceData | null> {
-  const room = await prisma.roomInstance.findUnique({
-    where: { id: roomInstanceId },
+  const session = await requireSession();
+
+  const room = await prisma.roomInstance.findFirst({
+    where: {
+      id: roomInstanceId,
+      inspectionId,
+      inspection: { organizationId: session.user.organizationId },
+    },
     include: {
       elements: {
         orderBy: { order: "asc" },
@@ -33,7 +40,7 @@ export async function getRoomInstanceData(
     },
   });
 
-  if (!room || room.inspectionId !== inspectionId) {
+  if (!room) {
     return null;
   }
 
