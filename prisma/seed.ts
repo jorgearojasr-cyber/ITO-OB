@@ -72,6 +72,217 @@ const libraryCategories = [
       },
     ],
   },
+  {
+    slug: "porcelanatos",
+    name: "Porcelanatos",
+    order: 4,
+    icon: "floor",
+    articles: [
+      {
+        slug: "nivel-y-sellado-de-juntas",
+        title: "Nivel y sellado de las juntas",
+        summary:
+          "Cómo revisar que las piezas de porcelanato estén niveladas y sus juntas bien selladas.",
+        body: "El porcelanato es un revestimiento de piso o muro hecho con piezas grandes, parecidas a la cerámica pero más resistente y con juntas más finas. Pasa la mano por las uniones entre piezas: no debiera notarse un escalón entre una pieza y la de al lado. Golpea suavemente la superficie con una moneda o un objeto metálico similar en varios puntos de cada pieza: un sonido sólido y parejo indica que quedó bien pegada, mientras que un sonido hueco o con eco indica que el adhesivo de abajo no pegó bien en ese punto (una pieza \"soplada\"). Revisa también que las juntas (líneas entre piezas) tengan un ancho parejo y estén selladas con fragüe sin grietas. Si detectas piezas sueltas, con sonido hueco, desniveladas o con juntas agrietadas, regístralo como observación: son defectos que empeoran con el tiempo si no se corrigen a tiempo.",
+      },
+    ],
+  },
+  {
+    slug: "ceramicas",
+    name: "Cerámicas",
+    order: 5,
+    icon: "floor",
+    articles: [
+      {
+        slug: "piezas-parejas-sin-fisuras",
+        title: "Piezas parejas y sin fisuras",
+        summary: "Qué revisar en pisos y muros revestidos con cerámica.",
+        body: "La cerámica es un revestimiento similar al porcelanato pero de menor tamaño y grosor, usado frecuentemente en cocinas y baños. Revisa que todas las piezas estén parejas entre sí, sin bordes que sobresalgan al tacto, y que no existan piezas trisadas, picadas o con manchas de humedad debajo. Igual que con el porcelanato, golpea suavemente cada pieza con una moneda o un objeto metálico: un sonido hueco o con eco (a diferencia del sonido sólido del resto) indica que esa pieza no quedó bien adherida al piso o muro. Revisa también las esquinas y remates (como el borde de una tina o un mesón), donde es común encontrar piezas mal cortadas o juntas sin terminar.",
+      },
+    ],
+  },
+  {
+    slug: "pinturas",
+    name: "Pinturas",
+    order: 6,
+    icon: "paint",
+    articles: [
+      {
+        slug: "uniformidad-de-la-pintura",
+        title: "Uniformidad y terminación de la pintura",
+        summary: "Cómo detectar defectos comunes en la pintura de muros y cielos.",
+        body: "La pintura debe verse pareja en color y textura en toda la superficie, sin manchas, escurrimientos ni marcas de rodillo muy visibles. Revisa los muros con luz rasante (de lado, no de frente) para notar imperfecciones que a simple vista no se ven. Pon atención a las esquinas, contornos de puertas y ventanas, y guardapolvos: son los lugares donde más se notan los descuidos de terminación. Grietas finas en la pintura, sobre todo cerca de encuentros entre muro y cielo, pueden ser solo estéticas o pueden indicar un problema mayor detrás; si tienes dudas, coméntalo igual como observación para que quede documentado.",
+      },
+    ],
+  },
+  {
+    slug: "muebles",
+    name: "Muebles",
+    order: 7,
+    icon: "furniture",
+    articles: [
+      {
+        slug: "puertas-cajones-y-herrajes",
+        title: "Funcionamiento de puertas, cajones y herrajes",
+        summary: "Qué revisar en muebles de cocina, closets y baño.",
+        body: "Los muebles instalados en la vivienda (cocina, closets, baño) deben abrir y cerrar con un movimiento suave, sin rozar ni forzar. Prueba cada puerta y cajón al menos una vez: revisa que las bisagras y correderas no hagan ruido ni queden torcidas, y que los tiradores estén firmes y bien atornillados. Revisa también el interior: que los estantes estén nivelados y que no haya bordes sin terminar o astillados. Un mueble mal instalado tiende a desalinearse con el uso normal, así que cualquier roce o dificultad para cerrar que notes ahora probablemente empeore con el tiempo.",
+      },
+    ],
+  },
+  {
+    slug: "cubiertas",
+    name: "Cubiertas",
+    order: 8,
+    icon: "roof",
+    articles: [
+      {
+        slug: "estado-de-la-cubierta",
+        title: "Estado general de la cubierta del techo",
+        summary: "Qué señales revisar en la cubierta (tejas, planchas u otro material) del techo.",
+        body: "La cubierta es el material que recubre y protege el techo de la vivienda (tejas, planchas u otro). Desde un punto seguro (nunca subas al techo sin la protección adecuada), revisa que no haya piezas visiblemente quebradas, corridas de su posición o con óxido. Dentro de la vivienda, revisa el cielo raso en busca de manchas de humedad, que son la señal más clara de un problema en la cubierta. Si la vivienda tiene una zona de techumbre accesible, revisa también ahí si se ve luz del día filtrándose entre las piezas de cubierta, señal de que no están bien selladas.",
+      },
+    ],
+  },
+  {
+    slug: "sanitarios",
+    name: "Sanitarios",
+    order: 9,
+    icon: "bath",
+    articles: [
+      {
+        slug: "firmeza-de-artefactos-sanitarios",
+        title: "Firmeza y funcionamiento de artefactos sanitarios",
+        summary: "Cómo revisar que el inodoro, lavamanos y ducha estén bien instalados.",
+        body: "Los artefactos sanitarios (inodoro, lavamanos, tina o ducha) deben estar firmes al presionarlos con la mano, sin moverse ni hacer ruido. Revisa que no tengan fisuras visibles en la loza ni manchas de óxido alrededor de los pernos de fijación. Prueba la descarga del inodoro y confirma que el agua no rebalsa ni sigue corriendo después de un rato. En el lavamanos, revisa que el desagüe no gotee por debajo abriendo la puerta del mueble si tiene uno. Cualquier artefacto suelto, trizado o que drene lento debe quedar registrado como observación.",
+      },
+    ],
+  },
+  {
+    slug: "griferias",
+    name: "Griferías",
+    order: 10,
+    icon: "faucet",
+    articles: [
+      {
+        slug: "filtraciones-y-presion-de-agua",
+        title: "Filtraciones y presión de agua",
+        summary: "Qué revisar en las llaves de agua de cocina y baños.",
+        body: "La grifería son las llaves de agua de lavamanos, cocina, ducha y tina. Ábrelas y ciérralas para confirmar que giran suave, sin trabarse, y que no gotean ni por el pico ni por la base al abrirlas. Revisa también debajo del mueble o lavamanos si hay humedad o manchas, señal de una filtración que no se ve a simple vista desde arriba. Prueba el agua caliente y fría por separado: ambas deben salir con una presión pareja, sin variar de golpe. Una llave que gotea apenas la cierras, aunque parezca un detalle menor, suele empeorar con el uso y vale la pena dejarlo registrado.",
+      },
+    ],
+  },
+  {
+    slug: "siliconas",
+    name: "Siliconas",
+    order: 11,
+    icon: "seal",
+    articles: [
+      {
+        slug: "sellos-en-cocina-y-bano",
+        title: "Sellos de silicona en cocina y baño",
+        summary: "Dónde revisar sellos de silicona más allá de las ventanas, y por qué importan.",
+        body: "Además de las ventanas, la silicona se usa para sellar las uniones entre superficies en la cocina (mesón con muro, lavaplatos con mesón) y el baño (tina o ducha con muro, lavamanos con mesón). Revisa que el sello sea una línea continua, sin cortes, burbujas ni zonas despegadas del material. Un sello dañado o incompleto permite que el agua se filtre hacia adentro del mueble o del muro, generando humedad y manchas que no se notan de inmediato. Si ves silicona amarillenta, con hongos (manchas oscuras) o que se despega al tocarla con el dedo, regístralo: no es solo estético, es una puerta de entrada para filtraciones.",
+      },
+    ],
+  },
+  {
+    slug: "interruptores",
+    name: "Interruptores",
+    order: 12,
+    icon: "switch",
+    articles: [
+      {
+        slug: "funcionamiento-de-interruptores",
+        title: "Funcionamiento correcto de cada interruptor",
+        summary: "Cómo confirmar que cada interruptor enciende la luz correcta.",
+        body: "Cada interruptor debe encender y apagar sin dificultad, y corresponder exactamente al punto de luz que dice controlar. Prueba uno por uno: si un interruptor no enciende ninguna luz, o enciende una que no es la esperada, puede ser un cableado mal conectado. Revisa también que la placa esté firme en el muro, sin holgura ni bordes sueltos, y que no haga ruido ni chispee al accionarlo — si notas esto último, es una situación que debe revisar un electricista, no algo para intentar arreglar tú mismo. En recintos con varios interruptores para una misma luz (como pasillos o dormitorios con dos entradas), confirma que ambos funcionen correctamente desde cualquier punto.",
+      },
+    ],
+  },
+  {
+    slug: "enchufes",
+    name: "Enchufes",
+    order: 13,
+    icon: "outlet",
+    articles: [
+      {
+        slug: "prueba-de-enchufes",
+        title: "Prueba de enchufes con un artefacto real",
+        summary: "Por qué probar cada enchufe con un aparato real, no solo mirarlo.",
+        body: "Un enchufe puede verse perfecto y aun así no funcionar, por eso la única forma confiable de revisarlo es probándolo con un artefacto real (un cargador de celular sirve). Prueba cada enchufe de la vivienda, uno por uno, y anota los que no entreguen corriente. Revisa también que la placa esté firme, sin holgura, y que las entradas no estén flojas al insertar el enchufe del aparato. En cocina y baño es normal encontrar enchufes con un botón de prueba (tipo diferencial): si existe, revisa que ese botón funcione — corta la corriente al presionarlo y se puede reactivar después.",
+      },
+    ],
+  },
+  {
+    slug: "iluminacion",
+    name: "Iluminación",
+    order: 14,
+    icon: "light",
+    articles: [
+      {
+        slug: "puntos-de-luz-encendidos",
+        title: "Todos los puntos de luz encendidos",
+        summary: "Cómo confirmar que cada punto de luz de la vivienda funciona.",
+        body: "Recorre la vivienda encendiendo cada punto de luz (ampolletas, focos empotrados, luces exteriores) uno por uno, incluyendo los que a veces se pasan por alto como el interior de closets o la luz exterior de la entrada. Un punto de luz que no enciende puede ser solo una ampolleta que falta —algo simple de resolver— o un problema de cableado, así que igual conviene dejarlo anotado para que la inmobiliaria confirme cuál es el caso. Revisa también que la luz no parpadee ni haga ruido, y que los focos empotrados estén bien fijos al cielo, sin quedar colgando o torcidos.",
+      },
+    ],
+  },
+  {
+    slug: "tableros-electricos",
+    name: "Tableros eléctricos",
+    order: 15,
+    icon: "panel",
+    articles: [
+      {
+        slug: "rotulacion-y-diferenciales",
+        title: "Rotulación y diferenciales del tablero",
+        summary: "Qué revisar en el tablero eléctrico sin manipularlo directamente.",
+        body: "El tablero eléctrico concentra los interruptores (automáticos y diferenciales) que protegen y distribuyen la electricidad de la vivienda. No manipules el tablero sin conocimiento: para revisarlo basta con observarlo y probar los diferenciales desde su propio botón de prueba, sin abrir cables ni tocar conexiones internas. Revisa que cada circuito esté rotulado (por ejemplo, \"cocina\", \"dormitorios\", \"iluminación\"), de forma que en el futuro sea fácil saber qué corta cada interruptor. Prueba el botón de test de cada diferencial: al presionarlo debe cortar la corriente de inmediato, y debes poder reactivarlo subiendo la palanca. Si algún diferencial no corta al probarlo, o el tablero no tiene ningún tipo de rotulación, es una observación importante de prioridad alta — es un tema de seguridad, no solo de terminación estética. Ante cualquier duda técnica sobre el tablero, la recomendación general y segura es siempre cortar la energía antes de manipular cualquier cosa dentro de él, y ante cualquier anomalía consultar con un electricista certificado.",
+      },
+    ],
+  },
+  {
+    slug: "techumbres",
+    name: "Techumbres",
+    order: 16,
+    icon: "attic",
+    articles: [
+      {
+        slug: "humedad-y-ventilacion-en-techumbre",
+        title: "Señales de humedad y ventilación en la techumbre",
+        summary: "Qué revisar cuando la vivienda tiene acceso a la techumbre (espacio bajo el techo).",
+        body: "La techumbre es el espacio estructural entre el cielo raso y la cubierta del techo; algunas viviendas tienen una escotilla de acceso para revisarlo. Si puedes acceder de forma segura, revisa con una linterna que no haya manchas de humedad en la madera o estructura, ni luz del día filtrándose desde afuera. Verifica que exista algún tipo de ventilación (rejillas o similar): un espacio de techumbre sin ventilación acumula humedad con el tiempo, aunque hoy no se vea ningún daño. Si no tienes acceso seguro a este espacio o no te sientes cómodo revisándolo, no es necesario forzarlo — es un punto que puede quedar pendiente para que lo evalúe un especialista más adelante.",
+      },
+    ],
+  },
+  {
+    slug: "canaletas",
+    name: "Canaletas",
+    order: 17,
+    icon: "gutter",
+    articles: [
+      {
+        slug: "fijacion-y-limpieza-de-canaletas",
+        title: "Fijación y limpieza de las canaletas",
+        summary: "Cómo revisar que las canaletas evacúen el agua de lluvia correctamente.",
+        body: "Las canaletas son los canales que recogen el agua de lluvia desde el techo y la conducen hacia abajo, evitando que escurra directamente sobre los muros. Revisa visualmente que estén bien fijadas a la estructura, sin tramos caídos, torcidos o separados del techo. Revisa también que no tengan hojas, tierra u otros restos que puedan obstruir el paso del agua — una canaleta tapada rebalsa y moja el muro exterior igual que si no existiera. Si la vivienda tiene bajadas de agua (tubos verticales conectados a las canaletas), confirma que estén conectadas correctamente y no terminen sueltas a mitad de camino.",
+      },
+    ],
+  },
+  {
+    slug: "impermeabilizaciones",
+    name: "Impermeabilizaciones",
+    order: 18,
+    icon: "waterproof",
+    articles: [
+      {
+        slug: "impermeabilizacion-de-terrazas",
+        title: "Impermeabilización en terrazas y zonas exteriores",
+        summary: "Qué revisar en la impermeabilización de terrazas, patios y otras zonas expuestas al agua.",
+        body: "Además del baño, hay otras zonas de la vivienda expuestas directamente a la lluvia o humedad que dependen de una buena impermeabilización: terrazas, patios techados y balcones. Revisa que el piso de estas zonas tenga una pendiente perceptible hacia un desagüe o el borde exterior — el agua nunca debería acumularse en charcos hacia el interior de la vivienda. Revisa también las uniones entre el piso exterior y los muros o puertas: no debiera haber grietas ni sellos despegados en esos encuentros, porque es por ahí donde más filtra el agua hacia el interior. La impermeabilización es una de las partidas más difíciles de evaluar a simple vista porque el daño muchas veces aparece meses después; ante cualquier señal de humedad, por mínima que sea, es preferible dejarla registrada como observación.",
+      },
+    ],
+  },
 ];
 
 // Estructura de recintos del recorrido sugerido (sección 7)
@@ -86,7 +297,7 @@ const roomTemplates = [
       {
         slug: "fachada",
         name: "Fachada",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "uniformidad-de-la-pintura",
         checklist: [
           "¿La pintura o revestimiento está uniforme, sin manchas ni grietas visibles?",
           "¿No hay filtraciones visibles en la unión entre muros y aleros?",
@@ -131,7 +342,7 @@ const roomTemplates = [
       {
         slug: "enchufes-e-interruptores",
         name: "Enchufes e interruptores",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "prueba-de-enchufes",
         checklist: [
           "¿Cada enchufe funciona probado con un artefacto real?",
           "¿Los interruptores encienden y apagan la luz correspondiente?",
@@ -158,7 +369,7 @@ const roomTemplates = [
       {
         slug: "iluminacion",
         name: "Iluminación",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "puntos-de-luz-encendidos",
         checklist: ["¿Todos los puntos de luz encienden correctamente?"],
       },
     ],
@@ -173,7 +384,7 @@ const roomTemplates = [
       {
         slug: "muebles-de-cocina",
         name: "Muebles de cocina",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "puertas-cajones-y-herrajes",
         checklist: [
           "¿Puertas y cajones abren, cierran y no rozan?",
           "¿Las bisagras y tiradores están firmes?",
@@ -182,7 +393,7 @@ const roomTemplates = [
       {
         slug: "llave-de-agua-y-lavaplatos",
         name: "Llave de agua y lavaplatos",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "filtraciones-y-presion-de-agua",
         checklist: [
           "¿No hay goteras en la llave ni bajo el lavaplatos?",
           "¿El desagüe drena sin filtraciones?",
@@ -191,7 +402,7 @@ const roomTemplates = [
       {
         slug: "enchufes-e-interruptores",
         name: "Enchufes e interruptores",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "prueba-de-enchufes",
         checklist: ["¿Cada enchufe funciona probado con un artefacto real?"],
       },
       {
@@ -235,7 +446,7 @@ const roomTemplates = [
       {
         slug: "artefactos-sanitarios",
         name: "Artefactos sanitarios",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "firmeza-de-artefactos-sanitarios",
         checklist: [
           "¿El inodoro, lavamanos y ducha están firmes y sin fisuras?",
           "¿La descarga funciona correctamente?",
@@ -244,7 +455,7 @@ const roomTemplates = [
       {
         slug: "griferia",
         name: "Grifería",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "filtraciones-y-presion-de-agua",
         checklist: ["¿No hay goteras ni filtraciones en las llaves?"],
       },
       {
@@ -315,7 +526,7 @@ const roomTemplates = [
       {
         slug: "piso-exterior",
         name: "Piso exterior",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "impermeabilizacion-de-terrazas",
         checklist: [
           "¿Tiene pendiente correcta para escurrir el agua de lluvia?",
         ],
@@ -338,13 +549,13 @@ const roomTemplates = [
       {
         slug: "cubierta",
         name: "Cubierta",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "estado-de-la-cubierta",
         checklist: ["¿No se observan manchas de humedad ni goteras?"],
       },
       {
         slug: "canaletas",
         name: "Canaletas",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "fijacion-y-limpieza-de-canaletas",
         checklist: ["¿Están bien fijadas y sin obstrucciones visibles?"],
       },
     ],
@@ -359,7 +570,7 @@ const roomTemplates = [
       {
         slug: "tablero-electrico",
         name: "Tablero eléctrico",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "rotulacion-y-diferenciales",
         checklist: [
           "¿Los circuitos están rotulados?",
           "¿Los diferenciales (automáticos) funcionan al probarlos?",
