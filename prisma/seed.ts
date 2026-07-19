@@ -1009,12 +1009,28 @@ async function seedCatalog(): Promise<SeededRoom[]> {
       // encuentra por texto exacto y queda viva en la base sin que nada la
       // borre. Sin este paso, re-sembrar con wording nuevo solo suma filas
       // en vez de reemplazarlas.
-      await prisma.checklistItemTemplate.deleteMany({
-        where: {
-          elementTemplateId: createdElement.id,
-          id: { notIn: checklistItemIds },
-        },
+      //
+      // No se borra si la pregunta todavía tiene Observations reales
+      // (respuestas ya guardadas en alguna inspección) — borrarla igual
+      // rompería esa fila por la relación con Observation (sin cascade), y
+      // en producción esas respuestas son datos reales de usuarios, no
+      // datos de prueba descartables. Queda como fila huérfana histórica
+      // en vez de arriesgar una excepción a mitad del seed.
+      const orphanCandidates = await prisma.checklistItemTemplate.findMany({
+        where: { elementTemplateId: createdElement.id, id: { notIn: checklistItemIds } },
+        select: { id: true, question: true, _count: { select: { observations: true } } },
       });
+      const orphanIdsToDelete = orphanCandidates.filter((item) => item._count.observations === 0).map((item) => item.id);
+      const orphanIdsWithAnswers = orphanCandidates.filter((item) => item._count.observations > 0);
+      if (orphanIdsWithAnswers.length > 0) {
+        console.warn(
+          `  aviso: ${orphanIdsWithAnswers.length} pregunta(s) huérfana(s) de "${element.name}" no se borraron porque tienen respuestas reales:`,
+          orphanIdsWithAnswers.map((item) => item.question),
+        );
+      }
+      if (orphanIdsToDelete.length > 0) {
+        await prisma.checklistItemTemplate.deleteMany({ where: { id: { in: orphanIdsToDelete } } });
+      }
 
       seededElements.push({
         id: createdElement.id,
