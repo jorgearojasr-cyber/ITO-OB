@@ -250,7 +250,7 @@ model Observation {
 
   photos Photo[]
 
-  @@index([elementInstanceId])
+  @@unique([elementInstanceId, checklistItemTemplateId])
   @@map("observations")
 }
 
