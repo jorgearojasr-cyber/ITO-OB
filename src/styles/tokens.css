@@ -1,0 +1,30 @@
+/*
+ * Tokens de diseño de ObraBien, extraídos de docs/obrabien-inicio-prototipo.html.
+ * Fuente de verdad del lenguaje visual — no crear una paleta nueva por pantalla.
+ */
+:root {
+  --navy-900: #122341;
+  --navy-800: #17325a;
+  --navy-700: #1e3e6e;
+  --blue-600: #2f5fe0;
+  --blue-700: #2650c4;
+  --green-500: #3fc98a;
+  --green-100: #e4f8ee;
+  --amber-500: #f5a623;
+  --amber-100: #fdefd8;
+  --purple-500: #8e6ef0;
+  --purple-100: #efe8fe;
+  --ink-900: #101828;
+  --ink-600: #475066;
+  --ink-400: #8892a6;
+  --ink-200: #e4e8f0;
+  --paper: #f5f7fa;
+  --white: #ffffff;
+
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+
+  --font-display: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+}

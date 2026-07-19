@@ -1,0 +1,320 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// ---------- Enums ----------
+
+enum OrganizationType {
+  PARTICULAR
+  INMOBILIARIA
+  CONSTRUCTORA
+}
+
+enum OrganizationPlan {
+  GRATUITO
+  PROPIETARIO
+  PROFESIONAL
+  ORGANIZACION
+}
+
+enum UserRole {
+  PROPIETARIO
+  COLABORADOR
+  ADMIN_ORGANIZACION
+  EDITOR_CONTENIDO
+  SUPER_ADMIN
+}
+
+enum PropertyType {
+  CASA
+  DEPARTAMENTO
+}
+
+enum InspectionStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+}
+
+enum ElementInstanceStatus {
+  PENDING
+  CORRECT
+  OBSERVED
+}
+
+enum ObservationStatus {
+  CORRECT
+  OBSERVATION
+}
+
+enum Priority {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+// Condiciona si un RoomTemplate aplica según features de la vivienda
+enum RoomFeatureRequirement {
+  NINGUNA
+  TERRAZA
+  TECHUMBRE
+}
+
+// ---------- Tenant root ----------
+
+model Organization {
+  id        String           @id @default(cuid())
+  name      String
+  type      OrganizationType
+  plan      OrganizationPlan @default(GRATUITO)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  users       User[]
+  inspections Inspection[]
+
+  @@map("organizations")
+}
+
+model User {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  email          String       @unique
+  passwordHash   String?
+  name           String
+  role           UserRole     @default(PROPIETARIO)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  createdInspections Inspection[]             @relation("InspectionCreator")
+  collaboratesOn     InspectionCollaborator[]
+
+  @@map("users")
+}
+
+// ---------- Inspection (instance root) ----------
+
+model Inspection {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  createdByUserId String
+  createdBy       User         @relation("InspectionCreator", fields: [createdByUserId], references: [id])
+
+  projectName   String // ej. "Condominio Los Robles"
+  unitLabel     String // ej. "Casa 15"
+  address       String
+  developerName String? // inmobiliaria
+  builderName   String? // constructora
+  propertyType  PropertyType
+  hasTerrace    Boolean           @default(false)
+  hasRoofSpace  Boolean           @default(false)
+  receptionDate DateTime?
+  status        InspectionStatus @default(DRAFT)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  rooms         RoomInstance[]
+  collaborators InspectionCollaborator[]
+  report        Report?
+
+  @@index([organizationId])
+  @@map("inspections")
+}
+
+model InspectionCollaborator {
+  id           String     @id @default(cuid())
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id])
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  createdAt    DateTime   @default(now())
+
+  @@unique([inspectionId, userId])
+  @@map("inspection_collaborators")
+}
+
+// ---------- Catálogo maestro (Template) ----------
+
+model RoomTemplate {
+  id              String                  @id @default(cuid())
+  name            String // "Cocina", "Dormitorio"
+  slug            String                  @unique
+  order           Int                     @default(0)
+  icon            String?
+  requiredFeature RoomFeatureRequirement  @default(NINGUNA)
+  appliesToCasa   Boolean                 @default(true)
+  appliesToDepto  Boolean                 @default(true)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  elementTemplates ElementTemplate[]
+  roomInstances    RoomInstance[]
+
+  @@map("room_templates")
+}
+
+model ElementTemplate {
+  id                        String           @id @default(cuid())
+  roomTemplateId            String
+  roomTemplate              RoomTemplate     @relation(fields: [roomTemplateId], references: [id])
+  name                      String // "Ventana", "Enchufe"
+  slug                      String
+  order                     Int              @default(0)
+  referenceLibraryArticleId String?
+  referenceLibraryArticle   LibraryArticle?  @relation(fields: [referenceLibraryArticleId], references: [id])
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @updatedAt
+
+  checklistItemTemplates ChecklistItemTemplate[]
+  elementInstances       ElementInstance[]
+
+  @@unique([roomTemplateId, slug])
+  @@map("element_templates")
+}
+
+model ChecklistItemTemplate {
+  id                String          @id @default(cuid())
+  elementTemplateId String
+  elementTemplate   ElementTemplate @relation(fields: [elementTemplateId], references: [id])
+  question          String // "¿La silicona está continua?"
+  helpText          String?
+  order             Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  observations Observation[]
+
+  @@map("checklist_item_templates")
+}
+
+// ---------- Datos de la inspección (Instance) ----------
+
+model RoomInstance {
+  id             String       @id @default(cuid())
+  inspectionId   String
+  inspection     Inspection   @relation(fields: [inspectionId], references: [id])
+  roomTemplateId String
+  roomTemplate   RoomTemplate @relation(fields: [roomTemplateId], references: [id])
+  name           String // copia editable, ej. "Dormitorio 2"
+  order          Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  elements ElementInstance[]
+
+  @@index([inspectionId])
+  @@map("room_instances")
+}
+
+model ElementInstance {
+  id                String                @id @default(cuid())
+  roomInstanceId    String
+  roomInstance      RoomInstance          @relation(fields: [roomInstanceId], references: [id])
+  elementTemplateId String
+  elementTemplate   ElementTemplate       @relation(fields: [elementTemplateId], references: [id])
+  name              String
+  order             Int                   @default(0)
+  status            ElementInstanceStatus @default(PENDING)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  observations Observation[]
+
+  @@index([roomInstanceId])
+  @@map("element_instances")
+}
+
+model Observation {
+  id                      String                @id @default(cuid())
+  elementInstanceId       String
+  elementInstance         ElementInstance       @relation(fields: [elementInstanceId], references: [id])
+  checklistItemTemplateId String
+  checklistItemTemplate   ChecklistItemTemplate @relation(fields: [checklistItemTemplateId], references: [id])
+  status                  ObservationStatus
+  comment                 String?
+  priority                Priority?
+  // Extensible sin migración futura: resultados de análisis IA sobre esta
+  // observación (Fase 4 del roadmap).
+  aiMetadata              Json?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  photos Photo[]
+
+  @@index([elementInstanceId])
+  @@map("observations")
+}
+
+model Photo {
+  id            String      @id @default(cuid())
+  observationId String
+  observation   Observation @relation(fields: [observationId], references: [id])
+  storageKey    String // path en el bucket S3/R2
+  width         Int?
+  height        Int?
+  // Extensible sin migración futura: metadatos de análisis de imagen IA.
+  aiMetadata    Json?
+  createdAt     DateTime    @default(now())
+
+  @@index([observationId])
+  @@map("photos")
+}
+
+// ---------- Biblioteca técnica ----------
+
+model LibraryCategory {
+  id        String   @id @default(cuid())
+  name      String // "Ventanas", "Puertas"
+  slug      String   @unique
+  order     Int      @default(0)
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles LibraryArticle[]
+
+  @@map("library_categories")
+}
+
+model LibraryArticle {
+  id         String          @id @default(cuid())
+  categoryId String
+  category   LibraryCategory @relation(fields: [categoryId], references: [id])
+  title      String
+  slug       String
+  summary    String
+  body       String // markdown/richtext
+  order      Int             @default(0)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  referencedByElements ElementTemplate[]
+
+  @@unique([categoryId, slug])
+  @@map("library_articles")
+}
+
+// ---------- Informe final ----------
+
+model Report {
+  id            String     @id @default(cuid())
+  inspectionId  String     @unique
+  inspection    Inspection @relation(fields: [inspectionId], references: [id])
+  pdfStorageKey String?
+  // Snapshot congelado de recintos/elementos/observaciones al momento del
+  // cierre, para que cambios futuros al catálogo maestro no alteren un
+  // informe ya emitido.
+  snapshot      Json
+  generatedAt   DateTime   @default(now())
+
+  @@map("reports")
+}
