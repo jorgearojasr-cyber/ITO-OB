@@ -15,6 +15,7 @@ export function NuevaInspeccionForm() {
   const [hasTerrace, setHasTerrace] = useState(true);
   const [hasRoofSpace, setHasRoofSpace] = useState(true);
   const [hasStairs, setHasStairs] = useState(false);
+  const [hasGate, setHasGate] = useState(false);
   const [terraceTouched, setTerraceTouched] = useState(false);
   const [roofTouched, setRoofTouched] = useState(false);
 
@@ -99,6 +100,16 @@ export function NuevaInspeccionForm() {
           onChange={(event) => setHasStairs(event.target.checked)}
         />
         <label htmlFor="hasStairs">¿Tiene escalera interior (más de un piso)?</label>
+      </div>
+      <div className={styles.checkboxRow}>
+        <input
+          id="hasGate"
+          name="hasGate"
+          type="checkbox"
+          checked={hasGate}
+          onChange={(event) => setHasGate(event.target.checked)}
+        />
+        <label htmlFor="hasGate">¿Tiene reja o portón de acceso?</label>
       </div>
 
       <button type="submit" className={styles.submitBtn} disabled={isPending}>

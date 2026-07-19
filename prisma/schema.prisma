@@ -60,12 +60,15 @@ enum Priority {
   BAJA
 }
 
-// Condiciona si un RoomTemplate aplica según features de la vivienda
+// Condiciona si un RoomTemplate (o, desde REJA en adelante, un
+// ElementTemplate individual dentro de un recinto siempre presente)
+// aplica según features de la vivienda
 enum RoomFeatureRequirement {
   NINGUNA
   TERRAZA
   TECHUMBRE
   ESCALERA
+  REJA
 }
 
 // ---------- Tenant root ----------
@@ -167,6 +170,7 @@ model Inspection {
   hasTerrace    Boolean           @default(false)
   hasRoofSpace  Boolean           @default(false)
   hasStairs     Boolean           @default(false)
+  hasGate       Boolean           @default(false)
   receptionDate   DateTime?
   receptionNumber String? // número de acta de recepción
   status          InspectionStatus @default(DRAFT)
@@ -214,16 +218,17 @@ model RoomTemplate {
 }
 
 model ElementTemplate {
-  id                        String           @id @default(cuid())
+  id                        String                 @id @default(cuid())
   roomTemplateId            String
-  roomTemplate              RoomTemplate     @relation(fields: [roomTemplateId], references: [id])
+  roomTemplate              RoomTemplate           @relation(fields: [roomTemplateId], references: [id])
   name                      String // "Ventana", "Enchufe"
   slug                      String
-  order                     Int              @default(0)
+  order                     Int                    @default(0)
+  requiredFeature           RoomFeatureRequirement @default(NINGUNA)
   referenceLibraryArticleId String?
-  referenceLibraryArticle   LibraryArticle?  @relation(fields: [referenceLibraryArticleId], references: [id])
-  createdAt                 DateTime         @default(now())
-  updatedAt                 DateTime         @updatedAt
+  referenceLibraryArticle   LibraryArticle?        @relation(fields: [referenceLibraryArticleId], references: [id])
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
 
   checklistItemTemplates ChecklistItemTemplate[]
   elementInstances       ElementInstance[]

@@ -6,26 +6,47 @@ import type { Prisma, ObservationStatus, Priority, PropertyType, RoomFeatureRequ
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
 
-function roomTemplateApplies(
-  room: { appliesToCasa: boolean; appliesToDepto: boolean; requiredFeature: RoomFeatureRequirement },
-  propertyType: PropertyType,
-  hasTerrace: boolean,
-  hasRoofSpace: boolean,
-  hasStairs: boolean,
-): boolean {
-  const appliesToPropertyType = propertyType === "CASA" ? room.appliesToCasa : room.appliesToDepto;
-  if (!appliesToPropertyType) return false;
+type HouseFeatureFlags = {
+  hasTerrace: boolean;
+  hasRoofSpace: boolean;
+  hasStairs: boolean;
+  hasGate: boolean;
+};
 
-  switch (room.requiredFeature) {
+// Compartida entre recintos (RoomTemplate) y elementos individuales
+// (ElementTemplate) — un elemento condicional como "Reja o portón" vive
+// dentro de un recinto que siempre aplica (Exterior), así que la misma
+// condición de feature se evalúa a ambos niveles.
+function hasRequiredFeature(requiredFeature: RoomFeatureRequirement, flags: HouseFeatureFlags): boolean {
+  switch (requiredFeature) {
     case "NINGUNA":
       return true;
     case "TERRAZA":
-      return hasTerrace;
+      return flags.hasTerrace;
     case "TECHUMBRE":
-      return hasRoofSpace;
+      return flags.hasRoofSpace;
     case "ESCALERA":
-      return hasStairs;
+      return flags.hasStairs;
+    case "REJA":
+      return flags.hasGate;
   }
+}
+
+function roomTemplateApplies(
+  room: { appliesToCasa: boolean; appliesToDepto: boolean; requiredFeature: RoomFeatureRequirement },
+  propertyType: PropertyType,
+  flags: HouseFeatureFlags,
+): boolean {
+  const appliesToPropertyType = propertyType === "CASA" ? room.appliesToCasa : room.appliesToDepto;
+  if (!appliesToPropertyType) return false;
+  return hasRequiredFeature(room.requiredFeature, flags);
+}
+
+function elementTemplateApplies(
+  element: { requiredFeature: RoomFeatureRequirement },
+  flags: HouseFeatureFlags,
+): boolean {
+  return hasRequiredFeature(element.requiredFeature, flags);
 }
 
 async function recomputeElementInstanceStatus(elementInstanceId: string) {
@@ -184,6 +205,8 @@ export async function createInspection(
   const hasTerrace = formData.get("hasTerrace") === "on";
   const hasRoofSpace = formData.get("hasRoofSpace") === "on";
   const hasStairs = formData.get("hasStairs") === "on";
+  const hasGate = formData.get("hasGate") === "on";
+  const featureFlags: HouseFeatureFlags = { hasTerrace, hasRoofSpace, hasStairs, hasGate };
 
   if (!projectName || !unitLabel || !address) {
     return { error: "Completa proyecto inmobiliario, unidad y dirección." };
@@ -198,9 +221,7 @@ export async function createInspection(
     orderBy: { order: "asc" },
     include: { elementTemplates: { orderBy: { order: "asc" } } },
   });
-  const applicableRooms = roomTemplates.filter((room) =>
-    roomTemplateApplies(room, propertyType, hasTerrace, hasRoofSpace, hasStairs),
-  );
+  const applicableRooms = roomTemplates.filter((room) => roomTemplateApplies(room, propertyType, featureFlags));
 
   // IDs generados en el cliente (no autogenerados por la base) para poder
   // armar RoomInstance/ElementInstance como dos createMany en vez de un
@@ -220,6 +241,7 @@ export async function createInspection(
     });
 
     for (const element of room.elementTemplates) {
+      if (!elementTemplateApplies(element, featureFlags)) continue;
       elementsData.push({
         id: crypto.randomUUID(),
         roomInstanceId,
@@ -256,6 +278,7 @@ export async function createInspection(
         hasTerrace,
         hasRoofSpace,
         hasStairs,
+        hasGate,
         status: "IN_PROGRESS",
       },
     }),
