@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "./BottomNav.module.css";
 
 export function BottomNav() {
@@ -18,11 +19,11 @@ export function BottomNav() {
         </svg>
         <span>Inspecciones</span>
       </button>
-      <button className={styles.fab} type="button" aria-label="Nueva inspección">
+      <Link className={styles.fab} href="/inspecciones/nueva" aria-label="Nueva inspección">
         <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
           <path d="M10 4V16M4 10H16" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
         </svg>
-      </button>
+      </Link>
       <button className={styles.navItem} type="button">
         <svg width="21" height="21" viewBox="0 0 20 20" fill="none">
           <path

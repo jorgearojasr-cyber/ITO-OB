@@ -1,0 +1,23 @@
+.group {
+  display: flex;
+  gap: 8px;
+}
+
+.option {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--ink-200);
+  background: var(--white);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-600);
+  font-family: var(--font-body);
+  text-align: center;
+}
+
+.optionOn {
+  background: var(--navy-900);
+  border-color: var(--navy-900);
+  color: #fff;
+}

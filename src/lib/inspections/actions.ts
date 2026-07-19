@@ -1,8 +1,33 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { ObservationStatus, Priority } from "@prisma/client";
+import { redirect } from "next/navigation";
+import type { ObservationStatus, Priority, PropertyType, RoomFeatureRequirement } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
+
+// TODO(auth): reemplazar por el usuario/organización de la sesión real
+// cuando exista autenticación. Por ahora se usa el usuario sembrado por
+// prisma/seed.ts (mismo criterio ya documentado en getInicioData).
+const DEMO_USER_EMAIL = "demo@obrabien.cl";
+
+function roomTemplateApplies(
+  room: { appliesToCasa: boolean; appliesToDepto: boolean; requiredFeature: RoomFeatureRequirement },
+  propertyType: PropertyType,
+  hasTerrace: boolean,
+  hasRoofSpace: boolean,
+): boolean {
+  const appliesToPropertyType = propertyType === "CASA" ? room.appliesToCasa : room.appliesToDepto;
+  if (!appliesToPropertyType) return false;
+
+  switch (room.requiredFeature) {
+    case "NINGUNA":
+      return true;
+    case "TERRAZA":
+      return hasTerrace;
+    case "TECHUMBRE":
+      return hasRoofSpace;
+  }
+}
 
 async function recomputeElementInstanceStatus(elementInstanceId: string) {
   const element = await prisma.elementInstance.findUniqueOrThrow({
@@ -105,4 +130,100 @@ export async function attachPhoto(
   revalidateInspectionPaths(inspectionId, element.roomInstanceId, elementInstanceId);
 
   return { photoId: photo.id, url: photo.url };
+}
+
+export type CreateInspectionState = { error?: string };
+
+export async function createInspection(
+  _prevState: CreateInspectionState,
+  formData: FormData,
+): Promise<CreateInspectionState> {
+  const projectName = String(formData.get("projectName") ?? "").trim();
+  const unitLabel = String(formData.get("unitLabel") ?? "").trim();
+  const address = String(formData.get("address") ?? "").trim();
+  const propertyType = String(formData.get("propertyType") ?? "") as PropertyType;
+  const developerName = String(formData.get("developerName") ?? "").trim() || null;
+  const builderName = String(formData.get("builderName") ?? "").trim() || null;
+  const receptionNumber = String(formData.get("receptionNumber") ?? "").trim() || null;
+  const receptionDateRaw = String(formData.get("receptionDate") ?? "").trim();
+  const receptionDate = receptionDateRaw ? new Date(receptionDateRaw) : null;
+  const hasTerrace = formData.get("hasTerrace") === "on";
+  const hasRoofSpace = formData.get("hasRoofSpace") === "on";
+
+  if (!projectName || !unitLabel || !address) {
+    return { error: "Completa proyecto inmobiliario, unidad y dirección." };
+  }
+  if (propertyType !== "CASA" && propertyType !== "DEPARTAMENTO") {
+    return { error: "Selecciona el tipo de vivienda." };
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: DEMO_USER_EMAIL } });
+  if (!user) {
+    return { error: "No se encontró el usuario de prueba. Corre `npm run db:seed` primero." };
+  }
+
+  const roomTemplates = await prisma.roomTemplate.findMany({
+    orderBy: { order: "asc" },
+    include: { elementTemplates: { orderBy: { order: "asc" } } },
+  });
+  const applicableRooms = roomTemplates.filter((room) =>
+    roomTemplateApplies(room, propertyType, hasTerrace, hasRoofSpace),
+  );
+
+  const inspection = await prisma.$transaction(async (tx) => {
+    const created = await tx.inspection.create({
+      data: {
+        organizationId: user.organizationId,
+        createdByUserId: user.id,
+        projectName,
+        unitLabel,
+        address,
+        developerName,
+        builderName,
+        receptionNumber,
+        receptionDate,
+        propertyType,
+        hasTerrace,
+        hasRoofSpace,
+        status: "IN_PROGRESS",
+      },
+    });
+
+    for (const room of applicableRooms) {
+      const roomInstance = await tx.roomInstance.create({
+        data: {
+          inspectionId: created.id,
+          roomTemplateId: room.id,
+          name: room.name,
+          order: room.order,
+        },
+      });
+
+      for (const element of room.elementTemplates) {
+        await tx.elementInstance.create({
+          data: {
+            roomInstanceId: roomInstance.id,
+            elementTemplateId: element.id,
+            name: element.name,
+            order: element.order,
+            status: "PENDING",
+          },
+        });
+      }
+    }
+
+    return created;
+  });
+
+  const firstRoom = await prisma.roomInstance.findFirst({
+    where: { inspectionId: inspection.id },
+    orderBy: { order: "asc" },
+  });
+
+  revalidatePath("/");
+
+  if (firstRoom) {
+    redirect(`/inspecciones/${inspection.id}/recintos/${firstRoom.id}`);
+  }
+  redirect("/");
 }
