@@ -3,16 +3,6 @@ import styles from "./TopBar.module.css";
 export function TopBar() {
   return (
     <div className={styles.topbar}>
-      <button className={styles.iconBtn} aria-label="Menú" type="button">
-        <svg width="21" height="21" viewBox="0 0 21 21" fill="none">
-          <path
-            d="M3 5.5H18M3 10.5H18M3 15.5H12"
-            stroke="#101828"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
-      </button>
       <div className={styles.brand}>
         <div className={styles.logo}>
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { BottomNav } from "@/components/inicio/BottomNav";
 import { InformeToolbar } from "@/components/informe/InformeToolbar";
 import { InformeCover } from "@/components/informe/InformeCover";
 import { InformeSummary } from "@/components/informe/InformeSummary";
@@ -20,21 +21,26 @@ export default async function InformePage({ params }: PageProps) {
   }
 
   return (
-    <div className={styles.wrap}>
-      <InformeToolbar
-        title="Informe final"
-        subtitle={`${data.inspection.projectName} — ${data.inspection.unitLabel}`}
-        backHref={`/inspecciones/${inspectionId}/resumen`}
-        shareUrl={`/inspecciones/${inspectionId}/informe`}
-        shareText={`Informe de recepción - ${data.inspection.projectName} — ${data.inspection.unitLabel}`}
-      />
-      <div className={styles.paper}>
-        <InformeCover inspection={data.inspection} percent={data.summary.percent} />
-        <InformeSummary summary={data.summary} />
-        <div className={styles.sectionTitle}>Recorrido por recinto</div>
-        {data.rooms.map((room) => (
-          <InformeRoomSection key={room.id} room={room} />
-        ))}
+    <div className={styles.screen}>
+      <div className={styles.wrap}>
+        <InformeToolbar
+          title="Informe final"
+          subtitle={`${data.inspection.projectName} — ${data.inspection.unitLabel}`}
+          backHref={`/inspecciones/${inspectionId}/resumen`}
+          shareUrl={`/inspecciones/${inspectionId}/informe`}
+          shareText={`Informe de recepción - ${data.inspection.projectName} — ${data.inspection.unitLabel}`}
+        />
+        <div className={styles.paper}>
+          <InformeCover inspection={data.inspection} percent={data.summary.percent} />
+          <InformeSummary summary={data.summary} />
+          <div className={styles.sectionTitle}>Recorrido por recinto</div>
+          {data.rooms.map((room) => (
+            <InformeRoomSection key={room.id} room={room} />
+          ))}
+        </div>
+      </div>
+      <div className="no-print">
+        <BottomNav active="inspecciones" />
       </div>
     </div>
   );

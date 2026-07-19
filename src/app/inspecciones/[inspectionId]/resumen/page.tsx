@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
+import { BottomNav } from "@/components/inicio/BottomNav";
 import { ShareReportButton } from "@/components/ui/ShareReportButton";
 import { ObservationsSummaryList } from "@/components/resumen/ObservationsSummaryList";
 import { prisma } from "@/lib/db/prisma";
@@ -29,24 +30,27 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
 
   return (
     <div className={styles.screen}>
-      <BackHeader
-        title="Resumen de observaciones"
-        subtitle={`${inspection.projectName} — ${inspection.unitLabel}`}
-        backHref="/"
-        action={
-          <div className={styles.actions}>
-            <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeLink}>
-              Ver informe
-            </Link>
-            <ShareReportButton
-              url={`/inspecciones/${inspectionId}/informe`}
-              title="Informe de recepción"
-              text={`Informe de recepción - ${inspection.projectName} — ${inspection.unitLabel}`}
-            />
-          </div>
-        }
-      />
-      <ObservationsSummaryList inspectionId={inspectionId} data={data} />
+      <div className={styles.content}>
+        <BackHeader
+          title="Resumen de observaciones"
+          subtitle={`${inspection.projectName} — ${inspection.unitLabel}`}
+          backHref="/"
+          action={
+            <div className={styles.actions}>
+              <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeLink}>
+                Ver informe
+              </Link>
+              <ShareReportButton
+                url={`/inspecciones/${inspectionId}/informe`}
+                title="Informe de recepción"
+                text={`Informe de recepción - ${inspection.projectName} — ${inspection.unitLabel}`}
+              />
+            </div>
+          }
+        />
+        <ObservationsSummaryList inspectionId={inspectionId} data={data} />
+      </div>
+      <BottomNav active="inspecciones" />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { BackHeader } from "@/components/ui/BackHeader";
+import { BottomNav } from "@/components/inicio/BottomNav";
 import { requireSession } from "@/lib/auth/session";
 import { logoutAction } from "@/lib/auth/actions";
 import { prisma } from "@/lib/db/prisma";
@@ -14,17 +15,20 @@ export default async function PerfilPage() {
 
   return (
     <div className={styles.screen}>
-      <BackHeader title="Perfil" backHref="/" />
-      <div className={styles.card}>
-        <div className={styles.name}>{user.name}</div>
-        <div className={styles.email}>{user.email}</div>
-        <div className={styles.org}>{user.organization.name}</div>
+      <div className={styles.content}>
+        <BackHeader title="Perfil" backHref="/" />
+        <div className={styles.card}>
+          <div className={styles.name}>{user.name}</div>
+          <div className={styles.email}>{user.email}</div>
+          <div className={styles.org}>{user.organization.name}</div>
+        </div>
+        <form action={logoutAction}>
+          <button type="submit" className={styles.logoutBtn}>
+            Cerrar sesión
+          </button>
+        </form>
       </div>
-      <form action={logoutAction}>
-        <button type="submit" className={styles.logoutBtn}>
-          Cerrar sesión
-        </button>
-      </form>
+      <BottomNav active="perfil" />
     </div>
   );
 }

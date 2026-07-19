@@ -22,7 +22,7 @@ export default async function InicioPage() {
         <LibraryCarousel categories={data.libraryCategories} />
         <div className={styles.bottomSpacer} />
       </div>
-      <BottomNav />
+      <BottomNav active="inicio" />
     </div>
   );
 }
