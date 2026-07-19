@@ -4,6 +4,7 @@ import {
   type Priority,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { type HouseFeatureFlags, hasRequiredFeature, vehicleGateVariantApplies } from "../src/lib/inspections/feature-flags";
 
 const prisma = new PrismaClient();
 
@@ -377,16 +378,40 @@ const roomTemplates: SeedRoomDef[] = [
         ],
       },
       {
-        slug: "reja-o-porton",
-        name: "Reja o portón",
+        slug: "reja-peatonal",
+        name: "Reja peatonal",
         libraryArticleSlug: null,
-        requiredFeature: RoomFeatureRequirement.REJA,
+        requiredFeature: RoomFeatureRequirement.REJA_PEATONAL,
         checklist: [
-          "¿La reja o portón abre y cierra correctamente, sin trabarse?",
-          "¿El candado, cerradura o sistema eléctrico (si es automático) funciona bien?",
-          "¿No hay óxido avanzado ni pintura descascarada?",
-          "¿Está bien fijada, sin moverse al empujarla?",
-          "¿Si es automática, el control remoto o la app funcionan correctamente?",
+          "¿Abre y cierra correctamente, sin trabarse ni rozar el suelo?",
+          "¿La cerradura o candado funciona bien?",
+          "¿La pintura o recubrimiento anticorrosivo está en buen estado, sin óxido ni descascarado?",
+          "¿Está bien fijada a sus soportes, sin moverse al empujarla?",
+        ],
+      },
+      {
+        slug: "porton-vehicular-manual",
+        name: "Portón vehicular manual",
+        libraryArticleSlug: null,
+        requiredFeature: RoomFeatureRequirement.PORTON_VEHICULAR,
+        checklist: [
+          "¿Abre y cierra correctamente, sin trabarse ni rozar el suelo?",
+          "¿La pintura o recubrimiento anticorrosivo está en buen estado, sin óxido ni descascarado?",
+          "¿Las bisagras, rieles o rodamientos están firmes, sin ruido ni holgura excesiva?",
+        ],
+      },
+      {
+        slug: "porton-vehicular-automatico",
+        name: "Portón vehicular automático",
+        libraryArticleSlug: null,
+        requiredFeature: RoomFeatureRequirement.PORTON_VEHICULAR,
+        checklist: [
+          "¿Abre y cierra correctamente, sin trabarse ni rozar el suelo?",
+          "¿La pintura o recubrimiento anticorrosivo está en buen estado, sin óxido ni descascarado?",
+          "¿Las bisagras, rieles o rodamientos están firmes, sin ruido ni holgura excesiva?",
+          "¿El motor abre y cierra sin esfuerzo ni ruido excesivo?",
+          "¿El control remoto funciona correctamente a una distancia normal?",
+          "¿Tiene sistema de seguridad (sensor o reversa) que detiene el portón si encuentra un obstáculo?",
         ],
       },
     ],
@@ -853,6 +878,7 @@ type SeededElement = {
   slug: string;
   name: string;
   order: number;
+  requiredFeature: RoomFeatureRequirement;
   checklistItemIds: string[];
 };
 
@@ -861,6 +887,7 @@ type SeededRoom = {
   slug: string;
   name: string;
   order: number;
+  requiredFeature: RoomFeatureRequirement;
   elements: SeededElement[];
 };
 
@@ -994,6 +1021,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
         slug: element.slug,
         name: element.name,
         order: elementIndex,
+        requiredFeature,
         checklistItemIds,
       });
     }
@@ -1003,6 +1031,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
       slug: room.slug,
       name: room.name,
       order: room.order,
+      requiredFeature: room.requiredFeature,
       elements: seededElements,
     });
   }
@@ -1077,6 +1106,19 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
     return;
   }
 
+  // La demo declara todas las features en true (incluye escalera, terraza,
+  // etc.) salvo el portón manual, que se excluye explícitamente más abajo
+  // porque comparte requiredFeature con el automático — ver
+  // vehicleGateVariantApplies.
+  const demoFeatureFlags: HouseFeatureFlags = {
+    hasTerrace: true,
+    hasRoofSpace: true,
+    hasStairs: true,
+    hasPedestrianGate: true,
+    hasVehicleGate: true,
+  };
+  const demoIsVehicleGateAutomatic = true;
+
   const inspection = await prisma.inspection.create({
     data: {
       organizationId: organization.id,
@@ -1086,16 +1128,20 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
       address: "Av. Los Robles 1234, Santiago",
       developerName: "Inmobiliaria GranVista",
       propertyType: "CASA",
-      hasTerrace: true,
-      hasRoofSpace: true,
-      hasStairs: true,
-      hasGate: true,
+      hasTerrace: demoFeatureFlags.hasTerrace,
+      hasRoofSpace: demoFeatureFlags.hasRoofSpace,
+      hasStairs: demoFeatureFlags.hasStairs,
+      hasPedestrianGate: demoFeatureFlags.hasPedestrianGate,
+      hasVehicleGate: demoFeatureFlags.hasVehicleGate,
+      isVehicleGateAutomatic: demoIsVehicleGateAutomatic,
       status: "IN_PROGRESS",
       receptionDate: new Date(),
     },
   });
 
-  for (const room of seededRooms) {
+  const applicableRooms = seededRooms.filter((room) => hasRequiredFeature(room.requiredFeature, demoFeatureFlags));
+
+  for (const room of applicableRooms) {
     const roomInstance = await prisma.roomInstance.create({
       data: {
         inspectionId: inspection.id,
@@ -1108,7 +1154,13 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
     const isCompletedRoom = DEMO_COMPLETED_ROOM_SLUGS.has(room.slug);
     const flagged = DEMO_FLAGGED_ELEMENTS[room.slug];
 
-    for (const element of room.elements) {
+    const applicableElements = room.elements.filter(
+      (element) =>
+        hasRequiredFeature(element.requiredFeature, demoFeatureFlags) &&
+        vehicleGateVariantApplies(element.slug, demoIsVehicleGateAutomatic),
+    );
+
+    for (const element of applicableElements) {
       if (!isCompletedRoom) {
         await prisma.elementInstance.create({
           data: {
