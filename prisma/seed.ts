@@ -285,6 +285,38 @@ const libraryCategories = [
   },
 ];
 
+// Checklists reutilizados sin cambios entre varios recintos (evita repetir
+// el mismo array literal en cada RoomTemplate).
+const PISO_FLOTANTE_CHECKLIST = [
+  "¿No se escuchan crujidos al caminar sobre toda la superficie?",
+  "¿El piso está nivelado, sin piezas levantadas ni escalones entre tablas?",
+  "¿Las líneas entre tablas se ven rectas y paralelas entre sí, sin ondulaciones?",
+  "¿Queda un espacio parejo entre el piso y el muro en todo el borde, en vez de estar completamente pegado (para que el piso pueda dilatar)?",
+  "¿En el encuentro con el guardapolvo o con las puertas, el piso no forma un escalón brusco al pasar de una superficie a otra?",
+];
+
+const GUARDAPOLVOS_CHECKLIST = [
+  "¿El guardapolvo está bien pegado al muro y al piso, sin espacios visibles?",
+  "¿Las uniones entre tramos de guardapolvo quedan alineadas, sin desniveles entre una pieza y la siguiente?",
+  "¿No hay tramos sueltos, despegados o que se muevan al tocarlos?",
+];
+
+const MUROS_Y_CIELOS_CHECKLIST = [
+  "¿La pintura de muros y cielos se ve uniforme en color y textura, sin manchas ni marcas de rodillo?",
+  "¿No hay grietas finas cerca de las esquinas o del encuentro entre muro y cielo?",
+  "¿El cielo se ve parejo, sin ondulaciones visibles al mirarlo de lado?",
+  "¿Los guardapolvos y contornos de puertas/ventanas tienen buena terminación de pintura?",
+];
+
+const VENTANA_CHECKLIST = [
+  "¿La silicona perimetral está continua y sin espacios?",
+  "¿La ventana abre, cierra y traba correctamente?",
+  "¿La manilla funciona suave, sin forzar?",
+  "¿El vidrio no tiene rayas, manchas ni burbujas visibles?",
+  "¿El marco y las hojas no tienen rayas, abolladuras ni decoloraciones?",
+  "¿Con la ventana cerrada, no se ve luz del día entre el marco y la hoja?",
+];
+
 // Estructura de recintos del recorrido sugerido (sección 7)
 const roomTemplates = [
   {
@@ -301,6 +333,7 @@ const roomTemplates = [
         checklist: [
           "¿La pintura o revestimiento está uniforme, sin manchas ni grietas visibles?",
           "¿No hay filtraciones visibles en la unión entre muros y aleros?",
+          "¿Las esquinas y contornos de puertas y ventanas tienen buena terminación, sin bordes irregulares?",
         ],
       },
       {
@@ -310,6 +343,11 @@ const roomTemplates = [
         checklist: [
           "¿La puerta cierra y sella correctamente sin rozar el marco?",
           "¿La cerradura y el pestillo funcionan sin forzar?",
+          "¿El marco se ve derecho y en escuadra, sin inclinarse hacia un lado ni verse como un rombo?",
+          "¿La separación entre la puerta y el marco es pareja en todo el contorno?",
+          "¿La hoja de la puerta se ve plana, sin pandeos ni curvaturas?",
+          "¿La manilla está firme, sin holgura al moverla?",
+          "Si la puerta es de dos hojas, ¿la separación entre ambas es pareja en toda su altura?",
         ],
       },
     ],
@@ -325,19 +363,25 @@ const roomTemplates = [
         slug: "piso",
         name: "Piso",
         libraryArticleSlug: "crujidos-en-piso-flotante",
-        checklist: [
-          "¿No se escuchan crujidos al caminar sobre toda la superficie?",
-          "¿El piso está nivelado, sin rayones ni piezas levantadas?",
-        ],
+        checklist: PISO_FLOTANTE_CHECKLIST,
+      },
+      {
+        slug: "guardapolvos",
+        name: "Guardapolvos",
+        libraryArticleSlug: null,
+        checklist: GUARDAPOLVOS_CHECKLIST,
+      },
+      {
+        slug: "muros-y-cielos",
+        name: "Muros y cielos",
+        libraryArticleSlug: "uniformidad-de-la-pintura",
+        checklist: MUROS_Y_CIELOS_CHECKLIST,
       },
       {
         slug: "ventanas",
         name: "Ventanas",
         libraryArticleSlug: "sellos-de-silicona",
-        checklist: [
-          "¿La silicona perimetral está continua y sin espacios?",
-          "¿La ventana abre, cierra y traba correctamente?",
-        ],
+        checklist: VENTANA_CHECKLIST,
       },
       {
         slug: "enchufes-e-interruptores",
@@ -361,10 +405,19 @@ const roomTemplates = [
         slug: "piso",
         name: "Piso",
         libraryArticleSlug: "crujidos-en-piso-flotante",
-        checklist: [
-          "¿No se escuchan crujidos al caminar sobre toda la superficie?",
-          "¿El piso está nivelado, sin rayones ni piezas levantadas?",
-        ],
+        checklist: PISO_FLOTANTE_CHECKLIST,
+      },
+      {
+        slug: "guardapolvos",
+        name: "Guardapolvos",
+        libraryArticleSlug: null,
+        checklist: GUARDAPOLVOS_CHECKLIST,
+      },
+      {
+        slug: "muros-y-cielos",
+        name: "Muros y cielos",
+        libraryArticleSlug: "uniformidad-de-la-pintura",
+        checklist: MUROS_Y_CIELOS_CHECKLIST,
       },
       {
         slug: "iluminacion",
@@ -382,12 +435,32 @@ const roomTemplates = [
     requiredFeature: RoomFeatureRequirement.NINGUNA,
     elements: [
       {
+        slug: "piso",
+        name: "Piso",
+        libraryArticleSlug: "nivel-y-sellado-de-juntas",
+        checklist: [
+          "¿Las piezas están niveladas entre sí, sin sentir un escalón al pasar la mano por las uniones?",
+          "¿Las líneas de junta se ven rectas y parejas en todo el piso, sin desviarse?",
+          "¿Al golpear suavemente la superficie con una moneda, el sonido es sólido y no hueco?",
+          "¿No hay piezas trisadas, picadas o astilladas en los bordes?",
+        ],
+      },
+      {
+        slug: "guardapolvos",
+        name: "Guardapolvos",
+        libraryArticleSlug: null,
+        checklist: GUARDAPOLVOS_CHECKLIST,
+      },
+      {
         slug: "muebles-de-cocina",
         name: "Muebles de cocina",
         libraryArticleSlug: "puertas-cajones-y-herrajes",
         checklist: [
           "¿Puertas y cajones abren, cierran y no rozan?",
           "¿Las bisagras y tiradores están firmes?",
+          "¿Las puertas y cajones vecinos quedan alineados entre sí, sin verse uno más adelantado o más alto que el otro?",
+          "¿Los tiradores o manillas de puertas y cajones vecinos están a la misma altura entre sí?",
+          "¿Al poner un objeto redondo (como una bolita o un lápiz redondo) sobre el mesón, se queda quieto en vez de rodar hacia un lado?",
         ],
       },
       {
@@ -444,6 +517,35 @@ const roomTemplates = [
     requiredFeature: RoomFeatureRequirement.NINGUNA,
     elements: [
       {
+        slug: "piso",
+        name: "Piso",
+        libraryArticleSlug: "piezas-parejas-sin-fisuras",
+        checklist: [
+          "¿Las piezas están niveladas entre sí, sin sentir un escalón al pasar la mano por las uniones?",
+          "¿Las líneas de junta se ven rectas y parejas en todo el piso, sin desviarse?",
+          "¿No hay manchas o decoloración cerca de las juntas que puedan indicar humedad bajo el piso?",
+          "¿Al golpear suavemente la superficie con una moneda, el sonido es sólido y no hueco?",
+          "¿Las esquinas y remates (borde de tina, mesón) están bien terminados, sin piezas mal cortadas?",
+        ],
+      },
+      {
+        slug: "guardapolvos",
+        name: "Guardapolvos",
+        libraryArticleSlug: null,
+        checklist: GUARDAPOLVOS_CHECKLIST,
+      },
+      {
+        slug: "mueble-de-bano",
+        name: "Mueble de baño",
+        libraryArticleSlug: "puertas-cajones-y-herrajes",
+        checklist: [
+          "¿La puerta del mueble abre, cierra y no roza?",
+          "¿Los tiradores o manillas están firmes y bien atornillados?",
+          "¿Al poner un objeto redondo sobre el mesón del lavamanos, se queda quieto en vez de rodar hacia un lado?",
+          "¿El mesón no tiene grietas ni bordes astillados?",
+        ],
+      },
+      {
         slug: "artefactos-sanitarios",
         name: "Artefactos sanitarios",
         libraryArticleSlug: "firmeza-de-artefactos-sanitarios",
@@ -480,18 +582,25 @@ const roomTemplates = [
         slug: "piso",
         name: "Piso",
         libraryArticleSlug: "crujidos-en-piso-flotante",
-        checklist: [
-          "¿No se escuchan crujidos al caminar sobre toda la superficie?",
-        ],
+        checklist: PISO_FLOTANTE_CHECKLIST,
+      },
+      {
+        slug: "guardapolvos",
+        name: "Guardapolvos",
+        libraryArticleSlug: null,
+        checklist: GUARDAPOLVOS_CHECKLIST,
+      },
+      {
+        slug: "muros-y-cielos",
+        name: "Muros y cielos",
+        libraryArticleSlug: "uniformidad-de-la-pintura",
+        checklist: MUROS_Y_CIELOS_CHECKLIST,
       },
       {
         slug: "ventanas",
         name: "Ventanas",
         libraryArticleSlug: "sellos-de-silicona",
-        checklist: [
-          "¿La silicona perimetral está continua y sin espacios?",
-          "¿La ventana abre, cierra y traba correctamente?",
-        ],
+        checklist: VENTANA_CHECKLIST,
       },
     ],
   },
@@ -598,6 +707,26 @@ const roomTemplates = [
         checklist: [
           "¿Entrega agua caliente de forma estable?",
           "¿No presenta fugas de agua ni de gas?",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "escalera",
+    name: "Escalera",
+    order: 12,
+    icon: "stairs",
+    requiredFeature: RoomFeatureRequirement.ESCALERA,
+    elements: [
+      {
+        slug: "peldanos-y-pasamanos",
+        name: "Peldaños y pasamanos",
+        libraryArticleSlug: null,
+        checklist: [
+          "¿Todos los escalones tienen la misma altura, sin que ninguno se sienta más alto o más bajo al subir o bajar?",
+          "¿La profundidad de cada escalón (huella) es la misma en toda la escalera?",
+          "¿El revestimiento de los escalones está bien adherido, sin piezas sueltas que se muevan al pisar?",
+          "¿El pasamanos está firme en toda su extensión, sin tramos sueltos?",
         ],
       },
     ],
@@ -729,6 +858,18 @@ async function seedCatalog(): Promise<SeededRoom[]> {
         }
       }
 
+      // Poda preguntas huérfanas: si una pregunta cambió de texto o se
+      // quitó del checklist de este elemento, el bucle de arriba nunca la
+      // encuentra por texto exacto y queda viva en la base sin que nada la
+      // borre. Sin este paso, re-sembrar con wording nuevo solo suma filas
+      // en vez de reemplazarlas.
+      await prisma.checklistItemTemplate.deleteMany({
+        where: {
+          elementTemplateId: createdElement.id,
+          id: { notIn: checklistItemIds },
+        },
+      });
+
       seededElements.push({
         id: createdElement.id,
         slug: element.slug,
@@ -828,6 +969,7 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
       propertyType: "CASA",
       hasTerrace: true,
       hasRoofSpace: true,
+      hasStairs: true,
       status: "IN_PROGRESS",
       receptionDate: new Date(),
     },
