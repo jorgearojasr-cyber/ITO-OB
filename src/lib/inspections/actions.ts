@@ -11,6 +11,7 @@ function roomTemplateApplies(
   propertyType: PropertyType,
   hasTerrace: boolean,
   hasRoofSpace: boolean,
+  hasStairs: boolean,
 ): boolean {
   const appliesToPropertyType = propertyType === "CASA" ? room.appliesToCasa : room.appliesToDepto;
   if (!appliesToPropertyType) return false;
@@ -22,6 +23,8 @@ function roomTemplateApplies(
       return hasTerrace;
     case "TECHUMBRE":
       return hasRoofSpace;
+    case "ESCALERA":
+      return hasStairs;
   }
 }
 
@@ -180,6 +183,7 @@ export async function createInspection(
   const receptionDate = receptionDateRaw ? new Date(receptionDateRaw) : null;
   const hasTerrace = formData.get("hasTerrace") === "on";
   const hasRoofSpace = formData.get("hasRoofSpace") === "on";
+  const hasStairs = formData.get("hasStairs") === "on";
 
   if (!projectName || !unitLabel || !address) {
     return { error: "Completa proyecto inmobiliario, unidad y dirección." };
@@ -195,7 +199,7 @@ export async function createInspection(
     include: { elementTemplates: { orderBy: { order: "asc" } } },
   });
   const applicableRooms = roomTemplates.filter((room) =>
-    roomTemplateApplies(room, propertyType, hasTerrace, hasRoofSpace),
+    roomTemplateApplies(room, propertyType, hasTerrace, hasRoofSpace, hasStairs),
   );
 
   // IDs generados en el cliente (no autogenerados por la base) para poder
@@ -251,6 +255,7 @@ export async function createInspection(
         propertyType,
         hasTerrace,
         hasRoofSpace,
+        hasStairs,
         status: "IN_PROGRESS",
       },
     }),

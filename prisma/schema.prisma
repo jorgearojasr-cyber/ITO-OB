@@ -65,6 +65,7 @@ enum RoomFeatureRequirement {
   NINGUNA
   TERRAZA
   TECHUMBRE
+  ESCALERA
 }
 
 // ---------- Tenant root ----------
@@ -165,6 +166,7 @@ model Inspection {
   propertyType  PropertyType
   hasTerrace    Boolean           @default(false)
   hasRoofSpace  Boolean           @default(false)
+  hasStairs     Boolean           @default(false)
   receptionDate   DateTime?
   receptionNumber String? // número de acta de recepción
   status          InspectionStatus @default(DRAFT)
