@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { ObservationStatus, Priority, PropertyType, RoomFeatureRequirement } from "@prisma/client";
+import type { Prisma, ObservationStatus, Priority, PropertyType, RoomFeatureRequirement } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
 
@@ -198,9 +198,47 @@ export async function createInspection(
     roomTemplateApplies(room, propertyType, hasTerrace, hasRoofSpace),
   );
 
-  const inspection = await prisma.$transaction(async (tx) => {
-    const created = await tx.inspection.create({
+  // IDs generados en el cliente (no autogenerados por la base) para poder
+  // armar RoomInstance/ElementInstance como dos createMany en vez de un
+  // create por fila — ver nota más abajo sobre por qué importa.
+  const inspectionId = crypto.randomUUID();
+  const roomsData: Prisma.RoomInstanceCreateManyInput[] = [];
+  const elementsData: Prisma.ElementInstanceCreateManyInput[] = [];
+
+  for (const room of applicableRooms) {
+    const roomInstanceId = crypto.randomUUID();
+    roomsData.push({
+      id: roomInstanceId,
+      inspectionId,
+      roomTemplateId: room.id,
+      name: room.name,
+      order: room.order,
+    });
+
+    for (const element of room.elementTemplates) {
+      elementsData.push({
+        id: crypto.randomUUID(),
+        roomInstanceId,
+        elementTemplateId: element.id,
+        name: element.name,
+        order: element.order,
+        status: "PENDING",
+      });
+    }
+  }
+
+  // Antes: prisma.$transaction(async (tx) => { ...un create por recinto y
+  // por elemento... }) — una transacción interactiva con decenas de
+  // round-trips secuenciales sobre la conexión pooled de Neon (pgbouncer en
+  // modo transacción), que la cerraba a mitad de camino (Prisma P2028:
+  // "Transaction not found"). Ahora son 3 operaciones (create + 2
+  // createMany) enviadas como una sola transacción batch — compatible con
+  // el pooler porque no mantiene la conexión abierta entre round-trips
+  // separados del lado de la app.
+  await prisma.$transaction([
+    prisma.inspection.create({
       data: {
+        id: inspectionId,
         organizationId: session.user.organizationId,
         createdByUserId: session.user.id,
         projectName,
@@ -215,43 +253,16 @@ export async function createInspection(
         hasRoofSpace,
         status: "IN_PROGRESS",
       },
-    });
-
-    for (const room of applicableRooms) {
-      const roomInstance = await tx.roomInstance.create({
-        data: {
-          inspectionId: created.id,
-          roomTemplateId: room.id,
-          name: room.name,
-          order: room.order,
-        },
-      });
-
-      for (const element of room.elementTemplates) {
-        await tx.elementInstance.create({
-          data: {
-            roomInstanceId: roomInstance.id,
-            elementTemplateId: element.id,
-            name: element.name,
-            order: element.order,
-            status: "PENDING",
-          },
-        });
-      }
-    }
-
-    return created;
-  });
-
-  const firstRoom = await prisma.roomInstance.findFirst({
-    where: { inspectionId: inspection.id },
-    orderBy: { order: "asc" },
-  });
+    }),
+    prisma.roomInstance.createMany({ data: roomsData }),
+    prisma.elementInstance.createMany({ data: elementsData }),
+  ]);
 
   revalidatePath("/");
 
-  if (firstRoom) {
-    redirect(`/inspecciones/${inspection.id}/recintos/${firstRoom.id}`);
+  const firstRoomId = roomsData[0]?.id as string | undefined;
+  if (firstRoomId) {
+    redirect(`/inspecciones/${inspectionId}/recintos/${firstRoomId}`);
   }
   redirect("/");
 }
