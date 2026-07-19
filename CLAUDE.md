@@ -61,6 +61,42 @@ correspondiente, no de memoria):
 (completar a medida que se definan: `npm run dev`, `npm run test`,
 `npm run db:migrate`, etc.)
 
+## Base de datos (Neon)
+Proyecto Neon `obrabien-db` (org `Vercel: Jorge Rojas' projects`). Dos
+branches, completamente separados desde 2026-07-19:
+
+- **`main`** — usa producción (`ito-ob.vercel.app`, env vars de Vercel
+  Production/Preview). No se toca desde este equipo salvo despliegue.
+- **`development`** — usa el entorno local (`.env` y `.env.local`, ambos
+  apuntan aquí). Creado como copia de `main` en ese momento; a partir de
+  ahí evoluciona de forma independiente. Es seguro correr seed, resets
+  de datos de prueba o migraciones experimentales aquí sin riesgo de
+  afectar producción.
+
+**Importante**: Prisma Client carga `.env` automáticamente al
+importarse (no `.env.local`). Next.js sí prioriza `.env.local` sobre
+`.env`. Como este proyecto corre tanto `next dev` como scripts sueltos
+con `tsx`/`prisma` (seed, migraciones), **ambos archivos** deben apuntar
+siempre al mismo branch para evitar que un comando golpee `development`
+y otro golpee `main` sin darte cuenta.
+
+Cómo traer datos nuevos de producción a `development` si hace falta
+(por ejemplo, después de una fase donde se generaron datos reales en
+producción que quieres tener también en local):
+
+```
+npx neonctl branches reset development --parent --project-id crimson-leaf-42265510 --org-id org-square-bread-45599210
+```
+
+Esto resetea `development` descartando lo que tenga y lo vuelve a crear
+como copia fresca de `main` (su padre) al momento de correr el comando.
+Alternativa equivalente: borrar el branch y crearlo de nuevo con
+`neonctl branches create --name development --parent main`. En ambos
+casos, después de resetear hay que volver a correr `npm run db:seed` si
+quieres los datos demo, ya que un reset trae exactamente lo que tenga
+`main` en ese momento (incluidos o no los datos demo, según el estado
+de producción).
+
 ## Anti-patrones (no hacer)
 - No introducir lógica de IA/ML en la v1, ni endpoints "preparados" que
   llamen a modelos externos.
