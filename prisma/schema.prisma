@@ -117,8 +117,9 @@ model Inspection {
   propertyType  PropertyType
   hasTerrace    Boolean           @default(false)
   hasRoofSpace  Boolean           @default(false)
-  receptionDate DateTime?
-  status        InspectionStatus @default(DRAFT)
+  receptionDate   DateTime?
+  receptionNumber String? // número de acta de recepción
+  status          InspectionStatus @default(DRAFT)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
