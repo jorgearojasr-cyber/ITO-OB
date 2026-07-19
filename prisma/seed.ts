@@ -317,6 +317,12 @@ const VENTANA_CHECKLIST = [
   "¿Con la ventana cerrada, no se ve luz del día entre el marco y la hoja?",
 ];
 
+const ILUMINACION_CHECKLIST = [
+  "¿Todos los puntos de luz encienden correctamente?",
+  "¿La luz no parpadea ni hace ruido?",
+  "¿Si es un foco empotrado, está bien fijo al cielo, sin quedar colgando o torcido?",
+];
+
 // Estructura de recintos del recorrido sugerido (sección 7)
 const roomTemplates = [
   {
@@ -384,12 +390,20 @@ const roomTemplates = [
         checklist: VENTANA_CHECKLIST,
       },
       {
+        slug: "iluminacion",
+        name: "Iluminación",
+        libraryArticleSlug: "puntos-de-luz-encendidos",
+        checklist: ILUMINACION_CHECKLIST,
+      },
+      {
         slug: "enchufes-e-interruptores",
         name: "Enchufes e interruptores",
         libraryArticleSlug: "prueba-de-enchufes",
         checklist: [
           "¿Cada enchufe funciona probado con un artefacto real?",
           "¿Los interruptores encienden y apagan la luz correspondiente?",
+          "¿Cuando hay dos enchufes o interruptores cerca uno del otro, están alineados y a la misma altura entre sí?",
+          "¿Las placas están firmes en el muro, sin holgura?",
         ],
       },
     ],
@@ -423,7 +437,7 @@ const roomTemplates = [
         slug: "iluminacion",
         name: "Iluminación",
         libraryArticleSlug: "puntos-de-luz-encendidos",
-        checklist: ["¿Todos los puntos de luz encienden correctamente?"],
+        checklist: ILUMINACION_CHECKLIST,
       },
     ],
   },
@@ -470,13 +484,26 @@ const roomTemplates = [
         checklist: [
           "¿No hay goteras en la llave ni bajo el lavaplatos?",
           "¿El desagüe drena sin filtraciones?",
+          "¿La llave gira suave, sin trabarse, al abrir y cerrar?",
+          "¿La presión de agua caliente y fría es pareja, sin cambios bruscos?",
+          "¿Revisando bajo el mueble o lavaplatos, no hay manchas de humedad?",
         ],
+      },
+      {
+        slug: "iluminacion",
+        name: "Iluminación",
+        libraryArticleSlug: "puntos-de-luz-encendidos",
+        checklist: ILUMINACION_CHECKLIST,
       },
       {
         slug: "enchufes-e-interruptores",
         name: "Enchufes e interruptores",
         libraryArticleSlug: "prueba-de-enchufes",
-        checklist: ["¿Cada enchufe funciona probado con un artefacto real?"],
+        checklist: [
+          "¿Cada enchufe funciona probado con un artefacto real?",
+          "¿Cuando hay dos enchufes o interruptores cerca uno del otro, están alineados y a la misma altura entre sí?",
+          "¿Las placas están firmes en el muro, sin holgura?",
+        ],
       },
       {
         slug: "campana-extractora",
@@ -552,13 +579,26 @@ const roomTemplates = [
         checklist: [
           "¿El inodoro, lavamanos y ducha están firmes y sin fisuras?",
           "¿La descarga funciona correctamente?",
+          "¿No hay manchas de óxido alrededor de los pernos de fijación de los artefactos?",
+          "¿Después de descargar el inodoro, el agua deja de correr (no queda goteando o llenando sin parar)?",
         ],
       },
       {
         slug: "griferia",
         name: "Grifería",
         libraryArticleSlug: "filtraciones-y-presion-de-agua",
-        checklist: ["¿No hay goteras ni filtraciones en las llaves?"],
+        checklist: [
+          "¿No hay goteras ni filtraciones en las llaves?",
+          "¿Gira suave, sin trabarse, al abrir y cerrar?",
+          "¿La presión de agua caliente y fría es pareja, sin cambios bruscos?",
+          "¿Revisando bajo el mueble o lavamanos, no hay manchas de humedad?",
+        ],
+      },
+      {
+        slug: "iluminacion",
+        name: "Iluminación",
+        libraryArticleSlug: "puntos-de-luz-encendidos",
+        checklist: ILUMINACION_CHECKLIST,
       },
       {
         slug: "impermeabilizacion-y-sellos",
@@ -601,6 +641,12 @@ const roomTemplates = [
         name: "Ventanas",
         libraryArticleSlug: "sellos-de-silicona",
         checklist: VENTANA_CHECKLIST,
+      },
+      {
+        slug: "iluminacion",
+        name: "Iluminación",
+        libraryArticleSlug: "puntos-de-luz-encendidos",
+        checklist: ILUMINACION_CHECKLIST,
       },
     ],
   },
@@ -683,6 +729,7 @@ const roomTemplates = [
         checklist: [
           "¿Los circuitos están rotulados?",
           "¿Los diferenciales (automáticos) funcionan al probarlos?",
+          "¿El tablero es fácil de ubicar y acceder, sin muebles ni objetos bloqueando el paso?",
         ],
       },
       {
