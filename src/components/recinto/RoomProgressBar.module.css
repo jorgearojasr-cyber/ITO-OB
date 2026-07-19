@@ -1,0 +1,24 @@
+.wrap {
+  padding: 4px 20px 18px;
+}
+
+.label {
+  font-size: 12.5px;
+  color: var(--ink-400);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ink-200);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--blue-600);
+  transition: width 0.2s ease;
+}

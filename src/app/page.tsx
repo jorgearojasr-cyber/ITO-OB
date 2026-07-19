@@ -16,7 +16,7 @@ export default async function InicioPage() {
       <TopBar />
       <div className={styles.content}>
         <HeroProgressCard inspection={data.inspection} progress={data.progress} />
-        <NextStepCard nextStep={data.nextStep} />
+        <NextStepCard inspectionId={data.inspection?.id ?? ""} nextStep={data.nextStep} />
         <QuickAccessGrid />
         <TipOfTheDayCard />
         <LibraryCarousel categories={data.libraryCategories} />
