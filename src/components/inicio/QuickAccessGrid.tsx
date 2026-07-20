@@ -69,6 +69,14 @@ export function QuickAccessGrid({ inspectionId, firstRoomId }: QuickAccessGridPr
             </>
           );
 
+          if (item.label === "Elementos" && inspectionId) {
+            return (
+              <Link key={item.label} href={`/inspecciones/${inspectionId}/elementos`} className={className}>
+                {content}
+              </Link>
+            );
+          }
+
           if (item.label === "Observaciones" && inspectionId) {
             return (
               <Link key={item.label} href={`/inspecciones/${inspectionId}/resumen`} className={className}>
