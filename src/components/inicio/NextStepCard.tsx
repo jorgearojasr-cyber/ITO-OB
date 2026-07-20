@@ -32,7 +32,7 @@ export function NextStepCard({ inspectionId, nextStep }: NextStepCardProps) {
   }
 
   return (
-    <div className={styles.card}>
+    <Link className={styles.card} href={`/inspecciones/${inspectionId}/recintos/${nextStep.roomInstanceId}`}>
       <div className={styles.thumb}>
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="9" width="7" height="7" rx="1" stroke="#C6791A" strokeWidth="1.5" />
@@ -53,15 +53,11 @@ export function NextStepCard({ inspectionId, nextStep }: NextStepCardProps) {
           {nextStep.pendingCount === 1 ? "" : "s"} por revisar.
         </div>
       </div>
-      <Link
-        className={styles.btnPrimary}
-        href={`/inspecciones/${inspectionId}/recintos/${nextStep.roomInstanceId}`}
-      >
-        Continuar
-        <svg width="13" height="13" viewBox="0 0 20 20" fill="none">
-          <path d="M7.5 4.5L13 10L7.5 15.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <span className={styles.chevron}>
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+          <path d="M7.5 4.5L13 10L7.5 15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-      </Link>
-    </div>
+      </span>
+    </Link>
   );
 }

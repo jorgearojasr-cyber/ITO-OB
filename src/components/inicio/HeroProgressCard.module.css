@@ -108,8 +108,30 @@
   font-weight: 500;
 }
 
-.cta {
+.ctaRow {
   margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ctaPrimary {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #fff;
+  color: var(--navy-900);
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 14.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-body);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.35);
+}
+
+.ctaSecondary {
   width: 100%;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.16);

@@ -6,6 +6,7 @@ import styles from "./HeroProgressCard.module.css";
 type HeroProgressCardProps = {
   inspection: InicioData["inspection"];
   progress: InicioData["progress"];
+  nextStep: InicioData["nextStep"];
 };
 
 const dateFormatter = new Intl.DateTimeFormat("es-CL", {
@@ -14,7 +15,7 @@ const dateFormatter = new Intl.DateTimeFormat("es-CL", {
   year: "numeric",
 });
 
-export function HeroProgressCard({ inspection, progress }: HeroProgressCardProps) {
+export function HeroProgressCard({ inspection, progress, nextStep }: HeroProgressCardProps) {
   if (!inspection) {
     return (
       <div className={styles.hero}>
@@ -132,12 +133,31 @@ export function HeroProgressCard({ inspection, progress }: HeroProgressCardProps
         </div>
       </div>
 
-      <Link className={styles.cta} href={`/inspecciones/${inspection.id}/resumen`}>
-        Ver información
-        <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-          <path d="M7.5 4.5L13 10L7.5 15.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </Link>
+      <div className={styles.ctaRow}>
+        {nextStep && (
+          <Link
+            className={styles.ctaPrimary}
+            href={`/inspecciones/${inspection.id}/recintos/${nextStep.roomInstanceId}`}
+          >
+            Continuar recorrido
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+              <path
+                d="M7.5 4.5L13 10L7.5 15.5"
+                stroke="#122341"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
+        )}
+        <Link className={styles.ctaSecondary} href={`/inspecciones/${inspection.id}/resumen`}>
+          Ver resumen
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+            <path d="M7.5 4.5L13 10L7.5 15.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+      </div>
     </div>
   );
 }
