@@ -1,0 +1,94 @@
+.card {
+  display: block;
+  margin: 0 20px 12px;
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ink-900);
+}
+
+.unit {
+  font-weight: 500;
+  color: var(--ink-400);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chip .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.inProgress {
+  background: #e3ebfd;
+  color: var(--blue-600);
+}
+.inProgress .dot {
+  background: var(--blue-600);
+}
+
+.completed {
+  background: var(--green-100);
+  color: #0f4a32;
+}
+.completed .dot {
+  background: var(--green-500);
+}
+
+.meta {
+  font-size: 12.5px;
+  color: var(--ink-400);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.progressWrap {
+  margin-top: 10px;
+}
+
+.progressLabel {
+  font-size: 11.5px;
+  color: var(--ink-400);
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ink-200);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--blue-600);
+  transition: width 0.2s ease;
+}

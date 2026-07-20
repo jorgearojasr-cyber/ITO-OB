@@ -18,14 +18,14 @@ export function BottomNav({ active }: BottomNavProps) {
         </svg>
         <span>Inicio</span>
       </Link>
-      <button className={itemClass("inspecciones")} type="button">
+      <Link className={itemClass("inspecciones")} href="/inspecciones">
         <svg width="21" height="21" viewBox="0 0 20 20" fill="none">
           <rect x="4.5" y="3.5" width="11" height="14" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
           <path d="M7.5 3V2.5C7.5 2.2 7.7 2 8 2H12C12.3 2 12.5 2.2 12.5 2.5V3" stroke="currentColor" strokeWidth="1.6" />
           <path d="M7 8.5H13M7 11.5H13M7 14.5H10.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
         <span>Inspecciones</span>
-      </button>
+      </Link>
       <Link className={styles.fab} href="/inspecciones/nueva" aria-label="Nueva inspección">
         <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
           <path d="M10 4V16M4 10H16" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
