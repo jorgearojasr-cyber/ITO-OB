@@ -3,10 +3,12 @@ import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
 import { LibraryArticleListItem } from "@/components/biblioteca/LibraryArticleListItem";
 import { CategoryToleranceCard } from "@/components/biblioteca/CategoryToleranceCard";
+import { GoodBadExamplesSection } from "@/components/biblioteca/GoodBadExamplesSection";
 import { getLibraryCategory } from "@/lib/library/get-library-category";
 import { categoryImageBySlug, fallbackCategoryImage } from "@/lib/library/category-images";
 import { toleranceMappingByCategorySlug } from "@/lib/library/tolerances-by-category";
 import { toleranceManual } from "@/lib/library/tolerances-manual";
+import { goodBadExamplesByCategorySlug } from "@/lib/library/good-bad-examples";
 import styles from "./page.module.css";
 
 type PageProps = {
@@ -34,6 +36,7 @@ export default async function LibraryCategoryPage({ params }: PageProps) {
           distanceLight={ficha?.distanceLight}
           items={items}
         />
+        <GoodBadExamplesSection examples={goodBadExamplesByCategorySlug[category.slug]} />
         <div className={styles.list}>
           {category.articles.map((article) => (
             <LibraryArticleListItem
