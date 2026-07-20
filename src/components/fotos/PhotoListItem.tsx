@@ -8,11 +8,11 @@ import type { InspectionPhotoItem } from "@/lib/inspections/get-inspection-photo
 import styles from "./PhotoListItem.module.css";
 
 type PhotoListItemProps = {
-  inspectionId: string;
   photo: InspectionPhotoItem;
+  showProject?: boolean;
 };
 
-export function PhotoListItem({ inspectionId, photo }: PhotoListItemProps) {
+export function PhotoListItem({ photo, showProject }: PhotoListItemProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   return (
@@ -28,14 +28,19 @@ export function PhotoListItem({ inspectionId, photo }: PhotoListItemProps) {
       </button>
 
       <div className={styles.body}>
-        <div className={styles.room}>{photo.roomName}</div>
+        <div className={styles.room}>
+          {showProject ? `${photo.projectName} — ${photo.roomName}` : photo.roomName}
+        </div>
         <div className={styles.comment}>{photo.comment ?? "Sin comentario."}</div>
         {photo.priority && (
           <div className={styles.badgeRow}>
             <PriorityBadge priority={photo.priority} />
           </div>
         )}
-        <Link href={`/inspecciones/${inspectionId}/recintos/${photo.roomInstanceId}`} className={styles.roomLink}>
+        <Link
+          href={`/inspecciones/${photo.inspectionId}/recintos/${photo.roomInstanceId}`}
+          className={styles.roomLink}
+        >
           Ver en {photo.roomName} →
         </Link>
       </div>

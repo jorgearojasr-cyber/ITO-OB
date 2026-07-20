@@ -97,9 +97,9 @@ export function QuickAccessGrid({ inspectionId, firstRoomId }: QuickAccessGridPr
             );
           }
 
-          if (item.label === "Mis fotos" && inspectionId) {
+          if (item.label === "Mis fotos") {
             return (
-              <Link key={item.label} href={`/inspecciones/${inspectionId}/fotos`} className={className}>
+              <Link key={item.label} href="/fotos" className={className}>
                 {content}
               </Link>
             );

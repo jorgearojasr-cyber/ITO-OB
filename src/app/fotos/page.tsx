@@ -1,39 +1,30 @@
-import { notFound } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
 import { PhotoListItem } from "@/components/fotos/PhotoListItem";
-import { prisma } from "@/lib/db/prisma";
+import { ProjectFilterChips } from "@/components/fotos/ProjectFilterChips";
 import { getInspectionPhotosData } from "@/lib/inspections/get-inspection-photos-data";
-import { requireSession } from "@/lib/auth/session";
+import { getInspectionOptions } from "@/lib/inspections/get-inspection-options";
 import styles from "./page.module.css";
 
 type PageProps = {
-  params: Promise<{ inspectionId: string }>;
+  searchParams: Promise<{ inspeccion?: string }>;
 };
 
-export default async function InspectionPhotosPage({ params }: PageProps) {
-  const { inspectionId } = await params;
-  const session = await requireSession();
+export default async function AllPhotosPage({ searchParams }: PageProps) {
+  const { inspeccion } = await searchParams;
 
-  const inspection = await prisma.inspection.findFirst({
-    where: { id: inspectionId, organizationId: session.user.organizationId },
-    select: { projectName: true, unitLabel: true },
-  });
+  const [photos, options] = await Promise.all([
+    getInspectionPhotosData(inspeccion),
+    getInspectionOptions(),
+  ]);
 
-  if (!inspection) {
-    notFound();
-  }
-
-  const photos = await getInspectionPhotosData(inspectionId);
+  const showProject = !inspeccion && options.length > 1;
 
   return (
     <div className={styles.screen}>
       <div className={styles.content}>
-        <BackHeader
-          title="Mis fotos"
-          subtitle={`${inspection.projectName} — ${inspection.unitLabel}`}
-          backHref="/"
-        />
+        <BackHeader title="Mis fotos" backHref="/" />
+        <ProjectFilterChips options={options} selectedInspectionId={inspeccion} />
         {photos.length === 0 ? (
           <div className={styles.empty}>
             <div className={styles.emptyTitle}>Aún no hay fotos</div>
@@ -44,7 +35,7 @@ export default async function InspectionPhotosPage({ params }: PageProps) {
         ) : (
           <div className={styles.list}>
             {photos.map((photo) => (
-              <PhotoListItem key={photo.id} inspectionId={inspectionId} photo={photo} />
+              <PhotoListItem key={photo.id} photo={photo} showProject={showProject} />
             ))}
           </div>
         )}

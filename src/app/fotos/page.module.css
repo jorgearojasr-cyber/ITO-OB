@@ -10,17 +10,18 @@
 
 .content {
   flex: 1;
-  padding: 4px 20px 8px;
+  padding: 4px 0 8px;
 }
 
 .list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 0 20px;
 }
 
 .empty {
-  margin-top: 20px;
+  margin: 20px 20px 0;
   background: var(--white);
   border: 1px dashed var(--ink-200);
   border-radius: var(--radius-lg);

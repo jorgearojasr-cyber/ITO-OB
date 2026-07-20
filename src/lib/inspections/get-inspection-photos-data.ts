@@ -8,6 +8,9 @@ export type InspectionPhotoItem = {
   id: string;
   url: string;
   createdAt: Date;
+  inspectionId: string;
+  projectName: string;
+  unitLabel: string;
   roomName: string;
   roomInstanceId: string;
   elementName: string;
@@ -16,7 +19,7 @@ export type InspectionPhotoItem = {
   priority: Priority | null;
 };
 
-export async function getInspectionPhotosData(inspectionId: string): Promise<InspectionPhotoItem[]> {
+export async function getInspectionPhotosData(inspectionId?: string): Promise<InspectionPhotoItem[]> {
   const session = await requireSession();
 
   const photos = await prisma.photo.findMany({
@@ -24,7 +27,7 @@ export async function getInspectionPhotosData(inspectionId: string): Promise<Ins
       observation: {
         elementInstance: {
           roomInstance: {
-            inspectionId,
+            ...(inspectionId ? { inspectionId } : {}),
             inspection: { organizationId: session.user.organizationId },
           },
         },
@@ -32,7 +35,9 @@ export async function getInspectionPhotosData(inspectionId: string): Promise<Ins
     },
     orderBy: { createdAt: "desc" },
     include: {
-      observation: { include: { elementInstance: { include: { roomInstance: true } } } },
+      observation: {
+        include: { elementInstance: { include: { roomInstance: { include: { inspection: true } } } } },
+      },
     },
   });
 
@@ -40,6 +45,9 @@ export async function getInspectionPhotosData(inspectionId: string): Promise<Ins
     id: photo.id,
     url: photo.url,
     createdAt: photo.createdAt,
+    inspectionId: photo.observation.elementInstance.roomInstance.inspectionId,
+    projectName: photo.observation.elementInstance.roomInstance.inspection.projectName,
+    unitLabel: photo.observation.elementInstance.roomInstance.inspection.unitLabel,
     roomName: photo.observation.elementInstance.roomInstance.name,
     roomInstanceId: photo.observation.elementInstance.roomInstanceId,
     elementName: photo.observation.elementInstance.name,
