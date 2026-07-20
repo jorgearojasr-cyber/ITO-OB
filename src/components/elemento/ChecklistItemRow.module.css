@@ -82,6 +82,17 @@
   padding: 9px;
 }
 
+/* Deshabilitado hasta que la pregunta tenga respuesta (✔/⚠) — debe leerse
+   claramente distinto al botón activo, no solo una opacidad sutil que
+   pase desapercibida (opacity: 0.6 del .actionBtn:disabled genérico no
+   alcanzaba: en un ícono pequeño sin texto era casi imperceptible). */
+.actionBtn.photoBtnDisabled {
+  background: transparent;
+  border: 1px dashed var(--ink-200);
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
 .photoCount {
   font-size: 11px;
   font-weight: 700;

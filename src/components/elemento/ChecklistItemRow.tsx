@@ -155,11 +155,15 @@ export function ChecklistItemRow({
         </button>
         <button
           type="button"
-          className={`${styles.actionBtn} ${styles.photoBtn}`}
+          className={
+            observationId
+              ? `${styles.actionBtn} ${styles.photoBtn}`
+              : `${styles.actionBtn} ${styles.photoBtn} ${styles.photoBtnDisabled}`
+          }
           onClick={handlePhotoButtonClick}
           disabled={isPending || isUploading || !observationId}
           aria-label="Agregar fotografía"
-          title={observationId ? "Agregar fotografía" : "Marca ✔ u ⚠ primero"}
+          title={observationId ? "Agregar fotografía" : "Marca ✔ u ⚠ primero para poder agregar una foto"}
         >
           {isUploading ? "…" : "📷"}
           {photos.length > 0 && <span className={styles.photoCount}>{photos.length}</span>}
