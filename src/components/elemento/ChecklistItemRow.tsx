@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { upload } from "@vercel/blob/client";
 import type { ObservationStatus, Priority } from "@prisma/client";
 import { attachPhoto, saveChecklistAnswer } from "@/lib/inspections/actions";
+import { PhotoLightbox } from "./PhotoLightbox";
 import styles from "./ChecklistItemRow.module.css";
 
 type Photo = { id: string; url: string };
@@ -45,6 +46,7 @@ export function ChecklistItemRow({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function persist(nextStatus: ObservationStatus, nextComment: string, nextPriority: Priority) {
@@ -186,11 +188,23 @@ export function ChecklistItemRow({
 
       {photos.length > 0 && (
         <div className={styles.thumbnails}>
-          {photos.map((photo) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={photo.id} src={photo.url} alt="" className={styles.thumbnail} />
+          {photos.map((photo, index) => (
+            <button
+              key={photo.id}
+              type="button"
+              className={styles.thumbnailBtn}
+              onClick={() => setLightboxIndex(index)}
+              aria-label="Ver foto en tamaño completo"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo.url} alt="" className={styles.thumbnail} />
+            </button>
           ))}
         </div>
+      )}
+
+      {lightboxIndex !== null && (
+        <PhotoLightbox photos={photos} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
       )}
 
       {status === "OBSERVATION" && (

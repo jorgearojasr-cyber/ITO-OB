@@ -112,6 +112,14 @@
   flex-wrap: wrap;
 }
 
+.thumbnailBtn {
+  padding: 0;
+  border: none;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+}
+
 .thumbnail {
   width: 48px;
   height: 48px;
