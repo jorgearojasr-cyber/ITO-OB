@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { InicioData } from "@/lib/inspections/get-inicio-data";
 import styles from "./LibraryCarousel.module.css";
 
@@ -51,11 +52,14 @@ export function LibraryCarousel({ categories }: LibraryCarouselProps) {
   return (
     <div className={styles.sectionPad}>
       <div className={styles.sectionTitle}>
-        Biblioteca técnica <span className={styles.seeAll}>Ver todas</span>
+        Biblioteca técnica
+        <Link href="/biblioteca" className={styles.seeAll}>
+          Ver todas
+        </Link>
       </div>
       <div className={styles.scroll}>
         {categories.map((category) => (
-          <div key={category.id} className={styles.card}>
+          <Link key={category.id} href={`/biblioteca/${category.slug}`} className={styles.card}>
             <div className={styles.thumb}>{iconsBySlug[category.slug] ?? fallbackIcon}</div>
             <div className={styles.body}>
               <div className={styles.t}>{category.name}</div>
@@ -63,7 +67,7 @@ export function LibraryCarousel({ categories }: LibraryCarouselProps) {
                 {category.articleCount} artículo{category.articleCount === 1 ? "" : "s"}
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
