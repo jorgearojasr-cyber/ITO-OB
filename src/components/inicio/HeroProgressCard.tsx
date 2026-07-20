@@ -7,6 +7,7 @@ type HeroProgressCardProps = {
   inspection: InicioData["inspection"];
   progress: InicioData["progress"];
   nextStep: InicioData["nextStep"];
+  hasAnyInspections: boolean;
 };
 
 const dateFormatter = new Intl.DateTimeFormat("es-CL", {
@@ -15,7 +16,28 @@ const dateFormatter = new Intl.DateTimeFormat("es-CL", {
   year: "numeric",
 });
 
-export function HeroProgressCard({ inspection, progress, nextStep }: HeroProgressCardProps) {
+export function HeroProgressCard({ inspection, progress, nextStep, hasAnyInspections }: HeroProgressCardProps) {
+  if (!inspection && !hasAnyInspections) {
+    return (
+      <div className={styles.hero}>
+        <div className={styles.eyebrow}>
+          <span className={styles.pulse} /> SIN PROYECTOS
+        </div>
+        <div className={styles.title} style={{ marginTop: 12, maxWidth: "none" }}>
+          Aún no tienes ninguna inspección.
+        </div>
+        <div className={styles.ctaRow}>
+          <Link className={styles.ctaPrimary} href="/inspecciones/nueva">
+            + Nueva inspección
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+              <path d="M7.5 4.5L13 10L7.5 15.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!inspection) {
     return (
       <div className={styles.hero}>

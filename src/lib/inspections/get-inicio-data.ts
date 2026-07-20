@@ -31,6 +31,8 @@ export type InicioData = {
     icon: string | null;
     articleCount: number;
   }[];
+  hasAnyInspections: boolean;
+  hasSeenOnboarding: boolean;
 };
 
 const EMPTY_PROGRESS: InicioData["progress"] = {
@@ -44,7 +46,7 @@ const EMPTY_PROGRESS: InicioData["progress"] = {
 export async function getInicioData(): Promise<InicioData> {
   const session = await requireSession();
 
-  const [inspection, libraryCategories] = await Promise.all([
+  const [inspection, libraryCategories, inspectionCount, user] = await Promise.all([
     prisma.inspection.findFirst({
       where: { status: "IN_PROGRESS", organizationId: session.user.organizationId },
       orderBy: { updatedAt: "desc" },
@@ -53,7 +55,15 @@ export async function getInicioData(): Promise<InicioData> {
       orderBy: { order: "asc" },
       include: { _count: { select: { articles: true } } },
     }),
+    prisma.inspection.count({ where: { organizationId: session.user.organizationId } }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { hasSeenOnboarding: true },
+    }),
   ]);
+
+  const hasAnyInspections = inspectionCount > 0;
+  const hasSeenOnboarding = user?.hasSeenOnboarding ?? false;
 
   const libraryCategoriesData = libraryCategories.map((category) => ({
     id: category.id,
@@ -70,6 +80,8 @@ export async function getInicioData(): Promise<InicioData> {
       nextStep: null,
       firstRoomId: null,
       libraryCategories: libraryCategoriesData,
+      hasAnyInspections,
+      hasSeenOnboarding,
     };
   }
 
@@ -127,5 +139,7 @@ export async function getInicioData(): Promise<InicioData> {
     nextStep,
     firstRoomId: rooms[0]?.id ?? null,
     libraryCategories: libraryCategoriesData,
+    hasAnyInspections,
+    hasSeenOnboarding,
   };
 }

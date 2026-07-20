@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { prisma } from "@/lib/db/prisma";
+import { requireSession } from "./session";
 import { signIn, signOut } from "./auth";
 
 export type LoginState = { error?: string };
@@ -79,4 +80,12 @@ export async function registerUser(
 
 export async function logoutAction(): Promise<void> {
   await signOut({ redirectTo: "/login" });
+}
+
+export async function markOnboardingSeen(): Promise<void> {
+  const session = await requireSession();
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { hasSeenOnboarding: true },
+  });
 }

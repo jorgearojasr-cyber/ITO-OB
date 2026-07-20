@@ -98,6 +98,7 @@ model User {
   role           UserRole     @default(PROPIETARIO)
   emailVerified  DateTime?
   image          String?
+  hasSeenOnboarding Boolean   @default(false)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
