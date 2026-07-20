@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
-import { PhotoGridItem } from "@/components/fotos/PhotoGridItem";
+import { PhotoListItem } from "@/components/fotos/PhotoListItem";
 import { prisma } from "@/lib/db/prisma";
 import { getInspectionPhotosData } from "@/lib/inspections/get-inspection-photos-data";
 import { requireSession } from "@/lib/auth/session";
@@ -42,9 +42,9 @@ export default async function InspectionPhotosPage({ params }: PageProps) {
             </div>
           </div>
         ) : (
-          <div className={styles.grid}>
+          <div className={styles.list}>
             {photos.map((photo) => (
-              <PhotoGridItem key={photo.id} inspectionId={inspectionId} photo={photo} />
+              <PhotoListItem key={photo.id} inspectionId={inspectionId} photo={photo} />
             ))}
           </div>
         )}

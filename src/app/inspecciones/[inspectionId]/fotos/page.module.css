@@ -13,10 +13,10 @@
   padding: 4px 20px 8px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .empty {

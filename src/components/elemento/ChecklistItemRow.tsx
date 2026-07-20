@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { upload } from "@vercel/blob/client";
 import type { ObservationStatus, Priority } from "@prisma/client";
 import { attachPhoto, saveChecklistAnswer } from "@/lib/inspections/actions";
-import { PhotoLightbox } from "./PhotoLightbox";
+import { PhotoLightbox } from "@/components/ui/PhotoLightbox";
 import styles from "./ChecklistItemRow.module.css";
 
 type Photo = { id: string; url: string };
