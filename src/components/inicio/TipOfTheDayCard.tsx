@@ -1,21 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { toleranceTips } from "@/lib/library/tolerance-tips";
 import styles from "./TipOfTheDayCard.module.css";
 
-const tips = [
-  "En ventanas, revisa que la silicona esté continua y sin espacios. Esto evita filtraciones de agua.",
-  "En pisos flotantes, camina sobre toda la superficie: si escuchas crujidos, puede indicar una mala instalación.",
-  "En enchufes e interruptores, prueba cada uno con un artefacto real antes de dar por aprobada la instalación eléctrica.",
-];
-
 export function TipOfTheDayCard() {
-  const [tipIndex, setTipIndex] = useState(0);
+  const [tipIndex, setTipIndex] = useState(() => new Date().getDate() % toleranceTips.length);
+  const tip = toleranceTips[tipIndex];
 
   return (
     <div className={styles.card}>
       <div className={styles.dots}>
-        {tips.map((_, index) => (
+        {toleranceTips.map((_, index) => (
           <button
             key={index}
             type="button"
@@ -37,8 +33,9 @@ export function TipOfTheDayCard() {
         </svg>
       </div>
       <div className={styles.content}>
-        <div className={styles.title}>Consejo del día</div>
-        <p>{tips[tipIndex]}</p>
+        <div className={styles.title}>Consejo del día — {tip.categoryLabel}</div>
+        <p>{tip.text}</p>
+        <div className={styles.source}>Fuente: {tip.source}</div>
       </div>
     </div>
   );
