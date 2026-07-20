@@ -150,7 +150,7 @@
 }
 
 .textarea:focus {
-  outline: 2px solid var(--blue-600);
+  outline: 2px solid var(--accent-600);
   outline-offset: 1px;
 }
 

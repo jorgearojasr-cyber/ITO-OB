@@ -46,11 +46,11 @@
 }
 
 .inProgress {
-  background: #e3ebfd;
-  color: var(--blue-600);
+  background: var(--accent-100);
+  color: var(--accent-600);
 }
 .inProgress .dot {
-  background: var(--blue-600);
+  background: var(--accent-600);
 }
 
 .completed {
@@ -89,6 +89,6 @@
 .fill {
   height: 100%;
   border-radius: 999px;
-  background: var(--blue-600);
+  background: var(--accent-600);
   transition: width 0.2s ease;
 }

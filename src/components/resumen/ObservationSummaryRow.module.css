@@ -16,7 +16,7 @@
 .breadcrumb {
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--blue-600);
+  color: var(--accent-600);
   letter-spacing: 0.2px;
   margin-bottom: 3px;
 }

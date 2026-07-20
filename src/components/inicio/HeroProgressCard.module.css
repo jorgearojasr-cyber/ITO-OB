@@ -1,16 +1,17 @@
 .hero {
-  margin: 4px 20px 18px;
-  background: linear-gradient(160deg, var(--navy-700), var(--navy-900));
+  margin: 4px 20px 20px;
+  background: var(--white);
+  border: 1px solid var(--ink-200);
   border-radius: var(--radius-lg);
-  padding: 22px 22px 20px;
-  color: #fff;
-  box-shadow: 0 16px 32px -12px rgba(18, 35, 65, 0.55);
+  padding: 26px 24px 24px;
+  color: var(--ink-900);
+  box-shadow: 0 8px 24px -14px rgba(16, 24, 40, 0.18);
 }
 
 .eyebrow {
   font-size: 12.5px;
   font-weight: 600;
-  color: #9fb4da;
+  color: var(--ink-400);
   letter-spacing: 0.3px;
   display: flex;
   align-items: center;
@@ -48,10 +49,10 @@
 .title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 22px;
-  line-height: 1.18;
-  letter-spacing: -0.3px;
-  max-width: 200px;
+  font-size: 27px;
+  line-height: 1.15;
+  letter-spacing: -0.4px;
+  max-width: 220px;
 }
 
 .meta {
@@ -60,7 +61,7 @@
   gap: 6px;
   margin-top: 16px;
   font-size: 13px;
-  color: #c6d4ee;
+  color: var(--ink-600);
   font-weight: 500;
 }
 
@@ -72,22 +73,25 @@
 
 .stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 18px;
 }
 
 .stat {
   display: flex;
-  align-items: center;
-  gap: 9px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 8px;
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
 }
 
 .statIcon {
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.09);
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,13 +102,13 @@
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 15px;
-  color: #fff;
+  color: var(--ink-900);
   line-height: 1.1;
 }
 
 .statLbl {
-  font-size: 11px;
-  color: #9fb4da;
+  font-size: 10.5px;
+  color: var(--ink-400);
   font-weight: 500;
 }
 
@@ -117,9 +121,9 @@
 
 .ctaPrimary {
   width: 100%;
-  background: #fff;
-  border: 1px solid #fff;
-  color: var(--navy-900);
+  background: var(--accent-600);
+  border: 1px solid var(--accent-600);
+  color: #fff;
   padding: 13px 16px;
   border-radius: var(--radius-sm);
   font-weight: 700;
@@ -128,14 +132,14 @@
   align-items: center;
   justify-content: space-between;
   font-family: var(--font-body);
-  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 16px -8px rgba(221, 122, 54, 0.4);
 }
 
 .ctaSecondary {
   width: 100%;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: var(--white);
+  border: 1px solid var(--accent-600);
+  color: var(--accent-600);
   padding: 13px 16px;
   border-radius: var(--radius-sm);
   font-weight: 600;

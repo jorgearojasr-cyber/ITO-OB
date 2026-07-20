@@ -8,7 +8,7 @@ export function TopBar() {
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
             <path
               d="M4 15L16 5L28 15"
-              stroke="#2F5FE0"
+              stroke="#DD7A36"
               strokeWidth="2.6"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -16,7 +16,7 @@ export function TopBar() {
             />
             <path
               d="M7 13V27H25V13"
-              stroke="#2F5FE0"
+              stroke="#DD7A36"
               strokeWidth="2.6"
               strokeLinecap="round"
               strokeLinejoin="round"

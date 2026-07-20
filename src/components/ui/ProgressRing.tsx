@@ -26,7 +26,7 @@ export function ProgressRing({
           cx={center}
           cy={center}
           r={radius}
-          stroke="rgba(255,255,255,0.14)"
+          stroke="var(--accent-100)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -34,7 +34,7 @@ export function ProgressRing({
           cx={center}
           cy={center}
           r={radius}
-          stroke="var(--green-500)"
+          stroke="var(--accent-600)"
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}

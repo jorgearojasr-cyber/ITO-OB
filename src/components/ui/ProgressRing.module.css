@@ -21,7 +21,7 @@
   font-weight: 800;
   font-size: 21px;
   line-height: 1;
-  color: var(--white);
+  color: var(--navy-900);
 }
 
 .pct sup {
@@ -31,7 +31,7 @@
 
 .cap {
   font-size: 8.5px;
-  color: #afc0e0;
+  color: var(--ink-400);
   font-weight: 600;
   margin-top: 3px;
   text-align: center;

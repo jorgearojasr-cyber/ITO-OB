@@ -3,14 +3,15 @@
  * Fuente de verdad del lenguaje visual — no crear una paleta nueva por pantalla.
  */
 :root {
-  --navy-900: #122341;
-  --navy-800: #17325a;
-  --navy-700: #1e3e6e;
-  --blue-600: #2f5fe0;
-  --blue-700: #2650c4;
+  --navy-900: #222b49;
+  --navy-800: #2c3760;
+  --navy-700: #3b4d82;
+  --accent-600: #dd7a36;
+  --accent-700: #bf6127;
+  --accent-100: #fbe8da;
   --green-500: #3fc98a;
   --green-100: #e4f8ee;
-  --amber-500: #f5a623;
+  --amber-500: #e08a2e;
   --amber-100: #fdefd8;
   --purple-500: #8e6ef0;
   --purple-100: #efe8fe;
@@ -18,7 +19,7 @@
   --ink-600: #475066;
   --ink-400: #8892a6;
   --ink-200: #e4e8f0;
-  --paper: #f5f7fa;
+  --paper: #f8f5f1;
   --white: #ffffff;
 
   --radius-lg: 22px;
