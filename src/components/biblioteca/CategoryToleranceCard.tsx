@@ -1,39 +1,58 @@
 import type { ToleranceItem } from "@/lib/library/tolerances-manual";
-import { TOLERANCE_MANUAL_SOURCE } from "@/lib/library/tolerances-manual";
 import styles from "./CategoryToleranceCard.module.css";
+
+type ChecklistItem = ToleranceItem & { shortLabel: string };
 
 type CategoryToleranceCardProps = {
   imageUrl: string;
-  distanceLight?: string;
-  items?: ToleranceItem[];
+  distanceLightSummary?: string;
+  checklistItems?: ChecklistItem[];
 };
 
-export function CategoryToleranceCard({ imageUrl, distanceLight, items }: CategoryToleranceCardProps) {
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+      <path d="M4.5 10.5L8 14L15.5 6" stroke="#3FC98A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="7.5" stroke="#DD7A36" strokeWidth="1.6" />
+      <path d="M10 9V14" stroke="#DD7A36" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="10" cy="6.5" r="0.9" fill="#DD7A36" />
+    </svg>
+  );
+}
+
+export function CategoryToleranceCard({ imageUrl, distanceLightSummary, checklistItems }: CategoryToleranceCardProps) {
   return (
     <div className={styles.wrap}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={imageUrl} alt="" className={styles.photo} />
 
-      {items && items.length > 0 && (
+      {checklistItems && checklistItems.length > 0 && (
         <div className={styles.body}>
-          {distanceLight && (
-            <div className={styles.distanceBox}>
-              <div className={styles.distanceLabel}>Cómo revisarlo</div>
-              <p>{distanceLight}</p>
-            </div>
-          )}
-
-          <div className={styles.itemsLabel}>Tolerancias del Manual CDT</div>
-          <div className={styles.items}>
-            {items.map((item) => (
-              <div key={item.parameter} className={styles.item}>
-                <div className={styles.itemParameter}>{item.parameter}</div>
-                <div className={styles.itemTolerance}>{item.tolerance}</div>
-                <div className={styles.itemVerification}>{item.verification}</div>
+          <div className={styles.checklist}>
+            {checklistItems.map((item) => (
+              <div key={item.parameter} className={styles.checklistRow}>
+                <span className={styles.checklistIcon}>
+                  <CheckIcon />
+                </span>
+                <span>{item.shortLabel}</span>
               </div>
             ))}
+            {distanceLightSummary && (
+              <div className={styles.checklistRow}>
+                <span className={styles.checklistIcon}>
+                  <InfoIcon />
+                </span>
+                <span>{distanceLightSummary}</span>
+              </div>
+            )}
           </div>
-          <div className={styles.source}>Fuente: {TOLERANCE_MANUAL_SOURCE}</div>
         </div>
       )}
     </div>

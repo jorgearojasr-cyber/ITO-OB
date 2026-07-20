@@ -4,10 +4,11 @@ import { BottomNav } from "@/components/inicio/BottomNav";
 import { LibraryArticleListItem } from "@/components/biblioteca/LibraryArticleListItem";
 import { CategoryToleranceCard } from "@/components/biblioteca/CategoryToleranceCard";
 import { GoodBadExamplesSection } from "@/components/biblioteca/GoodBadExamplesSection";
+import { TechnicalDetailAccordion } from "@/components/biblioteca/TechnicalDetailAccordion";
 import { getLibraryCategory } from "@/lib/library/get-library-category";
 import { categoryImageBySlug, fallbackCategoryImage } from "@/lib/library/category-images";
 import { toleranceMappingByCategorySlug } from "@/lib/library/tolerances-by-category";
-import { toleranceManual } from "@/lib/library/tolerances-manual";
+import { toleranceManual, type ToleranceItem } from "@/lib/library/tolerances-manual";
 import { goodBadExamplesByCategorySlug } from "@/lib/library/good-bad-examples";
 import styles from "./page.module.css";
 
@@ -25,7 +26,13 @@ export default async function LibraryCategoryPage({ params }: PageProps) {
 
   const mapping = toleranceMappingByCategorySlug[category.slug];
   const ficha = mapping ? toleranceManual.find((f) => f.id === mapping.fichaId) : undefined;
-  const items = ficha?.items.filter((item) => mapping!.highlightParameters.includes(item.parameter));
+
+  const checklistItems = mapping?.highlightItems
+    .map((highlight) => {
+      const item = ficha?.items.find((i) => i.parameter === highlight.parameter);
+      return item ? { ...item, shortLabel: highlight.shortLabel } : null;
+    })
+    .filter((item): item is ToleranceItem & { shortLabel: string } => item !== null);
 
   return (
     <div className={styles.screen}>
@@ -33,10 +40,11 @@ export default async function LibraryCategoryPage({ params }: PageProps) {
         <BackHeader title={category.name} backHref="/biblioteca" />
         <CategoryToleranceCard
           imageUrl={categoryImageBySlug[category.slug] ?? fallbackCategoryImage}
-          distanceLight={ficha?.distanceLight}
-          items={items}
+          distanceLightSummary={mapping?.distanceLightSummary}
+          checklistItems={checklistItems}
         />
         <GoodBadExamplesSection examples={goodBadExamplesByCategorySlug[category.slug]} />
+        <TechnicalDetailAccordion distanceLight={ficha?.distanceLight} items={checklistItems} />
         <div className={styles.list}>
           {category.articles.map((article) => (
             <LibraryArticleListItem
