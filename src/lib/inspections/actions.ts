@@ -43,6 +43,17 @@ function revalidateInspectionPaths(inspectionId: string, roomInstanceId: string,
   revalidatePath("/");
 }
 
+// getInicioData elige el hero de Inicio por Inspection.updatedAt desc —
+// pero guardar una respuesta de checklist o una foto solo toca
+// Observation/Photo/ElementInstance, nunca la fila de Inspection en sí.
+// Sin este touch, @updatedAt nunca se refresca después de la creación y
+// el orden termina siendo, en la práctica, igual a createdAt desc.
+function touchInspection(inspectionId: string) {
+  // data: {} no genera un UPDATE real (Prisma lo omite y @updatedAt nunca
+  // se refresca) — hay que setear el campo a mano para que el touch sirva.
+  return prisma.inspection.update({ where: { id: inspectionId }, data: { updatedAt: new Date() } });
+}
+
 type SaveChecklistAnswerInput = {
   inspectionId: string;
   elementInstanceId: string;
@@ -95,6 +106,7 @@ export async function saveChecklistAnswer(
   });
 
   const { roomInstanceId } = await recomputeElementInstanceStatus(elementInstanceId);
+  await touchInspection(inspectionId);
   revalidateInspectionPaths(inspectionId, roomInstanceId, elementInstanceId);
 
   return { observationId: observation.id };
@@ -145,6 +157,7 @@ export async function attachPhoto(
     select: { roomInstanceId: true },
   });
 
+  await touchInspection(inspectionId);
   revalidateInspectionPaths(inspectionId, element.roomInstanceId, elementInstanceId);
 
   return { photoId: photo.id, url: photo.url };
