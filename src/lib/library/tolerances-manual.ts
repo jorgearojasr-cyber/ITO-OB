@@ -15,6 +15,11 @@ export type ToleranceItem = {
   verification: string;
 };
 
+export type GlassDefectIntensityLevel = {
+  intensity: "Alta" | "Media" | "Leve" | "Débil";
+  distance: string;
+};
+
 export type ToleranceFicha = {
   id: number;
   name: string;
@@ -22,6 +27,10 @@ export type ToleranceFicha = {
   /** Presente solo en las fichas donde el manual exige una distancia u
    *  condición de luz específica para detectar el defecto. */
   distanceLight?: string;
+  /** Solo en la ficha 13 (Ventanas): protocolo ASTM 1036-01 — la
+   *  distancia a la que se detecta una falla lineal en el vidrio define
+   *  su nivel de intensidad. */
+  glassDefectIntensityByDistance?: GlassDefectIntensityLevel[];
   items: ToleranceItem[];
 };
 
@@ -151,7 +160,7 @@ export const toleranceManual: ToleranceFicha[] = [
       { parameter: "Defectos de esmalte/impresión (lista de 10 tipos)", tolerance: "Máximo 5 %", verification: "Observación directa" },
       { parameter: "Palmetas quebradas, despuntadas, con grietas o sin esmalte", tolerance: "No se aceptan", verification: "Observación directa" },
       { parameter: "Desnivel entre palmetas en pisos", tolerance: "1 mm", verification: "Regla con cero en el borde + instrumento graduado" },
-      { parameter: "Desnivel entre palmetas en otras superficies", tolerance: "2 mm", verification: "Ídem" },
+      { parameter: "Desnivel entre palmetas en otras superficies", tolerance: "2 mm", verification: "Regla con cero en el borde + instrumento graduado" },
       { parameter: "Contacto del adhesivo con la palmeta", tolerance: "Mínimo 70 % de la superficie", verification: "Golpe con martillo pequeño: sonido hueco = adhesivo insuficiente" },
       { parameter: "Alineación de canterías (ambos sentidos)", tolerance: "± 2 mm en 3 m", verification: "Regla o lienza" },
       { parameter: "Espesor de canterías", tolerance: "± 2 mm", verification: "Regla graduada, perpendicular" },
@@ -191,6 +200,12 @@ export const toleranceManual: ToleranceFicha[] = [
     description: "Marcos y hojas de ventanas en aluminio o PVC.",
     distanceLight:
       "Marcos y hojas: observador a 1,5 m perpendicular. Vidrios: protocolo ASTM 1036-01 — muestra en posición vertical, observador comienza a 4 m y se acerca hasta detectar la falla mirando a 90°, con luz de día (sin sol directo) o iluminación equivalente a mínimo 160 pie-candela (1722 lux). La distancia a la que se detecta la falla define su intensidad: > 3,3 m = Alta · 3,3–1,01 m = Media · 1–0,2 m = Leve · < 0,2 m = Débil.",
+    glassDefectIntensityByDistance: [
+      { intensity: "Alta", distance: "> 3,3 m" },
+      { intensity: "Media", distance: "3,3–1,01 m" },
+      { intensity: "Leve", distance: "1–0,2 m" },
+      { intensity: "Débil", distance: "< 0,2 m" },
+    ],
     items: [
       { parameter: "Manchas, rayas, abolladuras o decoloraciones", tolerance: "Puntuales, máx. 2 por componente, no visibles a 1,5 m", verification: "Observación perpendicular a 1,5 m" },
       { parameter: "Paralelismo entre hojas y entre marco y hojas", tolerance: "± 2 mm; sin luz visible con ventana cerrada", verification: "Instrumento graduado" },
