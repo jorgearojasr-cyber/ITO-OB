@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { InspectionListItem } from "@/components/inspecciones/InspectionListItem";
 import { getInspectionsListData } from "@/lib/inspections/get-inspections-list-data";
 import styles from "./page.module.css";
@@ -21,13 +22,16 @@ export default async function InspectionsListPage() {
           }
         />
         {inspections.length === 0 ? (
-          <div className={styles.empty}>
-            <div className={styles.emptyTitle}>Aún no tienes inspecciones</div>
-            <div className={styles.emptyDesc}>Crea la primera para empezar a recorrer tu vivienda.</div>
-            <Link href="/inspecciones/nueva" className={styles.emptyBtn}>
-              Crear mi primera inspección
-            </Link>
-          </div>
+          <EmptyState
+            className={styles.emptyMargin}
+            title="Aún no tienes inspecciones"
+            description="Crea la primera para empezar a recorrer tu vivienda."
+            action={
+              <Link href="/inspecciones/nueva" className={styles.emptyBtn}>
+                Crear mi primera inspección
+              </Link>
+            }
+          />
         ) : (
           <div className={styles.list}>
             {inspections.map((inspection) => (

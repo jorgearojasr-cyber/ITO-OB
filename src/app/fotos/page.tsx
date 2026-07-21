@@ -1,5 +1,6 @@
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { PhotoListItem } from "@/components/fotos/PhotoListItem";
 import { ProjectFilterChips } from "@/components/fotos/ProjectFilterChips";
 import { getInspectionPhotosData } from "@/lib/inspections/get-inspection-photos-data";
@@ -26,12 +27,11 @@ export default async function AllPhotosPage({ searchParams }: PageProps) {
         <BackHeader title="Mis fotos" backHref="/" />
         <ProjectFilterChips options={options} selectedInspectionId={inspeccion} />
         {photos.length === 0 ? (
-          <div className={styles.empty}>
-            <div className={styles.emptyTitle}>Aún no hay fotos</div>
-            <div className={styles.emptyDesc}>
-              Las fotos que agregues al revisar cada elemento van a aparecer acá.
-            </div>
-          </div>
+          <EmptyState
+            className={styles.emptyMargin}
+            title="Aún no hay fotos"
+            description="Las fotos que agregues al revisar cada elemento van a aparecer acá."
+          />
         ) : (
           <div className={styles.list}>
             {photos.map((photo) => (

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ElementListRow } from "@/components/elementos/ElementListRow";
 import { prisma } from "@/lib/db/prisma";
 import { getElementsListData } from "@/lib/inspections/get-elements-list-data";
@@ -35,12 +36,11 @@ export default async function ElementsListPage({ params }: PageProps) {
           backHref="/"
         />
         {elements.length === 0 ? (
-          <div className={styles.empty}>
-            <div className={styles.emptyTitle}>Aún no hay elementos</div>
-            <div className={styles.emptyDesc}>
-              Los elementos de cada recinto van a aparecer acá a medida que avances en el recorrido.
-            </div>
-          </div>
+          <EmptyState
+            className={styles.emptyMargin}
+            title="Aún no hay elementos"
+            description="Los elementos de cada recinto van a aparecer acá a medida que avances en el recorrido."
+          />
         ) : (
           <div className={styles.list}>
             {elements.map((element) => (

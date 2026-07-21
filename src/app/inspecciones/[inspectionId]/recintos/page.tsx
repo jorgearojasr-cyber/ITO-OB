@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { RoomListRow } from "@/components/recinto/RoomListRow";
 import { prisma } from "@/lib/db/prisma";
 import { getRoomsListData } from "@/lib/inspections/get-rooms-list-data";
@@ -38,10 +39,11 @@ export default async function RoomsListPage({ params }: PageProps) {
           backHref="/"
         />
         {rooms.length === 0 ? (
-          <div className={styles.empty}>
-            <div className={styles.emptyTitle}>Aún no hay recintos</div>
-            <div className={styles.emptyDesc}>Los recintos de esta inspección van a aparecer acá.</div>
-          </div>
+          <EmptyState
+            className={styles.emptyMargin}
+            title="Aún no hay recintos"
+            description="Los recintos de esta inspección van a aparecer acá."
+          />
         ) : (
           <div className={styles.list}>
             {rooms.map((room) => (
