@@ -285,6 +285,20 @@ const libraryCategories = [
       },
     ],
   },
+  {
+    slug: "guardapolvos",
+    name: "Guardapolvos",
+    order: 19,
+    icon: "trim",
+    articles: [
+      {
+        slug: "guardapolvos-y-junquillos",
+        title: "Guardapolvos y Junquillos",
+        summary: "Terminación de guardapolvos y junquillos de madera, aglomerados, PVC o cerámicos.",
+        body: "Terminación de guardapolvos y junquillos de madera, aglomerados, PVC o cerámicos, según la ficha 16 del Manual de Tolerancias CDT. Distancia entre el guardapolvo y el muro: máx. 1 mm. Distancia entre el guardapolvo o junquillo y el piso terminado: menor a 3 mm. Alineación en la junta entre tramos de guardapolvo o junquillo: máx. 1 mm. Desajuste en esa misma junta: máx. 1 mm. En guardapolvos cerámicos, además: paralelismo de la palmeta respecto al muro ± 2 mm, y diferencia de nivel con el piso terminado ± 1 mm. Verificación: con una regla pequeña graduada, observando desde el centro del recinto.",
+      },
+    ],
+  },
 ];
 
 // Checklist corto ("nivel 1") para los artículos SIN match en
@@ -486,7 +500,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "guardapolvos-y-junquillos",
         checklist: GUARDAPOLVOS_CHECKLIST,
       },
       {
@@ -536,7 +550,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "guardapolvos-y-junquillos",
         checklist: GUARDAPOLVOS_CHECKLIST,
       },
       {
@@ -574,7 +588,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "guardapolvos-y-junquillos",
         checklist: GUARDAPOLVOS_CHECKLIST,
       },
       {
@@ -678,7 +692,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "guardapolvos-y-junquillos",
         checklist: GUARDAPOLVOS_CHECKLIST,
       },
       {
@@ -748,7 +762,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "guardapolvos-y-junquillos",
         checklist: GUARDAPOLVOS_CHECKLIST,
       },
       {

@@ -92,4 +92,12 @@ export const toleranceMappingByCategorySlug: Partial<Record<string, CategoryTole
       { parameter: "Horizontalidad del artefacto", shortLabel: "Horizontalidad: ±1 mm" },
     ],
   },
+  guardapolvos: {
+    fichaId: 16,
+    highlightItems: [
+      { parameter: "Distancia guardapolvo–muro", shortLabel: "Distancia guardapolvo-muro: 1 mm" },
+      { parameter: "Alineación en junta entre guardapolvos/junquillos", shortLabel: "Alineación de junta entre guardapolvos: 1 mm" },
+      { parameter: "Desajuste en junta entre guardapolvos/junquillos", shortLabel: "Desajuste en junta: 1 mm" },
+    ],
+  },
 };
