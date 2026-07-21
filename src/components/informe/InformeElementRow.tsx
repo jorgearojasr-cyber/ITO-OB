@@ -5,9 +5,10 @@ import styles from "./InformeElementRow.module.css";
 
 type InformeElementRowProps = {
   element: InformeElement;
+  roomName: string;
 };
 
-export function InformeElementRow({ element }: InformeElementRowProps) {
+export function InformeElementRow({ element, roomName }: InformeElementRowProps) {
   const flaggedObservations = element.observations.filter((o) => o.status === "OBSERVATION");
 
   return (
@@ -28,7 +29,12 @@ export function InformeElementRow({ element }: InformeElementRowProps) {
                 <div className={styles.thumbnails}>
                   {observation.photos.map((photo) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img key={photo.id} src={photo.url} alt="" className={styles.thumbnail} />
+                    <img
+                      key={photo.id}
+                      src={photo.url}
+                      alt={`Foto de ${element.name} — ${roomName}`}
+                      className={styles.thumbnail}
+                    />
                   ))}
                 </div>
               )}

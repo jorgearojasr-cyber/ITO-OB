@@ -9,6 +9,7 @@ import styles from "./ElementChecklist.module.css";
 type ElementChecklistProps = {
   inspectionId: string;
   elementInstanceId: string;
+  elementName: string;
   roomInstanceId: string;
   roomName: string;
   checklist: ElementInstanceData["checklist"];
@@ -17,6 +18,7 @@ type ElementChecklistProps = {
 export function ElementChecklist({
   inspectionId,
   elementInstanceId,
+  elementName,
   roomInstanceId,
   roomName,
   checklist,
@@ -44,6 +46,8 @@ export function ElementChecklist({
             key={item.checklistItemTemplateId}
             inspectionId={inspectionId}
             elementInstanceId={elementInstanceId}
+            elementName={elementName}
+            roomName={roomName}
             checklistItemTemplateId={item.checklistItemTemplateId}
             question={item.question}
             helpText={item.helpText}

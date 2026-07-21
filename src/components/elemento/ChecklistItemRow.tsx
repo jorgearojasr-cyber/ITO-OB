@@ -14,6 +14,8 @@ type SaveState = "idle" | "saved" | "error";
 type ChecklistItemRowProps = {
   inspectionId: string;
   elementInstanceId: string;
+  elementName: string;
+  roomName: string;
   checklistItemTemplateId: string;
   question: string;
   helpText: string | null;
@@ -32,12 +34,15 @@ const PRIORITIES: Priority[] = ["ALTA", "MEDIA", "BAJA"];
 export function ChecklistItemRow({
   inspectionId,
   elementInstanceId,
+  elementName,
+  roomName,
   checklistItemTemplateId,
   question,
   helpText,
   initialObservation,
   onAnswered,
 }: ChecklistItemRowProps) {
+  const photoAlt = `Foto de ${elementName} — ${roomName}`;
   const [status, setStatus] = useState<ObservationStatus | null>(initialObservation?.status ?? null);
   const [comment, setComment] = useState(initialObservation?.comment ?? "");
   const [priority, setPriority] = useState<Priority>(initialObservation?.priority ?? "MEDIA");
@@ -200,14 +205,18 @@ export function ChecklistItemRow({
               aria-label="Ver foto en tamaño completo"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo.url} alt="" className={styles.thumbnail} />
+              <img src={photo.url} alt={photoAlt} className={styles.thumbnail} />
             </button>
           ))}
         </div>
       )}
 
       {lightboxIndex !== null && (
-        <PhotoLightbox photos={photos} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+        <PhotoLightbox
+          photos={photos.map((photo) => ({ ...photo, alt: photoAlt }))}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
 
       {status === "OBSERVATION" && (

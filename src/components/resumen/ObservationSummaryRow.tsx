@@ -16,7 +16,11 @@ export function ObservationSummaryRow({ inspectionId, observation }: Observation
     >
       {observation.thumbnailUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={observation.thumbnailUrl} alt="" className={styles.thumbnail} />
+        <img
+          src={observation.thumbnailUrl}
+          alt={`Foto de ${observation.elementName} — ${observation.roomName}`}
+          className={styles.thumbnail}
+        />
       )}
       <div className={styles.body}>
         <div className={styles.breadcrumb}>

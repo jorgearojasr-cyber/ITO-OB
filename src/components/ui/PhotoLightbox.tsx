@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./PhotoLightbox.module.css";
 
-type Photo = { id: string; url: string };
+type Photo = { id: string; url: string; alt?: string };
 
 type PhotoLightboxProps = {
   photos: Photo[];
@@ -74,7 +74,7 @@ export function PhotoLightbox({ photos, initialIndex, onClose }: PhotoLightboxPr
         onTouchEnd={handleTouchEnd}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photos[index].url} alt="" className={styles.image} />
+        <img src={photos[index].url} alt={photos[index].alt ?? ""} className={styles.image} />
       </div>
 
       {hasMultiple && (

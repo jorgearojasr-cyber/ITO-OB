@@ -14,6 +14,7 @@ type PhotoListItemProps = {
 
 export function PhotoListItem({ photo, showProject }: PhotoListItemProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const photoAlt = `Foto de ${photo.elementName} — ${photo.roomName}`;
 
   return (
     <div className={styles.row}>
@@ -24,7 +25,7 @@ export function PhotoListItem({ photo, showProject }: PhotoListItemProps) {
         aria-label="Ver foto en tamaño completo"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo.url} alt="" className={styles.thumb} />
+        <img src={photo.url} alt={photoAlt} className={styles.thumb} />
       </button>
 
       <div className={styles.body}>
@@ -46,7 +47,11 @@ export function PhotoListItem({ photo, showProject }: PhotoListItemProps) {
       </div>
 
       {lightboxOpen && (
-        <PhotoLightbox photos={[{ id: photo.id, url: photo.url }]} initialIndex={0} onClose={() => setLightboxOpen(false)} />
+        <PhotoLightbox
+          photos={[{ id: photo.id, url: photo.url, alt: photoAlt }]}
+          initialIndex={0}
+          onClose={() => setLightboxOpen(false)}
+        />
       )}
     </div>
   );

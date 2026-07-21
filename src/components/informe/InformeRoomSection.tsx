@@ -11,7 +11,7 @@ export function InformeRoomSection({ room }: InformeRoomSectionProps) {
     <div className={`${styles.section} informe-room`}>
       <div className={styles.title}>{room.name}</div>
       {room.elements.map((element) => (
-        <InformeElementRow key={element.id} element={element} />
+        <InformeElementRow key={element.id} element={element} roomName={room.name} />
       ))}
     </div>
   );

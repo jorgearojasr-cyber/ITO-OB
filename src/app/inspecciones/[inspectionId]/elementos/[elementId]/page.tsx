@@ -42,6 +42,7 @@ export default async function ElementInstancePage({ params }: PageProps) {
             <ElementChecklist
               inspectionId={inspectionId}
               elementInstanceId={element.id}
+              elementName={element.name}
               roomInstanceId={element.roomInstanceId}
               roomName={element.roomName}
               checklist={element.checklist}
