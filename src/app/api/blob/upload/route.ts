@@ -1,7 +1,13 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth/auth";
 
 export async function POST(request: Request): Promise<NextResponse> {
+  const session = await auth();
+  if (!session?.user?.organizationId) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   const body = (await request.json()) as HandleUploadBody;
 
   try {
