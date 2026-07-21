@@ -299,6 +299,20 @@ const libraryCategories = [
       },
     ],
   },
+  {
+    slug: "cornisas",
+    name: "Cornisas",
+    order: 20,
+    icon: "trim",
+    articles: [
+      {
+        slug: "cornisas",
+        title: "Cornisas",
+        summary: "Terminación de cornisas; la junta entre cornisas no es invisible por definición.",
+        body: "Terminación de cornisas, según la ficha 18 del Manual de Tolerancias CDT: la junta entre cornisas no es invisible por definición. Alineación de la junta entre tramos de cornisa: máx. 1 mm. Desajuste en esa misma junta: máx. 1 mm. Verificación: con instrumento graduado.",
+      },
+    ],
+  },
 ];
 
 // Checklist corto ("nivel 1") para los artículos SIN match en
@@ -363,6 +377,12 @@ const PISO_FLOTANTE_CHECKLIST = [
 const GUARDAPOLVOS_CHECKLIST = [
   "¿El guardapolvo está bien pegado al muro y al piso, sin espacios visibles?",
   "¿Las uniones entre tramos de guardapolvo quedan alineadas, sin desniveles entre una pieza y la siguiente?",
+  "¿No hay tramos sueltos, despegados o que se muevan al tocarlos?",
+];
+
+const CORNISAS_CHECKLIST = [
+  "¿La cornisa está bien fijada al muro y al cielo, sin espacios visibles?",
+  "¿Las uniones entre tramos de cornisa quedan alineadas, sin desniveles entre un tramo y el siguiente?",
   "¿No hay tramos sueltos, despegados o que se muevan al tocarlos?",
 ];
 
@@ -510,6 +530,12 @@ const roomTemplates: SeedRoomDef[] = [
         checklist: MUROS_Y_CIELOS_CHECKLIST,
       },
       {
+        slug: "cornisas",
+        name: "Cornisas",
+        libraryArticleSlug: "cornisas",
+        checklist: CORNISAS_CHECKLIST,
+      },
+      {
         slug: "ventanas",
         name: "Ventanas",
         libraryArticleSlug: "sellos-de-silicona",
@@ -558,6 +584,12 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Muros y cielos",
         libraryArticleSlug: "uniformidad-de-la-pintura",
         checklist: MUROS_Y_CIELOS_CHECKLIST,
+      },
+      {
+        slug: "cornisas",
+        name: "Cornisas",
+        libraryArticleSlug: "cornisas",
+        checklist: CORNISAS_CHECKLIST,
       },
       {
         slug: "iluminacion",
@@ -770,6 +802,12 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Muros y cielos",
         libraryArticleSlug: "uniformidad-de-la-pintura",
         checklist: MUROS_Y_CIELOS_CHECKLIST,
+      },
+      {
+        slug: "cornisas",
+        name: "Cornisas",
+        libraryArticleSlug: "cornisas",
+        checklist: CORNISAS_CHECKLIST,
       },
       {
         slug: "ventanas",

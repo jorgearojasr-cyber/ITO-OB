@@ -100,4 +100,11 @@ export const toleranceMappingByCategorySlug: Partial<Record<string, CategoryTole
       { parameter: "Desajuste en junta entre guardapolvos/junquillos", shortLabel: "Desajuste en junta: 1 mm" },
     ],
   },
+  cornisas: {
+    fichaId: 18,
+    highlightItems: [
+      { parameter: "Alineación de junta", shortLabel: "Alineación de junta entre cornisas: 1 mm" },
+      { parameter: "Desajuste en junta", shortLabel: "Desajuste en junta entre cornisas: 1 mm" },
+    ],
+  },
 };
