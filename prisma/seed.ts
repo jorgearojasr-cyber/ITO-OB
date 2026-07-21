@@ -341,6 +341,10 @@ type SeedRoomDef = {
   order: number;
   icon: string;
   requiredFeature: RoomFeatureRequirement;
+  /** Default true/true si se omite — solo se declara explícito en recintos
+   *  realmente exclusivos de un tipo de vivienda. */
+  appliesToCasa?: boolean;
+  appliesToDepto?: boolean;
   elements: SeedElementDef[];
 };
 
@@ -752,6 +756,8 @@ const roomTemplates: SeedRoomDef[] = [
     order: 8,
     icon: "terrace",
     requiredFeature: RoomFeatureRequirement.TERRAZA,
+    appliesToCasa: true,
+    appliesToDepto: true,
     elements: [
       {
         slug: "piso-exterior",
@@ -781,6 +787,8 @@ const roomTemplates: SeedRoomDef[] = [
     order: 9,
     icon: "roof",
     requiredFeature: RoomFeatureRequirement.TECHUMBRE,
+    appliesToCasa: true,
+    appliesToDepto: false,
     elements: [
       {
         slug: "cubierta",
@@ -857,6 +865,8 @@ const roomTemplates: SeedRoomDef[] = [
     order: 12,
     icon: "stairs",
     requiredFeature: RoomFeatureRequirement.ESCALERA,
+    appliesToCasa: true,
+    appliesToDepto: false,
     elements: [
       {
         slug: "peldanos-y-pasamanos",
@@ -867,6 +877,50 @@ const roomTemplates: SeedRoomDef[] = [
           "¿La profundidad de cada escalón (huella) es la misma en toda la escalera?",
           "¿El revestimiento de los escalones está bien adherido, sin piezas sueltas que se muevan al pisar?",
           "¿El pasamanos está firme en toda su extensión, sin tramos sueltos?",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "bodega",
+    name: "Bodega",
+    order: 13,
+    icon: "storage",
+    requiredFeature: RoomFeatureRequirement.BODEGA,
+    appliesToCasa: false,
+    appliesToDepto: true,
+    elements: [
+      {
+        slug: "puerta-y-cerradura-de-bodega",
+        name: "Puerta y cerradura de bodega",
+        libraryArticleSlug: null,
+        checklist: [
+          "¿La puerta cierra y abre correctamente, sin forzar?",
+          "¿La cerradura funciona bien y te entregaron todas las llaves o copias correspondientes?",
+          "¿El espacio interior está limpio, seco y sin humedad?",
+          "¿La numeración o identificación de la bodega coincide con la de tu contrato?",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "estacionamiento",
+    name: "Estacionamiento",
+    order: 14,
+    icon: "parking",
+    requiredFeature: RoomFeatureRequirement.ESTACIONAMIENTO,
+    appliesToCasa: false,
+    appliesToDepto: true,
+    elements: [
+      {
+        slug: "espacio-de-estacionamiento",
+        name: "Espacio de estacionamiento",
+        libraryArticleSlug: null,
+        checklist: [
+          "¿La demarcación (líneas o numeración) es clara y coincide con tu contrato?",
+          "¿El piso no tiene grietas, hoyos ni desniveles importantes?",
+          "¿La iluminación del sector permite ver con claridad?",
+          "¿Hay espacio suficiente para maniobrar y estacionar sin dificultad?",
         ],
       },
     ],
@@ -931,6 +985,9 @@ async function seedCatalog(): Promise<SeededRoom[]> {
   const seededRooms: SeededRoom[] = [];
 
   for (const room of roomTemplates) {
+    const appliesToCasa = room.appliesToCasa ?? true;
+    const appliesToDepto = room.appliesToDepto ?? true;
+
     const createdRoom = await prisma.roomTemplate.upsert({
       where: { slug: room.slug },
       update: {
@@ -938,6 +995,8 @@ async function seedCatalog(): Promise<SeededRoom[]> {
         order: room.order,
         icon: room.icon,
         requiredFeature: room.requiredFeature,
+        appliesToCasa,
+        appliesToDepto,
       },
       create: {
         slug: room.slug,
@@ -945,6 +1004,8 @@ async function seedCatalog(): Promise<SeededRoom[]> {
         order: room.order,
         icon: room.icon,
         requiredFeature: room.requiredFeature,
+        appliesToCasa,
+        appliesToDepto,
       },
     });
 
@@ -1132,8 +1193,14 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
     hasStairs: true,
     hasPedestrianGate: true,
     hasVehicleGate: true,
+    hasStorageRoom: false,
+    hasParkingSpace: false,
   };
   const demoIsVehicleGateAutomatic = true;
+  // La demo es CASA — "terraza" se guarda como patio delantero + trasero,
+  // no como el campo hasTerrace (exclusivo de departamento).
+  const demoHasFrontYard = true;
+  const demoHasBackYard = true;
 
   const inspection = await prisma.inspection.create({
     data: {
@@ -1144,12 +1211,16 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
       address: "Av. Los Robles 1234, Santiago",
       developerName: "Inmobiliaria GranVista",
       propertyType: "CASA",
-      hasTerrace: demoFeatureFlags.hasTerrace,
+      hasTerrace: false, // CASA: se guarda como patio delantero/trasero, no en este campo
       hasRoofSpace: demoFeatureFlags.hasRoofSpace,
+      hasFrontYard: demoHasFrontYard,
+      hasBackYard: demoHasBackYard,
       hasStairs: demoFeatureFlags.hasStairs,
       hasPedestrianGate: demoFeatureFlags.hasPedestrianGate,
       hasVehicleGate: demoFeatureFlags.hasVehicleGate,
       isVehicleGateAutomatic: demoIsVehicleGateAutomatic,
+      hasStorageRoom: false,
+      hasParkingSpace: false,
       status: "IN_PROGRESS",
       receptionDate: new Date(),
     },

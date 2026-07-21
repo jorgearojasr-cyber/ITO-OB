@@ -70,6 +70,19 @@ enum RoomFeatureRequirement {
   ESCALERA
   REJA_PEATONAL
   PORTON_VEHICULAR
+  BODEGA
+  ESTACIONAMIENTO
+}
+
+enum StorageLockType {
+  CANDADO
+  LLAVE
+  OTRO
+}
+
+enum ParkingLocation {
+  SUBTERRANEO
+  SUPERFICIE
 }
 
 // ---------- Tenant root ----------
@@ -169,12 +182,19 @@ model Inspection {
   developerName          String? // inmobiliaria
   builderName            String? // constructora
   propertyType           PropertyType
-  hasTerrace             Boolean          @default(false)
-  hasRoofSpace           Boolean          @default(false)
+  hasTerrace             Boolean          @default(false) // depto: "¿Tiene terraza?"
+  hasRoofSpace           Boolean          @default(false) // casa: "Cobertizo de acceso"
+  hasFrontYard           Boolean          @default(false) // casa: "Patio delantero"
+  hasBackYard            Boolean          @default(false) // casa: "Patio trasero"
   hasStairs              Boolean          @default(false)
   hasPedestrianGate      Boolean          @default(false)
   hasVehicleGate         Boolean          @default(false)
   isVehicleGateAutomatic Boolean          @default(false)
+  hasStorageRoom         Boolean          @default(false) // depto: "¿Tiene bodega?"
+  storageLockType        StorageLockType?
+  hasParkingSpace        Boolean          @default(false) // depto: "¿Tiene estacionamiento?"
+  parkingLocation        ParkingLocation?
+  parkingIsMarked        Boolean?
   receptionDate          DateTime?
   receptionNumber        String? // número de acta de recepción
   status                 InspectionStatus @default(DRAFT)

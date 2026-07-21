@@ -2,7 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { Prisma, ObservationStatus, Priority, PropertyType } from "@prisma/client";
+import type {
+  Prisma,
+  ObservationStatus,
+  Priority,
+  PropertyType,
+  StorageLockType,
+  ParkingLocation,
+} from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
 import {
@@ -178,19 +185,6 @@ export async function createInspection(
   const receptionNumber = String(formData.get("receptionNumber") ?? "").trim() || null;
   const receptionDateRaw = String(formData.get("receptionDate") ?? "").trim();
   const receptionDate = receptionDateRaw ? new Date(receptionDateRaw) : null;
-  const hasTerrace = formData.get("hasTerrace") === "on";
-  const hasRoofSpace = formData.get("hasRoofSpace") === "on";
-  const hasStairs = formData.get("hasStairs") === "on";
-  const hasPedestrianGate = formData.get("hasPedestrianGate") === "on";
-  const hasVehicleGate = formData.get("hasVehicleGate") === "on";
-  const isVehicleGateAutomatic = hasVehicleGate && formData.get("isVehicleGateAutomatic") === "on";
-  const featureFlags: HouseFeatureFlags = {
-    hasTerrace,
-    hasRoofSpace,
-    hasStairs,
-    hasPedestrianGate,
-    hasVehicleGate,
-  };
 
   if (!projectName || !unitLabel || !address) {
     return { error: "Completa proyecto inmobiliario, unidad y dirección." };
@@ -198,6 +192,45 @@ export async function createInspection(
   if (propertyType !== "CASA" && propertyType !== "DEPARTAMENTO") {
     return { error: "Selecciona el tipo de vivienda." };
   }
+
+  // Cada checkbox/pregunta de seguimiento solo tiene sentido para un tipo de
+  // vivienda (ver NuevaInspeccionForm.tsx) — se ignora cualquier valor que
+  // llegue para el tipo que no corresponde, en vez de confiar 100% en que el
+  // formulario nunca lo mande.
+  const isCasa = propertyType === "CASA";
+
+  const hasFrontYard = isCasa && formData.get("hasFrontYard") === "on";
+  const hasBackYard = isCasa && formData.get("hasBackYard") === "on";
+  const hasRoofSpace = isCasa && formData.get("hasRoofSpace") === "on";
+  const hasStairs = isCasa && formData.get("hasStairs") === "on";
+  const hasPedestrianGate = isCasa && formData.get("hasPedestrianGate") === "on";
+  const hasVehicleGate = isCasa && formData.get("hasVehicleGate") === "on";
+  const isVehicleGateAutomatic = hasVehicleGate && formData.get("isVehicleGateAutomatic") === "on";
+
+  const hasTerrace = !isCasa && formData.get("hasTerrace") === "on";
+  const hasStorageRoom = !isCasa && formData.get("hasStorageRoom") === "on";
+  const storageLockTypeRaw = String(formData.get("storageLockType") ?? "").trim();
+  const storageLockType: StorageLockType | null =
+    hasStorageRoom && (storageLockTypeRaw === "CANDADO" || storageLockTypeRaw === "LLAVE" || storageLockTypeRaw === "OTRO")
+      ? storageLockTypeRaw
+      : null;
+  const hasParkingSpace = !isCasa && formData.get("hasParkingSpace") === "on";
+  const parkingLocationRaw = String(formData.get("parkingLocation") ?? "").trim();
+  const parkingLocation: ParkingLocation | null =
+    hasParkingSpace && (parkingLocationRaw === "SUBTERRANEO" || parkingLocationRaw === "SUPERFICIE")
+      ? parkingLocationRaw
+      : null;
+  const parkingIsMarked = hasParkingSpace ? formData.get("parkingIsMarked") === "on" : null;
+
+  const featureFlags: HouseFeatureFlags = {
+    hasTerrace: isCasa ? hasFrontYard || hasBackYard : hasTerrace,
+    hasRoofSpace,
+    hasStairs,
+    hasPedestrianGate,
+    hasVehicleGate,
+    hasStorageRoom,
+    hasParkingSpace,
+  };
 
   const session = await requireSession();
 
@@ -262,10 +295,17 @@ export async function createInspection(
         propertyType,
         hasTerrace,
         hasRoofSpace,
+        hasFrontYard,
+        hasBackYard,
         hasStairs,
         hasPedestrianGate,
         hasVehicleGate,
         isVehicleGateAutomatic,
+        hasStorageRoom,
+        storageLockType,
+        hasParkingSpace,
+        parkingLocation,
+        parkingIsMarked,
         status: "IN_PROGRESS",
       },
     }),

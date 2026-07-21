@@ -5,11 +5,14 @@ import type { PropertyType, RoomFeatureRequirement } from "@prisma/client";
 // libre de cualquier dependencia de runtime de Next.js/Auth.js.
 
 export type HouseFeatureFlags = {
+  /** Combinado: terraza (depto) o patio delantero/trasero (casa) — ver actions.ts */
   hasTerrace: boolean;
   hasRoofSpace: boolean;
   hasStairs: boolean;
   hasPedestrianGate: boolean;
   hasVehicleGate: boolean;
+  hasStorageRoom: boolean;
+  hasParkingSpace: boolean;
 };
 
 // Compartida entre recintos (RoomTemplate) y elementos individuales
@@ -30,6 +33,10 @@ export function hasRequiredFeature(requiredFeature: RoomFeatureRequirement, flag
       return flags.hasPedestrianGate;
     case "PORTON_VEHICULAR":
       return flags.hasVehicleGate;
+    case "BODEGA":
+      return flags.hasStorageRoom;
+    case "ESTACIONAMIENTO":
+      return flags.hasParkingSpace;
   }
 }
 
