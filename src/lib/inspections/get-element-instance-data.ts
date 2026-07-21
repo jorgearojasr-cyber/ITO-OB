@@ -10,8 +10,8 @@ export type ElementInstanceData = {
   roomName: string;
   libraryArticle: {
     title: string;
-    summary: string;
     body: string;
+    quickCheckItems: string[];
   } | null;
   checklist: {
     checklistItemTemplateId: string;
@@ -87,8 +87,8 @@ export async function getElementInstanceData(
     libraryArticle: element.elementTemplate.referenceLibraryArticle
       ? {
           title: element.elementTemplate.referenceLibraryArticle.title,
-          summary: element.elementTemplate.referenceLibraryArticle.summary,
           body: element.elementTemplate.referenceLibraryArticle.body,
+          quickCheckItems: element.elementTemplate.referenceLibraryArticle.quickCheckItems,
         }
       : null,
     checklist,

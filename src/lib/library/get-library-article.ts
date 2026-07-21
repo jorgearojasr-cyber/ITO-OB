@@ -4,8 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 
 export type LibraryArticleData = {
   title: string;
-  summary: string;
   body: string;
+  quickCheckItems: string[];
   categoryName: string;
   categorySlug: string;
 } | null;
@@ -25,8 +25,8 @@ export async function getLibraryArticle(
 
   return {
     title: article.title,
-    summary: article.summary,
     body: article.body,
+    quickCheckItems: article.quickCheckItems,
     categoryName: article.category.name,
     categorySlug: article.category.slug,
   };

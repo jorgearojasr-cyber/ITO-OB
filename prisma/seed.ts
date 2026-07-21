@@ -5,6 +5,7 @@ import {
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { type HouseFeatureFlags, hasRequiredFeature, vehicleGateVariantApplies } from "../src/lib/inspections/feature-flags";
+import { toleranceMappingByCategorySlug } from "../src/lib/library/tolerances-by-category";
 
 const prisma = new PrismaClient();
 
@@ -285,6 +286,55 @@ const libraryCategories = [
     ],
   },
 ];
+
+// Checklist corto ("nivel 1") para los artículos SIN match en
+// tolerances-by-category.ts — redactado a mano resumiendo el `body` de
+// arriba, mismo criterio que los `shortLabel` de Biblioteca técnica
+// (frases cortas, una idea por línea, sin el método de verificación
+// salvo que sea parte de la acción). Los artículos CON match no van
+// acá: su checklist se deriva de tolerances-by-category.ts en
+// seedCatalog(). Se llena por artículo (slug), no por categoría, para
+// no depender del orden de libraryCategories.
+const QUICK_CHECK_ITEMS_BY_ARTICLE_SLUG: Record<string, string[]> = {
+  "impermeabilizacion-de-duchas": [
+    "Sello ducha-muro: continuo, sin cortes",
+    "Cielo del recinto inferior: sin manchas de humedad",
+  ],
+  "rotulacion-y-diferenciales": [
+    "Cada circuito está rotulado (cocina, dormitorios, etc.)",
+    "El botón de test de cada diferencial corta la corriente y se puede reactivar",
+    "No abrir ni manipular cables — solo observar y probar el botón de test",
+  ],
+  "estado-de-la-cubierta": [
+    "No subas al techo sin condiciones seguras — revisa desde el suelo",
+    "Sin piezas quebradas, corridas de su lugar u oxidadas",
+    "Cielo raso sin manchas de humedad",
+  ],
+  "firmeza-de-artefactos-sanitarios": [
+    "Firmes al presionar, sin moverse ni hacer ruido",
+    "Sin fisuras en la loza ni óxido en los pernos",
+    "Descarga del inodoro no rebalsa; desagüe del lavamanos no gotea",
+  ],
+  "filtraciones-y-presion-de-agua": [
+    "Giran suave y no gotean por el pico ni la base",
+    "Sin humedad ni manchas debajo del mueble o lavamanos",
+    "Agua caliente y fría con presión pareja, sin variar de golpe",
+  ],
+  "puntos-de-luz-encendidos": [
+    "Cada punto de luz enciende (incluye closets y exterior)",
+    "No parpadea ni hace ruido",
+    "Focos empotrados bien fijos al cielo, sin colgar ni torcerse",
+  ],
+  "fijacion-y-limpieza-de-canaletas": [
+    "Bien fijadas, sin tramos caídos, torcidos o separados",
+    "Sin hojas, tierra u otros restos que obstruyan el paso del agua",
+    "Bajadas de agua conectadas, sin quedar sueltas a mitad de camino",
+  ],
+  "impermeabilizacion-de-terrazas": [
+    "Pendiente hacia desagüe o borde — el agua no se acumula hacia el interior",
+    "Uniones piso-muro y piso-puerta sin grietas ni sellos despegados",
+  ],
+};
 
 // Checklists reutilizados sin cambios entre varios recintos (evita repetir
 // el mismo array literal en cada RoomTemplate).
@@ -961,6 +1011,11 @@ async function seedCatalog(): Promise<SeededRoom[]> {
     });
 
     for (const article of category.articles) {
+      const quickCheckItems =
+        toleranceMappingByCategorySlug[category.slug]?.highlightItems.map((h) => h.shortLabel) ??
+        QUICK_CHECK_ITEMS_BY_ARTICLE_SLUG[article.slug] ??
+        [];
+
       const createdArticle = await prisma.libraryArticle.upsert({
         where: {
           categoryId_slug: { categoryId: createdCategory.id, slug: article.slug },
@@ -969,6 +1024,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
           title: article.title,
           summary: article.summary,
           body: article.body,
+          quickCheckItems,
         },
         create: {
           categoryId: createdCategory.id,
@@ -976,6 +1032,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
           title: article.title,
           summary: article.summary,
           body: article.body,
+          quickCheckItems,
         },
       });
       articleBySlug.set(article.slug, createdArticle.id);

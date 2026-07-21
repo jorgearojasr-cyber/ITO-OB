@@ -1,0 +1,36 @@
+.wrap {
+  margin-top: 10px;
+}
+
+.toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border: none;
+  border-top: 1px solid var(--ink-200);
+  background: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-600);
+  font-family: var(--font-body);
+}
+
+.chevron {
+  color: var(--ink-400);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.body {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--ink-600);
+  line-height: 1.55;
+  white-space: pre-line;
+}
