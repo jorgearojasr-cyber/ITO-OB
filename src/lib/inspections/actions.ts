@@ -205,7 +205,7 @@ export async function createInspection(
   const hasStairs = isCasa && formData.get("hasStairs") === "on";
   const hasPedestrianGate = isCasa && formData.get("hasPedestrianGate") === "on";
   const hasVehicleGate = isCasa && formData.get("hasVehicleGate") === "on";
-  const isVehicleGateAutomatic = hasVehicleGate && formData.get("isVehicleGateAutomatic") === "on";
+  const isVehicleGateAutomatic = hasVehicleGate && formData.get("isVehicleGateAutomatic") === "AUTOMATICO";
 
   const hasTerrace = !isCasa && formData.get("hasTerrace") === "on";
   const hasStorageRoom = !isCasa && formData.get("hasStorageRoom") === "on";

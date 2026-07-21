@@ -12,19 +12,23 @@ const INITIAL_STATE: CreateInspectionState = {};
 export function NuevaInspeccionForm() {
   const [state, formAction, isPending] = useActionState(createInspection, INITIAL_STATE);
 
-  const [hasTerrace, setHasTerrace] = useState(true);
+  const [propertyType, setPropertyType] = useState("CASA");
+
+  // Casa
+  const [hasFrontYard, setHasFrontYard] = useState(true);
+  const [hasBackYard, setHasBackYard] = useState(true);
   const [hasRoofSpace, setHasRoofSpace] = useState(true);
   const [hasStairs, setHasStairs] = useState(false);
   const [hasPedestrianGate, setHasPedestrianGate] = useState(false);
   const [hasVehicleGate, setHasVehicleGate] = useState(false);
-  const [isVehicleGateAutomatic, setIsVehicleGateAutomatic] = useState(false);
-  const [terraceTouched, setTerraceTouched] = useState(false);
-  const [roofTouched, setRoofTouched] = useState(false);
+
+  // Departamento
+  const [hasTerrace, setHasTerrace] = useState(true);
+  const [hasStorageRoom, setHasStorageRoom] = useState(false);
+  const [hasParkingSpace, setHasParkingSpace] = useState(false);
 
   function handlePropertyTypeChange(value: string) {
-    const defaultValue = value === "CASA";
-    if (!terraceTouched) setHasTerrace(defaultValue);
-    if (!roofTouched) setHasRoofSpace(defaultValue);
+    setPropertyType(value);
   }
 
   return (
@@ -67,76 +71,146 @@ export function NuevaInspeccionForm() {
         />
       </FormField>
 
-      <div className={styles.checkboxRow}>
-        <input
-          id="hasTerrace"
-          name="hasTerrace"
-          type="checkbox"
-          checked={hasTerrace}
-          onChange={(event) => {
-            setHasTerrace(event.target.checked);
-            setTerraceTouched(true);
-          }}
-        />
-        <label htmlFor="hasTerrace">¿Tiene terraza o patio?</label>
-      </div>
-      <div className={styles.checkboxRow}>
-        <input
-          id="hasRoofSpace"
-          name="hasRoofSpace"
-          type="checkbox"
-          checked={hasRoofSpace}
-          onChange={(event) => {
-            setHasRoofSpace(event.target.checked);
-            setRoofTouched(true);
-          }}
-        />
-        <label htmlFor="hasRoofSpace">¿Tiene techumbre con acceso propio?</label>
-      </div>
-      <div className={styles.checkboxRow}>
-        <input
-          id="hasStairs"
-          name="hasStairs"
-          type="checkbox"
-          checked={hasStairs}
-          onChange={(event) => setHasStairs(event.target.checked)}
-        />
-        <label htmlFor="hasStairs">¿Tiene escalera interior (más de un piso)?</label>
-      </div>
-      <div className={styles.checkboxRow}>
-        <input
-          id="hasPedestrianGate"
-          name="hasPedestrianGate"
-          type="checkbox"
-          checked={hasPedestrianGate}
-          onChange={(event) => setHasPedestrianGate(event.target.checked)}
-        />
-        <label htmlFor="hasPedestrianGate">¿Tiene reja peatonal de acceso?</label>
-      </div>
-      <div className={styles.checkboxRow}>
-        <input
-          id="hasVehicleGate"
-          name="hasVehicleGate"
-          type="checkbox"
-          checked={hasVehicleGate}
-          onChange={(event) => {
-            setHasVehicleGate(event.target.checked);
-            if (!event.target.checked) setIsVehicleGateAutomatic(false);
-          }}
-        />
-        <label htmlFor="hasVehicleGate">¿Tiene portón vehicular?</label>
-      </div>
-      {hasVehicleGate && (
-        <div className={`${styles.checkboxRow} ${styles.checkboxRowNested}`}>
-          <input
-            id="isVehicleGateAutomatic"
-            name="isVehicleGateAutomatic"
-            type="checkbox"
-            checked={isVehicleGateAutomatic}
-            onChange={(event) => setIsVehicleGateAutomatic(event.target.checked)}
-          />
-          <label htmlFor="isVehicleGateAutomatic">¿Es automático?</label>
-        </div>
+      <div className={styles.sectionTitle}>Características de la propiedad</div>
+      {propertyType === "CASA" ? (
+        <>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasFrontYard"
+              name="hasFrontYard"
+              type="checkbox"
+              checked={hasFrontYard}
+              onChange={(event) => setHasFrontYard(event.target.checked)}
+            />
+            <label htmlFor="hasFrontYard">Patio delantero</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasBackYard"
+              name="hasBackYard"
+              type="checkbox"
+              checked={hasBackYard}
+              onChange={(event) => setHasBackYard(event.target.checked)}
+            />
+            <label htmlFor="hasBackYard">Patio trasero</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasRoofSpace"
+              name="hasRoofSpace"
+              type="checkbox"
+              checked={hasRoofSpace}
+              onChange={(event) => setHasRoofSpace(event.target.checked)}
+            />
+            <label htmlFor="hasRoofSpace">Cobertizo de acceso</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasStairs"
+              name="hasStairs"
+              type="checkbox"
+              checked={hasStairs}
+              onChange={(event) => setHasStairs(event.target.checked)}
+            />
+            <label htmlFor="hasStairs">¿Tiene escalera interior (más de un piso)?</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasPedestrianGate"
+              name="hasPedestrianGate"
+              type="checkbox"
+              checked={hasPedestrianGate}
+              onChange={(event) => setHasPedestrianGate(event.target.checked)}
+            />
+            <label htmlFor="hasPedestrianGate">¿Tiene reja peatonal de acceso?</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasVehicleGate"
+              name="hasVehicleGate"
+              type="checkbox"
+              checked={hasVehicleGate}
+              onChange={(event) => setHasVehicleGate(event.target.checked)}
+            />
+            <label htmlFor="hasVehicleGate">¿Tiene acceso vehicular con portón?</label>
+          </div>
+          {hasVehicleGate && (
+            <FormField label="¿El portón es automático o solo con cerradura?" htmlFor="isVehicleGateAutomatic">
+              <ToggleGroup
+                name="isVehicleGateAutomatic"
+                defaultValue="MANUAL"
+                options={[
+                  { value: "AUTOMATICO", label: "Automático" },
+                  { value: "MANUAL", label: "Solo con cerradura" },
+                ]}
+              />
+            </FormField>
+          )}
+        </>
+      ) : (
+        <>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasTerrace"
+              name="hasTerrace"
+              type="checkbox"
+              checked={hasTerrace}
+              onChange={(event) => setHasTerrace(event.target.checked)}
+            />
+            <label htmlFor="hasTerrace">¿Tiene terraza?</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasStorageRoom"
+              name="hasStorageRoom"
+              type="checkbox"
+              checked={hasStorageRoom}
+              onChange={(event) => setHasStorageRoom(event.target.checked)}
+            />
+            <label htmlFor="hasStorageRoom">¿Tiene bodega?</label>
+          </div>
+          {hasStorageRoom && (
+            <FormField label="¿Con qué tipo de cerradura?" htmlFor="storageLockType">
+              <ToggleGroup
+                name="storageLockType"
+                defaultValue="CANDADO"
+                options={[
+                  { value: "CANDADO", label: "Candado" },
+                  { value: "LLAVE", label: "Con llave" },
+                  { value: "OTRO", label: "Otro" },
+                ]}
+              />
+            </FormField>
+          )}
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasParkingSpace"
+              name="hasParkingSpace"
+              type="checkbox"
+              checked={hasParkingSpace}
+              onChange={(event) => setHasParkingSpace(event.target.checked)}
+            />
+            <label htmlFor="hasParkingSpace">¿Tiene estacionamiento?</label>
+          </div>
+          {hasParkingSpace && (
+            <>
+              <FormField label="¿Es subterráneo o de superficie?" htmlFor="parkingLocation">
+                <ToggleGroup
+                  name="parkingLocation"
+                  defaultValue="SUPERFICIE"
+                  options={[
+                    { value: "SUBTERRANEO", label: "Subterráneo" },
+                    { value: "SUPERFICIE", label: "De superficie" },
+                  ]}
+                />
+              </FormField>
+              <div className={`${styles.checkboxRow} ${styles.checkboxRowNested}`}>
+                <input id="parkingIsMarked" name="parkingIsMarked" type="checkbox" defaultChecked />
+                <label htmlFor="parkingIsMarked">¿Está demarcado con líneas/numeración?</label>
+              </div>
+            </>
+          )}
+        </>
       )}
 
       <button type="submit" className={styles.submitBtn} disabled={isPending}>
