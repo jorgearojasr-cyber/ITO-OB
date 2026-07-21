@@ -21,12 +21,14 @@ export function ToggleGroup({ name, options, defaultValue, onChange }: ToggleGro
   }
 
   return (
-    <div className={styles.group}>
+    <div className={styles.group} role="radiogroup">
       <input type="hidden" name={name} value={value} />
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
+          role="radio"
+          aria-checked={option.value === value}
           className={option.value === value ? `${styles.option} ${styles.optionOn}` : styles.option}
           onClick={() => handleSelect(option.value)}
         >
