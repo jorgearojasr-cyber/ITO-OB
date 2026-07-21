@@ -14,10 +14,13 @@ export function FormField({ label, htmlFor, required, error, children }: FormFie
     <div className={styles.field}>
       <label className={styles.label} htmlFor={htmlFor}>
         {label}
-        {required && <span className={styles.required}>*</span>}
       </label>
       {children}
-      {error && <span className={styles.error}>{error}</span>}
+      {error ? (
+        <span className={styles.error}>{error}</span>
+      ) : required ? (
+        <span className={styles.requiredHint}>Obligatorio</span>
+      ) : null}
     </div>
   );
 }

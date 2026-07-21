@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, type FormEvent } from "react";
 import { FormField } from "@/components/ui/form/FormField";
 import { ToggleGroup } from "@/components/ui/form/ToggleGroup";
 import { createInspection, type CreateInspectionState } from "@/lib/inspections/actions";
@@ -9,10 +9,13 @@ import styles from "./NuevaInspeccionForm.module.css";
 
 const INITIAL_STATE: CreateInspectionState = {};
 
+const REQUIRED_TEXT_FIELDS = ["projectName", "unitLabel", "address"] as const;
+
 export function NuevaInspeccionForm() {
   const [state, formAction, isPending] = useActionState(createInspection, INITIAL_STATE);
 
   const [propertyType, setPropertyType] = useState("CASA");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Casa
   const [hasFrontYard, setHasFrontYard] = useState(true);
@@ -31,18 +34,34 @@ export function NuevaInspeccionForm() {
     setPropertyType(value);
   }
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const form = event.currentTarget;
+    const errors: Record<string, string> = {};
+    for (const field of REQUIRED_TEXT_FIELDS) {
+      const input = form.elements.namedItem(field) as HTMLInputElement | null;
+      if (!input?.value.trim()) errors[field] = "Completa este campo.";
+    }
+    if (Object.keys(errors).length > 0) {
+      event.preventDefault();
+      setFieldErrors(errors);
+      (form.elements.namedItem(Object.keys(errors)[0]) as HTMLElement | null)?.focus();
+      return;
+    }
+    setFieldErrors({});
+  }
+
   return (
-    <form action={formAction} className={styles.form}>
+    <form action={formAction} onSubmit={handleSubmit} className={styles.form}>
       {state.error && <div className={styles.formError}>{state.error}</div>}
 
       <div className={styles.sectionTitle}>Proyecto</div>
-      <FormField label="Proyecto inmobiliario" htmlFor="projectName" required>
+      <FormField label="Proyecto inmobiliario" htmlFor="projectName" required error={fieldErrors.projectName}>
         <input id="projectName" name="projectName" className={formStyles.input} placeholder="Condominio Los Robles" />
       </FormField>
-      <FormField label="Unidad" htmlFor="unitLabel" required>
+      <FormField label="Unidad" htmlFor="unitLabel" required error={fieldErrors.unitLabel}>
         <input id="unitLabel" name="unitLabel" className={formStyles.input} placeholder="Casa 15" />
       </FormField>
-      <FormField label="Dirección" htmlFor="address" required>
+      <FormField label="Dirección" htmlFor="address" required error={fieldErrors.address}>
         <input id="address" name="address" className={formStyles.input} placeholder="Av. Los Robles 1234, Santiago" />
       </FormField>
       <FormField label="Inmobiliaria" htmlFor="developerName">
