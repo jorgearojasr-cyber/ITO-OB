@@ -8,7 +8,7 @@ import styles from "./OnboardingCarousel.module.css";
 const STEPS = [
   {
     eyebrow: "Bienvenido",
-    title: "Bienvenido a ObraBien",
+    title: "Bienvenido a ObraBien Inspección",
     body: "Registra la recepción de tu vivienda nueva: recorre cada recinto, revisa cada elemento y deja registro con fotos, prioridades y respaldo del Manual de Tolerancias CDT.",
     miniSteps: undefined as { label: string; desc: string }[] | undefined,
   },

@@ -16,7 +16,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ObraBien — Asistente de Recepción",
+  title: "ObraBien Inspección",
   description: "Recorrido guiado para la recepción de tu vivienda nueva.",
 };
 

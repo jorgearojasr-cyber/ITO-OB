@@ -39,7 +39,7 @@ export default async function LoginPage() {
               fill="none"
             />
           </svg>
-          <span className={styles.brandName}>ObraBien</span>
+          <span className={styles.brandName}>ObraBien Inspección</span>
         </div>
         <div className={styles.title}>Iniciar sesión</div>
         <div className={styles.subtitle}>Entra para continuar tu inspección.</div>

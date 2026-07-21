@@ -33,8 +33,7 @@ export function TopBar() {
           </svg>
         </div>
         <div className={styles.brandText}>
-          <span className={styles.name}>ObraBien</span>
-          <span className={styles.tag}>Asistente de Recepción</span>
+          <span className={styles.name}>ObraBien Inspección</span>
         </div>
       </div>
       <button className={styles.iconBtn} aria-label="Notificaciones" type="button">
