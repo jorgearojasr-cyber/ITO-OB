@@ -134,6 +134,30 @@ export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormPro
         />
       </FormField>
 
+      <div className={styles.sectionTitle}>Distribución</div>
+      <FormField label="N° de dormitorios" htmlFor="bedroomCount">
+        <input
+          id="bedroomCount"
+          name="bedroomCount"
+          type="number"
+          min={1}
+          max={10}
+          defaultValue={1}
+          className={formStyles.input}
+        />
+      </FormField>
+      <FormField label="N° de baños" htmlFor="bathroomCount">
+        <input
+          id="bathroomCount"
+          name="bathroomCount"
+          type="number"
+          min={1}
+          max={10}
+          defaultValue={1}
+          className={formStyles.input}
+        />
+      </FormField>
+
       <div className={styles.sectionTitle}>Características de la propiedad</div>
       {propertyType === "CASA" ? (
         <>

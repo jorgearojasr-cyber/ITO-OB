@@ -195,6 +195,8 @@ model Inspection {
   hasParkingSpace        Boolean          @default(false) // depto: "¿Tiene estacionamiento?"
   parkingLocation        ParkingLocation?
   parkingIsMarked        Boolean?
+  bedroomCount           Int              @default(1)
+  bathroomCount          Int              @default(1)
   receptionDate          DateTime?
   receptionNumber        String? // número de acta de recepción
   status                 InspectionStatus @default(DRAFT)

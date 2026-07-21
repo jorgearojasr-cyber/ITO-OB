@@ -186,6 +186,11 @@ export async function createInspection(
   const receptionDateRaw = String(formData.get("receptionDate") ?? "").trim();
   const receptionDate = receptionDateRaw ? new Date(receptionDateRaw) : null;
 
+  // Acotado a 1-10: evita que un valor accidental o malicioso genere una
+  // cantidad desproporcionada de RoomInstance/ElementInstance.
+  const bedroomCount = Math.min(10, Math.max(1, parseInt(String(formData.get("bedroomCount") ?? "1"), 10) || 1));
+  const bathroomCount = Math.min(10, Math.max(1, parseInt(String(formData.get("bathroomCount") ?? "1"), 10) || 1));
+
   if (!projectName || !unitLabel || !address) {
     return { error: "Completa proyecto inmobiliario, unidad y dirección." };
   }
@@ -248,26 +253,42 @@ export async function createInspection(
   const elementsData: Prisma.ElementInstanceCreateManyInput[] = [];
 
   for (const room of applicableRooms) {
-    const roomInstanceId = crypto.randomUUID();
-    roomsData.push({
-      id: roomInstanceId,
-      inspectionId,
-      roomTemplateId: room.id,
-      name: room.name,
-      order: room.order,
-    });
+    // "Dormitorios"/"Baños" generan N RoomInstance independientes (una por
+    // dormitorio/baño declarado en el formulario), cada una con su propio
+    // clon del checklist — el resto de los recintos siguen siendo 1:1 con
+    // su RoomTemplate, como siempre.
+    let instanceCount = 1;
+    let singularName: string | null = null;
+    if (room.slug === "dormitorios") {
+      instanceCount = bedroomCount;
+      singularName = "Dormitorio";
+    } else if (room.slug === "banos") {
+      instanceCount = bathroomCount;
+      singularName = "Baño";
+    }
 
-    for (const element of room.elementTemplates) {
-      if (!elementTemplateApplies(element, featureFlags)) continue;
-      if (!vehicleGateVariantApplies(element.slug, isVehicleGateAutomatic)) continue;
-      elementsData.push({
-        id: crypto.randomUUID(),
-        roomInstanceId,
-        elementTemplateId: element.id,
-        name: element.name,
-        order: element.order,
-        status: "PENDING",
+    for (let i = 1; i <= instanceCount; i++) {
+      const roomInstanceId = crypto.randomUUID();
+      roomsData.push({
+        id: roomInstanceId,
+        inspectionId,
+        roomTemplateId: room.id,
+        name: instanceCount > 1 && singularName ? `${singularName} ${i}` : room.name,
+        order: room.order * 10 + (i - 1),
       });
+
+      for (const element of room.elementTemplates) {
+        if (!elementTemplateApplies(element, featureFlags)) continue;
+        if (!vehicleGateVariantApplies(element.slug, isVehicleGateAutomatic)) continue;
+        elementsData.push({
+          id: crypto.randomUUID(),
+          roomInstanceId,
+          elementTemplateId: element.id,
+          name: element.name,
+          order: element.order,
+          status: "PENDING",
+        });
+      }
     }
   }
 
@@ -306,6 +327,8 @@ export async function createInspection(
         hasParkingSpace,
         parkingLocation,
         parkingIsMarked,
+        bedroomCount,
+        bathroomCount,
         status: "IN_PROGRESS",
       },
     }),
