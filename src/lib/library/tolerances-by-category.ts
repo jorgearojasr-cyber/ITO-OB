@@ -9,7 +9,13 @@
 // (nivel 1 de la vista de categoría) — escrito a mano por ítem, no hay
 // patrón automático confiable a partir de parameter+tolerance (los
 // valores vienen en formatos muy distintos: "3 mm", "No se aceptan",
-// "± 2 mm; sin luz visible...", etc.).
+// "± 2 mm; sin luz visible...", etc.). Es una INSTRUCCIÓN de cómo
+// pararse a revisar (distancia, tipo de luz, ángulo, o qué mirar) — no
+// el dato técnico en sí; la cifra exacta queda en el detalle completo
+// (la tabla de `items` de la ficha, sin cambios). Terminología tomada
+// tal cual del manual (ej. "luz angulada", no "luz rasante") — y si la
+// tolerancia ya trae la técnica incluida (ej. "sin luz visible con
+// ventana cerrada"), se extrae tal cual en vez de inventar una nueva.
 // `distanceLightSummary` es el resumen de una línea del `distanceLight`
 // completo de la ficha (solo en las categorías donde aplica).
 export type CategoryToleranceMapping = {
@@ -24,58 +30,58 @@ export const toleranceMappingByCategorySlug: Partial<Record<string, CategoryTole
   ventanas: {
     fichaId: 13,
     highlightItems: [
-      { parameter: "Paralelismo entre hojas y entre marco y hojas", shortLabel: "Sello hoja-marco: sin luz visible, ±2 mm" },
-      { parameter: "Manchas, rayas, abolladuras o decoloraciones", shortLabel: "Marco: sin manchas/rayas visibles a 1,5 m" },
+      { parameter: "Paralelismo entre hojas y entre marco y hojas", shortLabel: "Sello hoja-marco: con la ventana cerrada, revisa que no se vea luz entre marco y hoja" },
+      { parameter: "Manchas, rayas, abolladuras o decoloraciones", shortLabel: "Marco: párate perpendicular a 1,5 m y busca manchas o rayas" },
     ],
     distanceLightSummary: "Marco a 1,5 m; vidrio: acercarse hasta 4 m si hay falla",
   },
   puertas: {
     fichaId: 12,
     highlightItems: [
-      { parameter: "Paralelismo entre hoja y marco", shortLabel: "Paralelismo hoja-marco: máx. 3 mm" },
-      { parameter: "Planeidad de la hoja", shortLabel: "Planeidad de la hoja: ±3 mm" },
-      { parameter: "Verticalidad del vano", shortLabel: "Verticalidad del vano: ±0,3% de la altura" },
+      { parameter: "Paralelismo entre hoja y marco", shortLabel: "Con la puerta cerrada, revisa que el espacio entre la hoja y el marco sea parejo en todo el contorno" },
+      { parameter: "Planeidad de la hoja", shortLabel: "Apoya una regla larga sobre la hoja y revisa que no queden espacios (sin pandeos)" },
+      { parameter: "Verticalidad del vano", shortLabel: "Cuelga una plomada desde arriba del vano y revisa que quede a plomo en toda su altura" },
     ],
   },
   pisos: {
     fichaId: 25,
     highlightItems: [
-      { parameter: "Planeidad", shortLabel: "Planeidad: 3 mm cada 3 m" },
-      { parameter: "Profundidad de rayas", shortLabel: "Solo rayas superficiales, sin relieve" },
+      { parameter: "Planeidad", shortLabel: "Camina por toda la superficie y revisa que no haya zonas hundidas o levantadas" },
+      { parameter: "Profundidad de rayas", shortLabel: "Rayas: revisa que sean solo superficiales, sin relieve ni marcas de otro tono" },
     ],
   },
   porcelanatos: {
     fichaId: 10,
     highlightItems: [
-      { parameter: "Desnivel entre palmetas en pisos", shortLabel: "Desnivel entre palmetas: máx. 1 mm" },
-      { parameter: "Alineación de canterías (ambos sentidos)", shortLabel: "Alineación de canterías: ±2 mm en 3 m" },
-      { parameter: "Palmetas quebradas, despuntadas, con grietas o sin esmalte", shortLabel: "Sin palmetas quebradas ni despuntadas" },
+      { parameter: "Desnivel entre palmetas en pisos", shortLabel: "Pasa la mano por las uniones y revisa que no se sienta un escalón" },
+      { parameter: "Alineación de canterías (ambos sentidos)", shortLabel: "Revisa con una regla o lienza que las líneas de junta queden rectas y parejas" },
+      { parameter: "Palmetas quebradas, despuntadas, con grietas o sin esmalte", shortLabel: "Párate a 1 m con luz de día y revisa que no haya piezas trisadas ni sin esmalte" },
     ],
     distanceLightSummary: "Revisar a 1 m con luz de día",
   },
   ceramicas: {
     fichaId: 10,
     highlightItems: [
-      { parameter: "Variación de tonalidad de una palmeta vs. el resto", shortLabel: "Tono parejo entre palmetas (máx. 5%)" },
-      { parameter: "Desnivel entre palmetas en otras superficies", shortLabel: "Desnivel entre palmetas: máx. 2 mm" },
-      { parameter: "Palmetas quebradas, despuntadas, con grietas o sin esmalte", shortLabel: "Sin palmetas quebradas ni despuntadas" },
+      { parameter: "Variación de tonalidad de una palmeta vs. el resto", shortLabel: "Párate a 1 m con luz de día y compara el tono entre palmetas vecinas" },
+      { parameter: "Desnivel entre palmetas en otras superficies", shortLabel: "Pasa la mano por las uniones y revisa que no se sienta un escalón" },
+      { parameter: "Palmetas quebradas, despuntadas, con grietas o sin esmalte", shortLabel: "Párate a 1 m con luz de día y revisa que no haya piezas trisadas ni sin esmalte" },
     ],
     distanceLightSummary: "Revisar a 1 m con luz de día",
   },
   pinturas: {
     fichaId: 23,
     highlightItems: [
-      { parameter: "Pinturas interiores (lisas)", shortLabel: "Interior: sombras máx. 1 mm espesor, 5 mm largo" },
-      { parameter: "Pinturas exteriores", shortLabel: "Exterior: sin imperfecciones visibles a 5 m" },
+      { parameter: "Pinturas interiores (lisas)", shortLabel: "Interior: párate a 1 m con luz angulada (de lado, no de frente)" },
+      { parameter: "Pinturas exteriores", shortLabel: "Exterior: revisa desde 5 m, con luz de día" },
     ],
     distanceLightSummary: "Interior a 1 m; exterior a 5 m, con luz de día",
   },
   muebles: {
     fichaId: 22,
     highlightItems: [
-      { parameter: "Paralelismo entre puertas y/o cajones del mueble", shortLabel: "Paralelismo entre puertas/cajones: máx. 2 mm" },
-      { parameter: "Alineación horizontal superior e inferior entre puertas", shortLabel: "Alineación horizontal entre puertas: máx. 1 mm" },
-      { parameter: "Paralelismo del mueble vs. paramentos/muebles próximos", shortLabel: "Paralelismo con muros/muebles vecinos: máx. 3 mm" },
+      { parameter: "Paralelismo entre puertas y/o cajones del mueble", shortLabel: "Revisa que las puertas y cajones queden parejos entre sí" },
+      { parameter: "Alineación horizontal superior e inferior entre puertas", shortLabel: "Revisa que los bordes superior e inferior de las puertas queden a la misma altura" },
+      { parameter: "Paralelismo del mueble vs. paramentos/muebles próximos", shortLabel: "Revisa que el mueble quede parejo respecto a los muros o muebles vecinos" },
     ],
   },
   interruptores: {
@@ -88,8 +94,8 @@ export const toleranceMappingByCategorySlug: Partial<Record<string, CategoryTole
   enchufes: {
     fichaId: 26,
     highlightItems: [
-      { parameter: "Alineación entre artefactos", shortLabel: "Alineación entre artefactos: ±2 mm" },
-      { parameter: "Horizontalidad del artefacto", shortLabel: "Horizontalidad: ±1 mm" },
+      { parameter: "Alineación entre artefactos", shortLabel: "Cuando hay dos cerca, revisa que queden alineados y a la misma altura" },
+      { parameter: "Horizontalidad del artefacto", shortLabel: "Revisa con un nivel que la placa no quede torcida" },
     ],
   },
   guardapolvos: {
