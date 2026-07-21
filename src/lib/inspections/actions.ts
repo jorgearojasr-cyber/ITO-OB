@@ -20,7 +20,12 @@ import {
   elementTemplateApplies,
   vehicleGateVariantApplies,
 } from "@/lib/inspections/feature-flags";
-import { FLOOR_MATERIAL_SLUG, WALL_MATERIAL_SLUG } from "@/lib/inspections/material-selection";
+import {
+  FLOOR_MATERIAL_SLUG,
+  WALL_MATERIAL_SLUG,
+  FLOOR_MATERIAL_LABELS,
+  WALL_MATERIAL_LABELS,
+} from "@/lib/inspections/material-selection";
 
 async function recomputeElementInstanceStatus(elementInstanceId: string) {
   const element = await prisma.elementInstance.findUniqueOrThrow({
@@ -388,6 +393,14 @@ export async function setRoomMaterial(input: SetRoomMaterialInput): Promise<void
   });
   if (!ownedElement) {
     throw new Error("Elemento no encontrado en este recinto.");
+  }
+
+  const isValidMaterial =
+    input.slot === "FLOOR"
+      ? Object.hasOwn(FLOOR_MATERIAL_LABELS, input.material)
+      : Object.hasOwn(WALL_MATERIAL_LABELS, input.material);
+  if (!isValidMaterial) {
+    throw new Error("Material seleccionado no es válido.");
   }
 
   const targetSlug =
