@@ -2,12 +2,17 @@ import "server-only";
 
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
+import { FLOOR_MATERIAL_LABELS, WALL_MATERIAL_LABELS } from "@/lib/inspections/material-selection";
 
 export type ElementInstanceData = {
   id: string;
   name: string;
   roomInstanceId: string;
   roomName: string;
+  materialQuestion: {
+    slot: "FLOOR" | "WALL";
+    options: { value: string; label: string }[];
+  } | null;
   libraryArticle: {
     title: string;
     body: string;
@@ -79,11 +84,30 @@ export async function getElementInstanceData(
     };
   });
 
+  const slot = element.elementTemplate.materialSlot;
+  const answered =
+    slot === "FLOOR"
+      ? element.roomInstance.floorMaterial !== null
+      : slot === "WALL"
+        ? element.roomInstance.wallCoveringMaterial !== null
+        : true;
+  const materialQuestion =
+    slot && !answered
+      ? {
+          slot,
+          options:
+            slot === "FLOOR"
+              ? Object.entries(FLOOR_MATERIAL_LABELS).map(([value, label]) => ({ value, label }))
+              : Object.entries(WALL_MATERIAL_LABELS).map(([value, label]) => ({ value, label })),
+        }
+      : null;
+
   return {
     id: element.id,
     name: element.name,
     roomInstanceId: element.roomInstanceId,
     roomName: element.roomInstance.name,
+    materialQuestion,
     libraryArticle: element.elementTemplate.referenceLibraryArticle
       ? {
           title: element.elementTemplate.referenceLibraryArticle.title,

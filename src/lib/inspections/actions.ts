@@ -9,6 +9,8 @@ import type {
   PropertyType,
   StorageLockType,
   ParkingLocation,
+  FloorMaterial,
+  WallCoveringMaterial,
 } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
@@ -18,6 +20,7 @@ import {
   elementTemplateApplies,
   vehicleGateVariantApplies,
 } from "@/lib/inspections/feature-flags";
+import { FLOOR_MATERIAL_SLUG, WALL_MATERIAL_SLUG } from "@/lib/inspections/material-selection";
 
 async function recomputeElementInstanceStatus(elementInstanceId: string) {
   const element = await prisma.elementInstance.findUniqueOrThrow({
@@ -278,6 +281,11 @@ export async function createInspection(
       });
 
       for (const element of room.elementTemplates) {
+        // Los variantes de material (piso-ceramica, muros-y-cielos-papel-mural,
+        // etc.) nunca se instancian al crear la inspección — solo existen
+        // para que setRoomMaterial reasigne el ElementInstance genérico
+        // ("piso"/"muros-y-cielos") una vez que se responde la pregunta.
+        if (element.isMaterialVariant) continue;
         if (!elementTemplateApplies(element, featureFlags)) continue;
         if (!vehicleGateVariantApplies(element.slug, isVehicleGateAutomatic)) continue;
         elementsData.push({
@@ -343,4 +351,73 @@ export async function createInspection(
     redirect(`/inspecciones/${inspectionId}/recintos/${firstRoomId}`);
   }
   redirect("/");
+}
+
+type SetRoomMaterialInput = {
+  inspectionId: string;
+  roomInstanceId: string;
+  elementInstanceId: string;
+  slot: "FLOOR" | "WALL";
+  material: string;
+};
+
+// Responde la pregunta de material de un recinto (Piso o Muros y
+// cielos) una sola vez — no hay UI para cambiarla después. Si el
+// material elegido tiene un variante propio (todo menos "Otro"),
+// reasigna el ElementInstance genérico al ElementTemplate del
+// variante — seguro porque esto se llama antes de que exista ninguna
+// Observation para ese elemento (la pregunta bloquea el checklist).
+export async function setRoomMaterial(input: SetRoomMaterialInput): Promise<void> {
+  const session = await requireSession();
+
+  const room = await prisma.roomInstance.findFirst({
+    where: {
+      id: input.roomInstanceId,
+      inspectionId: input.inspectionId,
+      inspection: { organizationId: session.user.organizationId },
+    },
+    select: { id: true, roomTemplateId: true },
+  });
+  if (!room) {
+    throw new Error("Recinto no encontrado en esta organización.");
+  }
+
+  const ownedElement = await prisma.elementInstance.findFirst({
+    where: { id: input.elementInstanceId, roomInstanceId: input.roomInstanceId },
+    select: { id: true },
+  });
+  if (!ownedElement) {
+    throw new Error("Elemento no encontrado en este recinto.");
+  }
+
+  const targetSlug =
+    input.slot === "FLOOR"
+      ? FLOOR_MATERIAL_SLUG[input.material as FloorMaterial]
+      : WALL_MATERIAL_SLUG[input.material as WallCoveringMaterial];
+
+  await prisma.$transaction(async (tx) => {
+    await tx.roomInstance.update({
+      where: { id: input.roomInstanceId },
+      data:
+        input.slot === "FLOOR"
+          ? { floorMaterial: input.material as FloorMaterial }
+          : { wallCoveringMaterial: input.material as WallCoveringMaterial },
+    });
+
+    if (targetSlug) {
+      const variant = await tx.elementTemplate.findFirst({
+        where: { roomTemplateId: room.roomTemplateId, slug: targetSlug },
+        select: { id: true, name: true },
+      });
+      if (variant) {
+        await tx.elementInstance.update({
+          where: { id: input.elementInstanceId },
+          data: { elementTemplateId: variant.id, name: variant.name },
+        });
+      }
+    }
+  });
+
+  revalidatePath(`/inspecciones/${input.inspectionId}/elementos/${input.elementInstanceId}`);
+  redirect(`/inspecciones/${input.inspectionId}/elementos/${input.elementInstanceId}`);
 }

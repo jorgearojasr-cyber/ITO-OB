@@ -3,6 +3,7 @@ import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
 import { ElementLibraryCard } from "@/components/elemento/ElementLibraryCard";
 import { ElementChecklist } from "@/components/elemento/ElementChecklist";
+import { RoomMaterialQuestion } from "@/components/elemento/RoomMaterialQuestion";
 import { getElementInstanceData } from "@/lib/inspections/get-element-instance-data";
 import styles from "./page.module.css";
 
@@ -27,14 +28,26 @@ export default async function ElementInstancePage({ params }: PageProps) {
           backHref={`/inspecciones/${inspectionId}/recintos/${element.roomInstanceId}`}
           sticky
         />
-        <ElementLibraryCard libraryArticle={element.libraryArticle} />
-        <ElementChecklist
-          inspectionId={inspectionId}
-          elementInstanceId={element.id}
-          roomInstanceId={element.roomInstanceId}
-          roomName={element.roomName}
-          checklist={element.checklist}
-        />
+        {element.materialQuestion ? (
+          <RoomMaterialQuestion
+            inspectionId={inspectionId}
+            roomInstanceId={element.roomInstanceId}
+            elementInstanceId={element.id}
+            slot={element.materialQuestion.slot}
+            options={element.materialQuestion.options}
+          />
+        ) : (
+          <>
+            <ElementLibraryCard libraryArticle={element.libraryArticle} />
+            <ElementChecklist
+              inspectionId={inspectionId}
+              elementInstanceId={element.id}
+              roomInstanceId={element.roomInstanceId}
+              roomName={element.roomName}
+              checklist={element.checklist}
+            />
+          </>
+        )}
       </div>
       <BottomNav active="inspecciones" />
     </div>
