@@ -36,7 +36,15 @@ export async function getInspectionPhotosData(inspectionId?: string): Promise<In
     orderBy: { createdAt: "desc" },
     include: {
       observation: {
-        include: { elementInstance: { include: { roomInstance: { include: { inspection: true } } } } },
+        include: {
+          elementInstance: {
+            include: {
+              roomInstance: {
+                include: { inspection: { select: { projectName: true, unitLabel: true } } },
+              },
+            },
+          },
+        },
       },
     },
   });
