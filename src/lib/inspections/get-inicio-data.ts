@@ -23,7 +23,6 @@ export type InicioData = {
     roomName: string;
     pendingCount: number;
   } | null;
-  firstRoomId: string | null;
   libraryCategories: {
     id: string;
     name: string;
@@ -78,7 +77,6 @@ export async function getInicioData(): Promise<InicioData> {
       inspection: null,
       progress: EMPTY_PROGRESS,
       nextStep: null,
-      firstRoomId: null,
       libraryCategories: libraryCategoriesData,
       hasAnyInspections,
       hasSeenOnboarding,
@@ -137,7 +135,6 @@ export async function getInicioData(): Promise<InicioData> {
       totalPhotos,
     },
     nextStep,
-    firstRoomId: rooms[0]?.id ?? null,
     libraryCategories: libraryCategoriesData,
     hasAnyInspections,
     hasSeenOnboarding,

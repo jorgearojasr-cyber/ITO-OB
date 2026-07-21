@@ -51,10 +51,9 @@ const items = [
 
 type QuickAccessGridProps = {
   inspectionId: string | null;
-  firstRoomId: string | null;
 };
 
-export function QuickAccessGrid({ inspectionId, firstRoomId }: QuickAccessGridProps) {
+export function QuickAccessGrid({ inspectionId }: QuickAccessGridProps) {
   return (
     <div className={styles.sectionPad}>
       <div className={styles.sectionTitle}>Acceso rápido</div>
@@ -85,13 +84,9 @@ export function QuickAccessGrid({ inspectionId, firstRoomId }: QuickAccessGridPr
             );
           }
 
-          if (item.label === "Recintos" && inspectionId && firstRoomId) {
+          if (item.label === "Recintos" && inspectionId) {
             return (
-              <Link
-                key={item.label}
-                href={`/inspecciones/${inspectionId}/recintos/${firstRoomId}`}
-                className={className}
-              >
+              <Link key={item.label} href={`/inspecciones/${inspectionId}/recintos`} className={className}>
                 {content}
               </Link>
             );

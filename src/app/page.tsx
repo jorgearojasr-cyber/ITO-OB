@@ -27,7 +27,7 @@ export default async function InicioPage() {
           hasAnyInspections={data.hasAnyInspections}
         />
         <NextStepCard inspectionId={data.inspection?.id ?? ""} nextStep={data.nextStep} />
-        <QuickAccessGrid inspectionId={data.inspection?.id ?? null} firstRoomId={data.firstRoomId} />
+        <QuickAccessGrid inspectionId={data.inspection?.id ?? null} />
         <TipOfTheDayCard />
         <LibraryCarousel categories={data.libraryCategories} />
         <div className={styles.bottomSpacer} />
