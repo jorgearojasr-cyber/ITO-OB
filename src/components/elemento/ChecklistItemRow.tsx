@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { unstable_rethrow } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import type { ObservationStatus, Priority } from "@prisma/client";
 import { attachPhoto, saveChecklistAnswer } from "@/lib/inspections/actions";
@@ -63,7 +64,8 @@ export function ChecklistItemRow({
         setObservationId(result.observationId);
         setSaveState("saved");
         setTimeout(() => setSaveState((current) => (current === "saved" ? "idle" : current)), 1500);
-      } catch {
+      } catch (error) {
+        unstable_rethrow(error);
         setSaveState("error");
       }
     });
@@ -122,6 +124,7 @@ export function ChecklistItemRow({
 
       setPhotos((current) => [...current, { id: result.photoId, url: result.url }]);
     } catch (error) {
+      unstable_rethrow(error);
       setUploadError(error instanceof Error ? error.message : "No se pudo subir la foto");
     } finally {
       setIsUploading(false);
