@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useState, type FormEvent } from "react";
+import { useActionState, useRef, useState, type FormEvent } from "react";
 import { FormField } from "@/components/ui/form/FormField";
 import { ToggleGroup } from "@/components/ui/form/ToggleGroup";
 import { createInspection, type CreateInspectionState } from "@/lib/inspections/actions";
+import type { ProjectOption } from "@/lib/inspections/get-inspection-options";
 import formStyles from "@/components/ui/form/FormField.module.css";
 import styles from "./NuevaInspeccionForm.module.css";
 
@@ -11,11 +12,19 @@ const INITIAL_STATE: CreateInspectionState = {};
 
 const REQUIRED_TEXT_FIELDS = ["projectName", "unitLabel", "address"] as const;
 
-export function NuevaInspeccionForm() {
+type NuevaInspeccionFormProps = {
+  existingProjects: ProjectOption[];
+};
+
+export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormProps) {
   const [state, formAction, isPending] = useActionState(createInspection, INITIAL_STATE);
 
   const [propertyType, setPropertyType] = useState("CASA");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const projectNameRef = useRef<HTMLInputElement>(null);
+  const developerNameRef = useRef<HTMLInputElement>(null);
+  const builderNameRef = useRef<HTMLInputElement>(null);
 
   // Casa
   const [hasFrontYard, setHasFrontYard] = useState(true);
@@ -32,6 +41,18 @@ export function NuevaInspeccionForm() {
 
   function handlePropertyTypeChange(value: string) {
     setPropertyType(value);
+  }
+
+  function handleExistingProjectSelect(projectName: string) {
+    const project = existingProjects.find((p) => p.projectName === projectName);
+    if (projectNameRef.current) projectNameRef.current.value = project?.projectName ?? "";
+    if (developerNameRef.current) developerNameRef.current.value = project?.developerName ?? "";
+    if (builderNameRef.current) builderNameRef.current.value = project?.builderName ?? "";
+    setFieldErrors((prev) => {
+      if (!prev.projectName) return prev;
+      const { projectName: _removed, ...rest } = prev;
+      return rest;
+    });
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -55,8 +76,31 @@ export function NuevaInspeccionForm() {
       {state.error && <div className={styles.formError}>{state.error}</div>}
 
       <div className={styles.sectionTitle}>Proyecto</div>
+      {existingProjects.length >= 2 && (
+        <FormField label="¿Es un proyecto que ya ingresaste?" htmlFor="existingProject">
+          <select
+            id="existingProject"
+            className={formStyles.select}
+            onChange={(event) => handleExistingProjectSelect(event.target.value)}
+            defaultValue=""
+          >
+            <option value="">Proyecto nuevo</option>
+            {existingProjects.map((project) => (
+              <option key={project.projectName} value={project.projectName}>
+                {project.projectName}
+              </option>
+            ))}
+          </select>
+        </FormField>
+      )}
       <FormField label="Proyecto inmobiliario" htmlFor="projectName" required error={fieldErrors.projectName}>
-        <input id="projectName" name="projectName" className={formStyles.input} placeholder="Condominio Los Robles" />
+        <input
+          id="projectName"
+          name="projectName"
+          ref={projectNameRef}
+          className={formStyles.input}
+          placeholder="Condominio Los Robles"
+        />
       </FormField>
       <FormField label="Unidad" htmlFor="unitLabel" required error={fieldErrors.unitLabel}>
         <input id="unitLabel" name="unitLabel" className={formStyles.input} placeholder="Casa 15" />
@@ -65,10 +109,10 @@ export function NuevaInspeccionForm() {
         <input id="address" name="address" className={formStyles.input} placeholder="Av. Los Robles 1234, Santiago" />
       </FormField>
       <FormField label="Inmobiliaria" htmlFor="developerName">
-        <input id="developerName" name="developerName" className={formStyles.input} />
+        <input id="developerName" name="developerName" ref={developerNameRef} className={formStyles.input} />
       </FormField>
       <FormField label="Constructora" htmlFor="builderName">
-        <input id="builderName" name="builderName" className={formStyles.input} />
+        <input id="builderName" name="builderName" ref={builderNameRef} className={formStyles.input} />
       </FormField>
       <FormField label="Fecha de recepción" htmlFor="receptionDate">
         <input id="receptionDate" name="receptionDate" type="date" className={formStyles.input} />
