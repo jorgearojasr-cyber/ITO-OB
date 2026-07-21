@@ -26,7 +26,11 @@ export default async function InicioPage() {
           nextStep={data.nextStep}
           hasAnyInspections={data.hasAnyInspections}
         />
-        <NextStepCard inspectionId={data.inspection?.id ?? ""} nextStep={data.nextStep} />
+        <NextStepCard
+          inspectionId={data.inspection?.id ?? ""}
+          nextStep={data.nextStep}
+          hasAnyInspections={data.hasAnyInspections}
+        />
         <QuickAccessGrid inspectionId={data.inspection?.id ?? null} />
         <TipOfTheDayCard />
         <LibraryCarousel categories={data.libraryCategories} />

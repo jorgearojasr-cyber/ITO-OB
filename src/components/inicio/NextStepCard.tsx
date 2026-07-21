@@ -5,9 +5,10 @@ import styles from "./NextStepCard.module.css";
 type NextStepCardProps = {
   inspectionId: string;
   nextStep: InicioData["nextStep"];
+  hasAnyInspections: boolean;
 };
 
-export function NextStepCard({ inspectionId, nextStep }: NextStepCardProps) {
+export function NextStepCard({ inspectionId, nextStep, hasAnyInspections }: NextStepCardProps) {
   if (!nextStep) {
     return (
       <div className={styles.card}>
@@ -24,8 +25,17 @@ export function NextStepCard({ inspectionId, nextStep }: NextStepCardProps) {
         </div>
         <div className={styles.info}>
           <div className={styles.eyebrow}>SIGUIENTE PASO</div>
-          <div className={styles.title}>Sin pendientes</div>
-          <div className={styles.desc}>Ya revisaste todos los elementos de esta inspección.</div>
+          {hasAnyInspections ? (
+            <>
+              <div className={styles.title}>Sin pendientes</div>
+              <div className={styles.desc}>Ya revisaste todos los elementos de esta inspección.</div>
+            </>
+          ) : (
+            <>
+              <div className={styles.title}>Crea tu primera inspección</div>
+              <div className={styles.desc}>Empieza registrando el proyecto y la unidad que vas a recibir.</div>
+            </>
+          )}
         </div>
       </div>
     );
