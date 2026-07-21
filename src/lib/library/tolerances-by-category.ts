@@ -113,4 +113,27 @@ export const toleranceMappingByCategorySlug: Partial<Record<string, CategoryTole
       { parameter: "Desajuste en junta", shortLabel: "Desajuste en junta entre cornisas: 1 mm" },
     ],
   },
+  "pavimentos-vinilicos": {
+    fichaId: 24,
+    highlightItems: [
+      { parameter: "Encuentro entre palmetas o paños", shortLabel: "Pasa la mano por las uniones y revisa que no se sienta un escalón" },
+      { parameter: "Encuentro con sectores singulares sin guardapolvo ni junquillo", shortLabel: "Revisa los bordes sin guardapolvo (junto a puertas) que queden bien terminados" },
+      { parameter: "Profundidad de rayas", shortLabel: "Revisa que las rayas sean solo superficiales, sin relieve ni marca de otro tono" },
+    ],
+  },
+  "alfombras-y-cubrepisos": {
+    fichaId: 17,
+    highlightItems: [
+      { parameter: "Juntas y encuentros de cubrepisos", shortLabel: "Revisa que las uniones entre paños queden parejas, sin espacios" },
+      { parameter: "Encuentro de alfombra con marcos y pilastras", shortLabel: "Revisa el encuentro con marcos y pilastras, sin bordes sueltos" },
+    ],
+  },
+  "papel-mural": {
+    fichaId: 14,
+    highlightItems: [
+      { parameter: "Piquetes", shortLabel: "De pie a 1 m, revisa que no se vean piquetes ni burbujas" },
+      { parameter: "Encuentro papel–cornisa / papel–guardapolvo", shortLabel: "Revisa el encuentro con cornisas o guardapolvos, sin separaciones grandes" },
+      { parameter: "Encuentro con marcos de ventana u otros", shortLabel: "Revisa el encuentro con marcos de ventanas, sin quedar corto ni montado" },
+    ],
+  },
 };

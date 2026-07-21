@@ -1,6 +1,7 @@
 import {
   PrismaClient,
   RoomFeatureRequirement,
+  MaterialSlot,
   type Priority,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -313,6 +314,48 @@ const libraryCategories = [
       },
     ],
   },
+  {
+    slug: "pavimentos-vinilicos",
+    name: "Pavimentos vinílicos",
+    order: 21,
+    icon: "floor",
+    articles: [
+      {
+        slug: "pavimentos-vinilicos",
+        title: "Pavimentos vinílicos",
+        summary: "Terminación de pavimentos vinílicos (los pavimentos especiales, como hospitales o laboratorios, tienen especificación aparte).",
+        body: "Terminación de pavimentos vinílicos, según la ficha 24 del Manual de Tolerancias CDT (los pavimentos especiales, como hospitales o laboratorios, requieren especificación particular aparte). Encuentro entre palmetas o paños: menor a 1 mm. Encuentro con sectores singulares sin guardapolvo ni junquillo: máx. 2 mm. Las rayas se aceptan si son superficiales, sin profundidad ni relieve. Verificación: con instrumento graduado, y observación directa para las rayas.",
+      },
+    ],
+  },
+  {
+    slug: "alfombras-y-cubrepisos",
+    name: "Alfombras y cubrepisos",
+    order: 22,
+    icon: "floor",
+    articles: [
+      {
+        slug: "alfombras-y-cubrepisos",
+        title: "Alfombras y cubrepisos",
+        summary: "Revestimientos de pavimento con alfombras y cubrepisos; las juntas no son invisibles por definición.",
+        body: "Revestimientos de pavimento con alfombras y cubrepisos, según la ficha 17 del Manual de Tolerancias CDT: las juntas entre paños no son invisibles por definición. Juntas y encuentros de cubrepisos: máx. 1 mm. Encuentro de la alfombra con marcos y pilastras: máx. 2 mm. Verificación: con instrumento graduado.",
+      },
+    ],
+  },
+  {
+    slug: "papel-mural",
+    name: "Papel mural",
+    order: 23,
+    icon: "paint",
+    articles: [
+      {
+        slug: "papel-mural",
+        title: "Papel mural",
+        summary: "Terminación de papeles murales; la junta entre paños no es invisible por definición.",
+        body: "Terminación de papeles murales, según la ficha 14 del Manual de Tolerancias CDT: la junta entre paños no es invisible por definición. Los piquetes no deben observarse de pie a 1 m de distancia. Pequeñas diferencias de tonalidad son aceptables si el papel proviene de lotes distintos (documentado con guías de despacho o facturas). El encuentro del papel con cornisas o guardapolvos debe tener máx. 1 mm de separación al borde. En el encuentro con marcos de ventana u otros elementos, se acepta hasta 2 mm si el papel queda montado sobre el marco, o 1 mm si queda corto. Verificación: observación de pie a 1 m, y regla pequeña graduada en los encuentros.",
+      },
+    ],
+  },
 ];
 
 // Checklist corto ("nivel 1") para los artículos SIN match en
@@ -417,7 +460,129 @@ type SeedElementDef = {
   // (ej. "Reja o portón" dentro de Exterior).
   requiredFeature?: RoomFeatureRequirement;
   checklist: string[];
+  // Solo en "piso" (FLOOR) y "muros-y-cielos" (WALL): marca el elemento
+  // como controlado por la pregunta de material del recinto.
+  materialSlot?: MaterialSlot;
+  // true en los variantes de material (piso-ceramica, etc.) — nunca se
+  // instancian al crear la inspección, solo vía reasignación en
+  // setRoomMaterial tras responder la pregunta.
+  isMaterialVariant?: boolean;
 };
+
+// Variantes de material de "Piso" — mismo contenido en los 5 recintos
+// que tienen Piso, se agregan una sola vez y se reusan (spread) en cada
+// uno. piso-ceramica/piso-porcelanato/piso-flotante reusan el checklist
+// que cada recinto ya tenía asumido por defecto (Baños/Cocina/
+// Living-Comedor-Dormitorios respectivamente) — piso-vinilico y
+// piso-alfombra son contenido nuevo, derivado de las fichas 24 y 17.
+const PISO_CERAMICA_CHECKLIST = [
+  "¿Las piezas están niveladas entre sí, sin sentir un escalón al pasar la mano por las uniones?",
+  "¿Las líneas de junta se ven rectas y parejas en todo el piso, sin desviarse?",
+  "¿No hay manchas o decoloración cerca de las juntas que puedan indicar humedad bajo el piso?",
+  "¿Al golpear suavemente la superficie con una moneda, el sonido es sólido y no hueco?",
+  "¿Las esquinas y remates (borde de tina, mesón) están bien terminados, sin piezas mal cortadas?",
+];
+
+const PISO_PORCELANATO_CHECKLIST = [
+  "¿Las piezas están niveladas entre sí, sin sentir un escalón al pasar la mano por las uniones?",
+  "¿Las líneas de junta se ven rectas y parejas en todo el piso, sin desviarse?",
+  "¿Al golpear suavemente la superficie con una moneda, el sonido es sólido y no hueco?",
+  "¿No hay piezas trisadas, picadas o astilladas en los bordes?",
+];
+
+const PISO_VINILICO_CHECKLIST = [
+  "¿Las uniones entre piezas o paños quedan parejas, sin escalón entre una y otra?",
+  "¿Los encuentros con puertas u otros remates sin guardapolvo quedan bien terminados?",
+  "¿Las rayas visibles son solo superficiales, sin relieve ni marca de otro tono?",
+];
+
+const PISO_ALFOMBRA_CHECKLIST = [
+  "¿Las uniones entre paños de cubrepiso quedan parejas, sin espacios visibles?",
+  "¿El encuentro con marcos de puertas o pilastras queda bien ajustado, sin bordes sueltos?",
+];
+
+const PISO_MATERIAL_VARIANTS: SeedElementDef[] = [
+  {
+    slug: "piso-ceramica",
+    name: "Piso",
+    libraryArticleSlug: "piezas-parejas-sin-fisuras",
+    checklist: PISO_CERAMICA_CHECKLIST,
+    materialSlot: MaterialSlot.FLOOR,
+    isMaterialVariant: true,
+  },
+  {
+    slug: "piso-porcelanato",
+    name: "Piso",
+    libraryArticleSlug: "nivel-y-sellado-de-juntas",
+    checklist: PISO_PORCELANATO_CHECKLIST,
+    materialSlot: MaterialSlot.FLOOR,
+    isMaterialVariant: true,
+  },
+  {
+    slug: "piso-flotante",
+    name: "Piso",
+    libraryArticleSlug: "crujidos-en-piso-flotante",
+    checklist: PISO_FLOTANTE_CHECKLIST,
+    materialSlot: MaterialSlot.FLOOR,
+    isMaterialVariant: true,
+  },
+  {
+    slug: "piso-vinilico",
+    name: "Piso",
+    libraryArticleSlug: "pavimentos-vinilicos",
+    checklist: PISO_VINILICO_CHECKLIST,
+    materialSlot: MaterialSlot.FLOOR,
+    isMaterialVariant: true,
+  },
+  {
+    slug: "piso-alfombra",
+    name: "Piso",
+    libraryArticleSlug: "alfombras-y-cubrepisos",
+    checklist: PISO_ALFOMBRA_CHECKLIST,
+    materialSlot: MaterialSlot.FLOOR,
+    isMaterialVariant: true,
+  },
+];
+
+// Variantes de material de "Muros y cielos" — mismo criterio: contenido
+// único, reusado (spread) en los 3 recintos que tienen este elemento.
+// muros-y-cielos-pintura reusa el checklist que ya existía;
+// muros-y-cielos-ceramico reusa el checklist de piso cerámica (ya
+// genérico, no menciona "piso"); muros-y-cielos-papel-mural es
+// contenido nuevo, derivado de la ficha 14.
+const MUROS_PAPEL_MURAL_CHECKLIST = [
+  "¿De pie a 1 m, no se ven piquetes ni burbujas en el papel?",
+  "¿El tono es parejo en todo el muro (pequeñas diferencias son normales si son de lotes distintos)?",
+  "¿El encuentro con cornisas o guardapolvos queda bien ajustado, sin separaciones grandes?",
+  "¿El encuentro con marcos de ventanas o puertas queda bien terminado, sin quedar corto ni montado?",
+];
+
+const MUROS_MATERIAL_VARIANTS: SeedElementDef[] = [
+  {
+    slug: "muros-y-cielos-pintura",
+    name: "Muros y cielos",
+    libraryArticleSlug: "uniformidad-de-la-pintura",
+    checklist: MUROS_Y_CIELOS_CHECKLIST,
+    materialSlot: MaterialSlot.WALL,
+    isMaterialVariant: true,
+  },
+  {
+    slug: "muros-y-cielos-papel-mural",
+    name: "Muros y cielos",
+    libraryArticleSlug: "papel-mural",
+    checklist: MUROS_PAPEL_MURAL_CHECKLIST,
+    materialSlot: MaterialSlot.WALL,
+    isMaterialVariant: true,
+  },
+  {
+    slug: "muros-y-cielos-ceramico",
+    name: "Muros y cielos",
+    libraryArticleSlug: "piezas-parejas-sin-fisuras",
+    checklist: PISO_CERAMICA_CHECKLIST,
+    materialSlot: MaterialSlot.WALL,
+    isMaterialVariant: true,
+  },
+];
 
 type SeedRoomDef = {
   slug: string;
@@ -516,7 +681,9 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Piso",
         libraryArticleSlug: "crujidos-en-piso-flotante",
         checklist: PISO_FLOTANTE_CHECKLIST,
+        materialSlot: MaterialSlot.FLOOR,
       },
+      ...PISO_MATERIAL_VARIANTS,
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
@@ -528,7 +695,9 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Muros y cielos",
         libraryArticleSlug: "uniformidad-de-la-pintura",
         checklist: MUROS_Y_CIELOS_CHECKLIST,
+        materialSlot: MaterialSlot.WALL,
       },
+      ...MUROS_MATERIAL_VARIANTS,
       {
         slug: "cornisas",
         name: "Cornisas",
@@ -572,7 +741,9 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Piso",
         libraryArticleSlug: "crujidos-en-piso-flotante",
         checklist: PISO_FLOTANTE_CHECKLIST,
+        materialSlot: MaterialSlot.FLOOR,
       },
+      ...PISO_MATERIAL_VARIANTS,
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
@@ -584,7 +755,9 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Muros y cielos",
         libraryArticleSlug: "uniformidad-de-la-pintura",
         checklist: MUROS_Y_CIELOS_CHECKLIST,
+        materialSlot: MaterialSlot.WALL,
       },
+      ...MUROS_MATERIAL_VARIANTS,
       {
         slug: "cornisas",
         name: "Cornisas",
@@ -616,7 +789,9 @@ const roomTemplates: SeedRoomDef[] = [
           "¿Al golpear suavemente la superficie con una moneda, el sonido es sólido y no hueco?",
           "¿No hay piezas trisadas, picadas o astilladas en los bordes?",
         ],
+        materialSlot: MaterialSlot.FLOOR,
       },
+      ...PISO_MATERIAL_VARIANTS,
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
@@ -720,7 +895,9 @@ const roomTemplates: SeedRoomDef[] = [
           "¿Al golpear suavemente la superficie con una moneda, el sonido es sólido y no hueco?",
           "¿Las esquinas y remates (borde de tina, mesón) están bien terminados, sin piezas mal cortadas?",
         ],
+        materialSlot: MaterialSlot.FLOOR,
       },
+      ...PISO_MATERIAL_VARIANTS,
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
@@ -790,7 +967,9 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Piso",
         libraryArticleSlug: "crujidos-en-piso-flotante",
         checklist: PISO_FLOTANTE_CHECKLIST,
+        materialSlot: MaterialSlot.FLOOR,
       },
+      ...PISO_MATERIAL_VARIANTS,
       {
         slug: "guardapolvos",
         name: "Guardapolvos",
@@ -802,7 +981,9 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Muros y cielos",
         libraryArticleSlug: "uniformidad-de-la-pintura",
         checklist: MUROS_Y_CIELOS_CHECKLIST,
+        materialSlot: MaterialSlot.WALL,
       },
+      ...MUROS_MATERIAL_VARIANTS,
       {
         slug: "cornisas",
         name: "Cornisas",
@@ -1126,6 +1307,8 @@ async function seedCatalog(): Promise<SeededRoom[]> {
         : undefined;
 
       const requiredFeature = element.requiredFeature ?? RoomFeatureRequirement.NINGUNA;
+      const materialSlot = element.materialSlot ?? null;
+      const isMaterialVariant = element.isMaterialVariant ?? false;
 
       const createdElement = await prisma.elementTemplate.upsert({
         where: {
@@ -1139,6 +1322,8 @@ async function seedCatalog(): Promise<SeededRoom[]> {
           order: elementIndex,
           requiredFeature,
           referenceLibraryArticleId,
+          materialSlot,
+          isMaterialVariant,
         },
         create: {
           roomTemplateId: createdRoom.id,
@@ -1147,6 +1332,8 @@ async function seedCatalog(): Promise<SeededRoom[]> {
           order: elementIndex,
           requiredFeature,
           referenceLibraryArticleId,
+          materialSlot,
+          isMaterialVariant,
         },
       });
 
@@ -1410,9 +1597,51 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
   }
 }
 
+// Recintos ya asumían un material fijo antes de que existiera la
+// pregunta — sin este backfill, cualquier RoomInstance creada antes de
+// este cambio (la demo, inspecciones reales) quedaría con
+// floorMaterial/wallCoveringMaterial en null y la próxima vez que
+// alguien abra Piso o Muros y cielos ahí, vería la pregunta bloqueante
+// en vez del checklist — incluso en recintos con respuestas reales ya
+// guardadas. Idempotente: solo toca filas donde el campo sigue null,
+// así que correrlo de nuevo no hace nada. No reasigna
+// ElementInstance.elementTemplateId — el contenido que se ve sigue
+// siendo exactamente el mismo de antes de este cambio.
+const DEFAULT_FLOOR_MATERIAL_BY_ROOM_SLUG: Record<string, "PISO_FLOTANTE" | "PORCELANATO" | "CERAMICA"> = {
+  living: "PISO_FLOTANTE",
+  comedor: "PISO_FLOTANTE",
+  dormitorios: "PISO_FLOTANTE",
+  cocina: "PORCELANATO",
+  banos: "CERAMICA",
+};
+const DEFAULT_WALL_MATERIAL_BY_ROOM_SLUG: Record<string, "PINTURA"> = {
+  living: "PINTURA",
+  comedor: "PINTURA",
+  dormitorios: "PINTURA",
+};
+
+async function backfillRoomMaterials() {
+  const rooms = await prisma.roomInstance.findMany({
+    where: { OR: [{ floorMaterial: null }, { wallCoveringMaterial: null }] },
+    include: { roomTemplate: { select: { slug: true } } },
+  });
+
+  for (const room of rooms) {
+    const floorMaterial = DEFAULT_FLOOR_MATERIAL_BY_ROOM_SLUG[room.roomTemplate.slug];
+    const wallCoveringMaterial = DEFAULT_WALL_MATERIAL_BY_ROOM_SLUG[room.roomTemplate.slug];
+    const data: { floorMaterial?: typeof floorMaterial; wallCoveringMaterial?: typeof wallCoveringMaterial } = {};
+    if (floorMaterial && room.floorMaterial === null) data.floorMaterial = floorMaterial;
+    if (wallCoveringMaterial && room.wallCoveringMaterial === null) data.wallCoveringMaterial = wallCoveringMaterial;
+    if (Object.keys(data).length > 0) {
+      await prisma.roomInstance.update({ where: { id: room.id }, data });
+    }
+  }
+}
+
 async function main() {
   const seededRooms = await seedCatalog();
   await seedDemoInspection(seededRooms);
+  await backfillRoomMaterials();
 }
 
 main()

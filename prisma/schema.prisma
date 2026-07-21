@@ -85,6 +85,27 @@ enum ParkingLocation {
   SUPERFICIE
 }
 
+enum FloorMaterial {
+  CERAMICA
+  PORCELANATO
+  PISO_FLOTANTE
+  PAVIMENTO_VINILICO
+  ALFOMBRA_CUBREPISO
+  OTRO
+}
+
+enum WallCoveringMaterial {
+  PINTURA
+  PAPEL_MURAL
+  CERAMICO_PORCELANATO
+  OTRO
+}
+
+enum MaterialSlot {
+  FLOOR
+  WALL
+}
+
 // ---------- Tenant root ----------
 
 model Organization {
@@ -253,6 +274,8 @@ model ElementTemplate {
   requiredFeature           RoomFeatureRequirement @default(NINGUNA)
   referenceLibraryArticleId String?
   referenceLibraryArticle   LibraryArticle?        @relation(fields: [referenceLibraryArticleId], references: [id])
+  materialSlot              MaterialSlot? // FLOOR en "piso"+variantes, WALL en "muros-y-cielos"+variantes
+  isMaterialVariant         Boolean                @default(false) // true = no se instancia al crear la inspección, solo vía reasignación tras elegir material
   createdAt                 DateTime               @default(now())
   updatedAt                 DateTime               @updatedAt
 
@@ -288,6 +311,8 @@ model RoomInstance {
   roomTemplate   RoomTemplate @relation(fields: [roomTemplateId], references: [id])
   name           String // copia editable, ej. "Dormitorio 2"
   order          Int          @default(0)
+  floorMaterial        FloorMaterial?
+  wallCoveringMaterial WallCoveringMaterial?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
