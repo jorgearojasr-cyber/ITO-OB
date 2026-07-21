@@ -407,12 +407,12 @@ export async function setRoomMaterial(input: SetRoomMaterialInput): Promise<void
     if (targetSlug) {
       const variant = await tx.elementTemplate.findFirst({
         where: { roomTemplateId: room.roomTemplateId, slug: targetSlug },
-        select: { id: true, name: true },
+        select: { id: true },
       });
       if (variant) {
         await tx.elementInstance.update({
           where: { id: input.elementInstanceId },
-          data: { elementTemplateId: variant.id, name: variant.name },
+          data: { elementTemplateId: variant.id },
         });
       }
     }
