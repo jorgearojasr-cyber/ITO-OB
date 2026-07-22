@@ -4,6 +4,7 @@ import { BottomNav } from "@/components/inicio/BottomNav";
 import { ElementLibraryCard } from "@/components/elemento/ElementLibraryCard";
 import { ElementChecklist } from "@/components/elemento/ElementChecklist";
 import { RoomMaterialQuestion } from "@/components/elemento/RoomMaterialQuestion";
+import { ShowerTubQuestion } from "@/components/elemento/ShowerTubQuestion";
 import { getElementInstanceData } from "@/lib/inspections/get-element-instance-data";
 import styles from "./page.module.css";
 
@@ -35,6 +36,12 @@ export default async function ElementInstancePage({ params }: PageProps) {
             elementInstanceId={element.id}
             slot={element.materialQuestion.slot}
             options={element.materialQuestion.options}
+          />
+        ) : element.showerTubQuestion ? (
+          <ShowerTubQuestion
+            inspectionId={inspectionId}
+            roomInstanceId={element.roomInstanceId}
+            elementInstanceId={element.id}
           />
         ) : (
           <>

@@ -13,6 +13,7 @@ export type ElementInstanceData = {
     slot: "FLOOR" | "WALL";
     options: { value: string; label: string }[];
   } | null;
+  showerTubQuestion: boolean;
   libraryArticle: {
     title: string;
     body: string;
@@ -66,7 +67,21 @@ export async function getElementInstanceData(
     element.observations.map((observation) => [observation.checklistItemTemplateId, observation]),
   );
 
-  const checklist = element.elementTemplate.checklistItemTemplates.map((item) => {
+  const hasConditionalItems = element.elementTemplate.checklistItemTemplates.some(
+    (item) => item.requiresShower || item.requiresBathtub,
+  );
+  const showerTubAnswered =
+    element.roomInstance.hasShower !== null && element.roomInstance.hasBathtub !== null;
+  const showerTubQuestion = hasConditionalItems && !showerTubAnswered;
+
+  const visibleChecklistItemTemplates = element.elementTemplate.checklistItemTemplates.filter((item) => {
+    if (!item.requiresShower && !item.requiresBathtub) return true;
+    if (item.requiresShower && element.roomInstance.hasShower) return true;
+    if (item.requiresBathtub && element.roomInstance.hasBathtub) return true;
+    return false;
+  });
+
+  const checklist = visibleChecklistItemTemplates.map((item) => {
     const observation = observationByChecklistItemId.get(item.id);
     return {
       checklistItemTemplateId: item.id,
@@ -108,6 +123,7 @@ export async function getElementInstanceData(
     roomInstanceId: element.roomInstanceId,
     roomName: element.roomInstance.name,
     materialQuestion,
+    showerTubQuestion,
     libraryArticle: element.elementTemplate.referenceLibraryArticle
       ? {
           title: element.elementTemplate.referenceLibraryArticle.title,

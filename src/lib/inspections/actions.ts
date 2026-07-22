@@ -31,13 +31,26 @@ async function recomputeElementInstanceStatus(elementInstanceId: string) {
   const element = await prisma.elementInstance.findUniqueOrThrow({
     where: { id: elementInstanceId },
     include: {
+      roomInstance: true,
       elementTemplate: { include: { checklistItemTemplates: true } },
       observations: true,
     },
   });
 
+  // Mismo criterio de visibilidad que getElementInstanceData: una
+  // pregunta con requiresShower/requiresBathtub solo cuenta para el total
+  // si el recinto efectivamente tiene esa tina/ducha — si no, un baño sin
+  // tina nunca podría llegar a 100% (contaría preguntas que el usuario
+  // jamás ve).
+  const visibleChecklistItems = element.elementTemplate.checklistItemTemplates.filter((item) => {
+    if (!item.requiresShower && !item.requiresBathtub) return true;
+    if (item.requiresShower && element.roomInstance.hasShower) return true;
+    if (item.requiresBathtub && element.roomInstance.hasBathtub) return true;
+    return false;
+  });
+
   const hasObservation = element.observations.some((o) => o.status === "OBSERVATION");
-  const totalChecklistItems = element.elementTemplate.checklistItemTemplates.length;
+  const totalChecklistItems = visibleChecklistItems.length;
   const answeredCorrect = element.observations.filter((o) => o.status === "CORRECT").length;
   const allAnsweredCorrect =
     totalChecklistItems > 0 && answeredCorrect === totalChecklistItems;
@@ -429,6 +442,52 @@ export async function setRoomMaterial(input: SetRoomMaterialInput): Promise<void
         });
       }
     }
+  });
+
+  revalidatePath(`/inspecciones/${input.inspectionId}/elementos/${input.elementInstanceId}`);
+  redirect(`/inspecciones/${input.inspectionId}/elementos/${input.elementInstanceId}`);
+}
+
+type SetBathroomFixturesInput = {
+  inspectionId: string;
+  roomInstanceId: string;
+  elementInstanceId: string;
+  hasShower: boolean;
+  hasBathtub: boolean;
+};
+
+// Responde "¿Qué tiene este baño?" (ducha / tina, selección múltiple)
+// una sola vez por recinto — no hay UI para cambiarla después. A
+// diferencia de setRoomMaterial, esto no reasigna ElementTemplate: solo
+// guarda los 2 booleanos, y getElementInstanceData filtra qué preguntas
+// del checklist de "Impermeabilización y sellos" quedan visibles según
+// esta respuesta.
+export async function setBathroomFixtures(input: SetBathroomFixturesInput): Promise<void> {
+  const session = await requireSession();
+
+  const room = await prisma.roomInstance.findFirst({
+    where: {
+      id: input.roomInstanceId,
+      inspectionId: input.inspectionId,
+      inspection: { organizationId: session.user.organizationId },
+    },
+    select: { id: true },
+  });
+  if (!room) {
+    throw new Error("Recinto no encontrado en esta organización.");
+  }
+
+  const ownedElement = await prisma.elementInstance.findFirst({
+    where: { id: input.elementInstanceId, roomInstanceId: input.roomInstanceId },
+    select: { id: true },
+  });
+  if (!ownedElement) {
+    throw new Error("Elemento no encontrado en este recinto.");
+  }
+
+  await prisma.roomInstance.update({
+    where: { id: input.roomInstanceId },
+    data: { hasShower: input.hasShower, hasBathtub: input.hasBathtub },
   });
 
   revalidatePath(`/inspecciones/${input.inspectionId}/elementos/${input.elementInstanceId}`);

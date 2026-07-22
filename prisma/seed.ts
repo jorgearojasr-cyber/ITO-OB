@@ -451,6 +451,10 @@ const ILUMINACION_CHECKLIST = [
   "¿Si es un foco empotrado, está bien fijo al cielo, sin quedar colgando o torcido?",
 ];
 
+type ChecklistItemSeedDef =
+  | string
+  | { question: string; requiresShower?: boolean; requiresBathtub?: boolean };
+
 type SeedElementDef = {
   slug: string;
   name: string;
@@ -459,7 +463,11 @@ type SeedElementDef = {
   // elemento es condicional dentro de un recinto que sí siempre aplica
   // (ej. "Reja o portón" dentro de Exterior).
   requiredFeature?: RoomFeatureRequirement;
-  checklist: string[];
+  // string = pregunta siempre visible (requiresShower/requiresBathtub en
+  // false). Objeto = pregunta condicional a la respuesta de "¿Qué tiene
+  // este baño?" (ver ShowerTubQuestion/setBathroomFixtures) — solo se
+  // usa hoy en "impermeabilizacion-y-sellos" de Baños.
+  checklist: ChecklistItemSeedDef[];
   // Solo en "piso" (FLOOR) y "muros-y-cielos" (WALL): marca el elemento
   // como controlado por la pregunta de material del recinto.
   materialSlot?: MaterialSlot;
@@ -948,9 +956,22 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Impermeabilización y sellos",
         libraryArticleSlug: "impermeabilizacion-de-duchas",
         checklist: [
-          "¿Los sellos entre muro y piso de la ducha están continuos?",
+          { question: "¿Los sellos entre muro y piso de la ducha están continuos?", requiresShower: true },
           "¿No hay manchas de humedad visibles?",
-          "¿La silicona de la tina o ducha no está amarillenta, con hongos ni despegada al tocarla?",
+          {
+            question: "¿La silicona de la tina o ducha no está amarillenta, con hongos ni despegada al tocarla?",
+            requiresShower: true,
+            requiresBathtub: true,
+          },
+          { question: "¿El sello ducha-muro está continuo, sin cortes?", requiresShower: true },
+          { question: "¿El desagüe de piso drena bien, sin filtración hacia afuera?", requiresShower: true },
+          { question: "¿El rebalse (desagüe de seguridad) funciona correctamente?", requiresBathtub: true },
+          { question: "¿El sello tina-muro está continuo?", requiresBathtub: true },
+          {
+            question: "¿Tiene ventilación — ventana o extractor — que funcione?",
+            requiresShower: true,
+            requiresBathtub: true,
+          },
         ],
       },
     ],
@@ -1339,14 +1360,19 @@ async function seedCatalog(): Promise<SeededRoom[]> {
 
       const checklistItemIds: string[] = [];
 
-      for (const [questionIndex, question] of element.checklist.entries()) {
+      for (const [questionIndex, item] of element.checklist.entries()) {
+        const { question, requiresShower, requiresBathtub } =
+          typeof item === "string"
+            ? { question: item, requiresShower: false, requiresBathtub: false }
+            : { requiresShower: false, requiresBathtub: false, ...item };
+
         const existing = await prisma.checklistItemTemplate.findFirst({
           where: { elementTemplateId: createdElement.id, question },
         });
         if (existing) {
           await prisma.checklistItemTemplate.update({
             where: { id: existing.id },
-            data: { order: questionIndex },
+            data: { order: questionIndex, requiresShower, requiresBathtub },
           });
           checklistItemIds.push(existing.id);
         } else {
@@ -1354,6 +1380,8 @@ async function seedCatalog(): Promise<SeededRoom[]> {
             data: {
               elementTemplateId: createdElement.id,
               question,
+              requiresShower,
+              requiresBathtub,
               order: questionIndex,
             },
           });

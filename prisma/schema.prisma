@@ -293,6 +293,8 @@ model ChecklistItemTemplate {
   question          String // "¿La silicona está continua?"
   helpText          String?
   order             Int             @default(0)
+  requiresShower    Boolean         @default(false) // solo aplica si RoomInstance.hasShower = true
+  requiresBathtub   Boolean         @default(false) // solo aplica si RoomInstance.hasBathtub = true
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
@@ -313,6 +315,8 @@ model RoomInstance {
   order          Int          @default(0)
   floorMaterial        FloorMaterial?
   wallCoveringMaterial WallCoveringMaterial?
+  hasShower            Boolean? // null = no respondido; true/false = respondido (Baños)
+  hasBathtub           Boolean?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
