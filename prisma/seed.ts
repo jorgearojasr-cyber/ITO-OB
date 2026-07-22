@@ -956,14 +956,16 @@ const roomTemplates: SeedRoomDef[] = [
         name: "Impermeabilización y sellos",
         libraryArticleSlug: "impermeabilizacion-de-duchas",
         checklist: [
-          { question: "¿Los sellos entre muro y piso de la ducha están continuos?", requiresShower: true },
+          {
+            question: "¿El sello entre muro y piso de la ducha está continuo, sin cortes?",
+            requiresShower: true,
+          },
           "¿No hay manchas de humedad visibles?",
           {
             question: "¿La silicona de la tina o ducha no está amarillenta, con hongos ni despegada al tocarla?",
             requiresShower: true,
             requiresBathtub: true,
           },
-          { question: "¿El sello ducha-muro está continuo, sin cortes?", requiresShower: true },
           { question: "¿El desagüe de piso drena bien, sin filtración hacia afuera?", requiresShower: true },
           { question: "¿El rebalse (desagüe de seguridad) funciona correctamente?", requiresBathtub: true },
           { question: "¿El sello tina-muro está continuo?", requiresBathtub: true },
