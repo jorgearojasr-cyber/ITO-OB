@@ -1,0 +1,30 @@
+.screen {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+
+.content {
+  flex: 1;
+  padding: 4px 20px 8px;
+}
+
+.sectionTitle {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink-400);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin: 20px 0 10px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

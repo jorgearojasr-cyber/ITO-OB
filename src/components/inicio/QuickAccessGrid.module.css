@@ -59,3 +59,45 @@
   text-align: center;
   margin-top: -4px;
 }
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 22px;
+}
+
+.bannerIcon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bannerBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.bannerLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+
+.bannerSubtitle {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-400);
+  margin-top: 1px;
+}

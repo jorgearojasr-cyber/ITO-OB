@@ -107,6 +107,29 @@ export function QuickAccessGrid({ inspectionId }: QuickAccessGridProps) {
           );
         })}
       </div>
+
+      <Link href="/kit-inspeccion" className={styles.banner}>
+        <div className={styles.bannerIcon}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="3" y="7.5" width="14" height="9" rx="1.5" stroke="#DD7A36" strokeWidth="1.7" />
+            <path
+              d="M7.3 7.5V5.5C7.3 4.9 7.8 4.5 8.3 4.5H11.7C12.2 4.5 12.7 4.9 12.7 5.5V7.5"
+              stroke="#DD7A36"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path d="M3 11H17" stroke="#DD7A36" strokeWidth="1.7" />
+          </svg>
+        </div>
+        <div className={styles.bannerBody}>
+          <span className={styles.bannerLabel}>Kit de inspección</span>
+          <span className={styles.bannerSubtitle}>Qué herramientas llevar a terreno</span>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+          <path d="M7.5 4.5L13 10L7.5 15.5" stroke="#8892A6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>
     </div>
   );
 }
