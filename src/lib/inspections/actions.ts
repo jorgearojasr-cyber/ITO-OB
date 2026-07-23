@@ -754,3 +754,359 @@ export async function deleteRoomInstance(input: DeleteRoomInstanceInput): Promis
 
   return { remainingCount };
 }
+
+type DeleteElementInstanceInput = {
+  inspectionId: string;
+  elementInstanceId: string;
+};
+
+export type DeleteElementInstanceResult = { success: true };
+
+// Igual que deleteRoomInstance pero para un elemento suelto (Reja
+// peatonal, Portón vehicular) que vive dentro de un recinto que sigue
+// existiendo (Exterior) — no toca el RoomInstance ni sus otros elementos.
+export async function deleteElementInstance(input: DeleteElementInstanceInput): Promise<DeleteElementInstanceResult> {
+  const session = await requireSession();
+
+  const element = await prisma.elementInstance.findFirst({
+    where: {
+      id: input.elementInstanceId,
+      roomInstance: {
+        inspectionId: input.inspectionId,
+        inspection: { organizationId: session.user.organizationId },
+      },
+    },
+    select: { id: true, roomInstanceId: true },
+  });
+  if (!element) {
+    throw new Error("Elemento no encontrado en esta organización.");
+  }
+
+  const observations = await prisma.observation.findMany({
+    where: { elementInstanceId: element.id },
+    select: { id: true },
+  });
+  const observationIds = observations.map((observation) => observation.id);
+
+  const photos = await prisma.photo.findMany({
+    where: { observationId: { in: observationIds } },
+    select: { id: true, url: true },
+  });
+
+  await Promise.allSettled(photos.map((photo) => del(photo.url)));
+
+  await prisma.$transaction([
+    prisma.photo.deleteMany({ where: { id: { in: photos.map((photo) => photo.id) } } }),
+    prisma.observation.deleteMany({ where: { id: { in: observationIds } } }),
+    prisma.elementInstance.delete({ where: { id: element.id } }),
+  ]);
+
+  revalidatePath(`/inspecciones/${input.inspectionId}/recintos/${element.roomInstanceId}`);
+  revalidatePath("/");
+
+  return { success: true };
+}
+
+// ---------- Características de la propiedad (7 flags) + tipo de vivienda ----------
+
+// Recintos completos que solo existen si su feature está activo.
+const FEATURE_ROOM_SLUGS = ["terraza-patio", "techumbre", "escalera", "bodega", "estacionamiento"] as const;
+// Elementos sueltos dentro de "Exterior" (que siempre existe) gatillados
+// por feature — porton-vehicular-manual/automatico son variantes
+// mutuamente excluyentes del mismo feature (ver vehicleGateVariantApplies).
+const GATED_EXTERIOR_ELEMENT_SLUGS = ["reja-peatonal", "porton-vehicular-manual", "porton-vehicular-automatico"] as const;
+
+type RawFeatureInput = {
+  hasFrontYard: boolean;
+  hasBackYard: boolean;
+  hasRoofSpace: boolean;
+  hasStairs: boolean;
+  hasPedestrianGate: boolean;
+  hasVehicleGate: boolean;
+  isVehicleGateAutomatic: boolean;
+  hasTerrace: boolean;
+  hasStorageRoom: boolean;
+  hasParkingSpace: boolean;
+};
+
+function deriveFeatureFlags(propertyType: PropertyType, raw: RawFeatureInput): HouseFeatureFlags {
+  const isCasa = propertyType === "CASA";
+  return {
+    hasTerrace: isCasa ? raw.hasFrontYard || raw.hasBackYard : raw.hasTerrace,
+    hasRoofSpace: isCasa && raw.hasRoofSpace,
+    hasStairs: isCasa && raw.hasStairs,
+    hasPedestrianGate: isCasa && raw.hasPedestrianGate,
+    hasVehicleGate: isCasa && raw.hasVehicleGate,
+    hasStorageRoom: !isCasa && raw.hasStorageRoom,
+    hasParkingSpace: !isCasa && raw.hasParkingSpace,
+  };
+}
+
+export type PendingRemovalItem = {
+  id: string;
+  kind: "room" | "element";
+  name: string;
+  elementsDone: number;
+  elementsTotal: number;
+  photoCount: number;
+  observationCount: number;
+};
+
+type RoomTemplateForFeature = {
+  id: string;
+  slug: string;
+  name: string;
+  order: number;
+  appliesToCasa: boolean;
+  appliesToDepto: boolean;
+  requiredFeature: Parameters<typeof roomTemplateApplies>[0]["requiredFeature"];
+  elementTemplates: ElementTemplateForInstance[];
+};
+
+// Compara qué recintos/elementos gatillados por feature DEBERÍAN existir
+// bajo el propertyType/flags propuestos contra los que EXISTEN hoy en la
+// inspección. No escribe nada — la usan tanto la preview de tipo de
+// vivienda (solo lectura) como applyFeatureChanges (que sí escribe).
+async function computeFeatureDiff(
+  inspectionId: string,
+  propertyType: PropertyType,
+  raw: RawFeatureInput,
+): Promise<{
+  roomsToAdd: RoomTemplateForFeature[];
+  elementsToAdd: { elementTemplate: ElementTemplateForInstance; roomInstanceId: string }[];
+  itemsToRemove: PendingRemovalItem[];
+}> {
+  const featureFlags = deriveFeatureFlags(propertyType, raw);
+
+  const roomTemplates = await prisma.roomTemplate.findMany({
+    where: { slug: { in: [...FEATURE_ROOM_SLUGS, "exterior"] } },
+    include: { elementTemplates: { orderBy: { order: "asc" } } },
+  });
+  const roomTemplateBySlug = new Map(roomTemplates.map((template) => [template.slug, template]));
+
+  const existingRooms = await prisma.roomInstance.findMany({
+    where: { inspectionId, roomTemplateId: { in: roomTemplates.map((template) => template.id) } },
+    include: {
+      roomTemplate: { select: { slug: true } },
+      elements: { include: { observations: { include: { photos: { select: { id: true } } } } } },
+    },
+  });
+
+  function roomEvidence(room: (typeof existingRooms)[number]): PendingRemovalItem {
+    const elementsTotal = room.elements.length;
+    const elementsDone = room.elements.filter((element) => element.status !== "PENDING").length;
+    const observations = room.elements.flatMap((element) => element.observations);
+    const observationCount = observations.filter((observation) => observation.status === "OBSERVATION").length;
+    const photoCount = observations.reduce((sum, observation) => sum + observation.photos.length, 0);
+    return { id: room.id, kind: "room", name: room.name, elementsDone, elementsTotal, photoCount, observationCount };
+  }
+
+  const roomsToAdd: RoomTemplateForFeature[] = [];
+  const itemsToRemove: PendingRemovalItem[] = [];
+
+  for (const slug of FEATURE_ROOM_SLUGS) {
+    const template = roomTemplateBySlug.get(slug);
+    if (!template) continue;
+    const shouldExist = roomTemplateApplies(template, propertyType, featureFlags);
+    const existing = existingRooms.find((room) => room.roomTemplate.slug === slug);
+
+    if (shouldExist && !existing) {
+      roomsToAdd.push(template);
+    } else if (!shouldExist && existing) {
+      itemsToRemove.push(roomEvidence(existing));
+    }
+  }
+
+  const elementsToAdd: { elementTemplate: ElementTemplateForInstance; roomInstanceId: string }[] = [];
+
+  const exteriorTemplate = roomTemplateBySlug.get("exterior");
+  const exteriorInstance = await prisma.roomInstance.findFirst({
+    where: { inspectionId, roomTemplate: { slug: "exterior" } },
+    select: { id: true },
+  });
+
+  if (exteriorTemplate && exteriorInstance) {
+    const gatedTemplates = exteriorTemplate.elementTemplates.filter((template) =>
+      (GATED_EXTERIOR_ELEMENT_SLUGS as readonly string[]).includes(template.slug),
+    );
+    const existingElements = await prisma.elementInstance.findMany({
+      where: {
+        roomInstanceId: exteriorInstance.id,
+        elementTemplate: { slug: { in: [...GATED_EXTERIOR_ELEMENT_SLUGS] } },
+      },
+      include: {
+        elementTemplate: { select: { slug: true } },
+        observations: { include: { photos: { select: { id: true } } } },
+      },
+    });
+
+    for (const template of gatedTemplates) {
+      const shouldExist =
+        elementTemplateApplies(template, featureFlags) &&
+        vehicleGateVariantApplies(template.slug, raw.isVehicleGateAutomatic);
+      const existing = existingElements.find((element) => element.elementTemplate.slug === template.slug);
+
+      if (shouldExist && !existing) {
+        elementsToAdd.push({ elementTemplate: template, roomInstanceId: exteriorInstance.id });
+      } else if (!shouldExist && existing) {
+        const observationCount = existing.observations.filter((o) => o.status === "OBSERVATION").length;
+        const photoCount = existing.observations.reduce((sum, o) => sum + o.photos.length, 0);
+        itemsToRemove.push({
+          id: existing.id,
+          kind: "element",
+          name: existing.name,
+          elementsDone: existing.status !== "PENDING" ? 1 : 0,
+          elementsTotal: 1,
+          photoCount,
+          observationCount,
+        });
+      }
+    }
+  }
+
+  return { roomsToAdd, elementsToAdd, itemsToRemove };
+}
+
+type PreviewPropertyTypeInput = RawFeatureInput & {
+  inspectionId: string;
+  propertyType: PropertyType;
+};
+
+export type PropertyTypeDiffPreview = {
+  roomsToAddNames: string[];
+  elementsToAddNames: string[];
+  itemsToRemove: PendingRemovalItem[];
+};
+
+// Solo lectura — no escribe nada. Muestra el impacto completo de cambiar
+// propertyType ANTES de que el usuario confirme (ver EditPropertyTypeForm).
+export async function previewPropertyTypeChange(input: PreviewPropertyTypeInput): Promise<PropertyTypeDiffPreview> {
+  const session = await requireSession();
+
+  const inspection = await prisma.inspection.findFirst({
+    where: { id: input.inspectionId, organizationId: session.user.organizationId },
+    select: { id: true },
+  });
+  if (!inspection) {
+    throw new Error("Inspección no encontrada en esta organización.");
+  }
+
+  const diff = await computeFeatureDiff(input.inspectionId, input.propertyType, input);
+
+  return {
+    roomsToAddNames: diff.roomsToAdd.map((template) => template.name),
+    elementsToAddNames: diff.elementsToAdd.map((item) => item.elementTemplate.name),
+    itemsToRemove: diff.itemsToRemove,
+  };
+}
+
+type ApplyFeatureChangesInput = RawFeatureInput & {
+  inspectionId: string;
+  propertyType: PropertyType;
+  storageLockType: StorageLockType | null;
+  parkingLocation: ParkingLocation | null;
+  parkingIsMarked: boolean | null;
+};
+
+export type ApplyFeatureChangesResult = {
+  itemsToRemove: PendingRemovalItem[];
+};
+
+// Usada tanto por "Características de la propiedad" (propertyType sin
+// cambiar) como por el paso final de "Tipo de vivienda" (propertyType
+// nuevo) — mismo criterio en ambas: lo seguro (agregar) se aplica al
+// toque, lo destructivo (quitar) queda pendiente para que el usuario lo
+// resuelva uno por uno con evidencia + doble confirmación
+// (ver PendingRemovalsPanel + deleteRoomInstance/deleteElementInstance).
+export async function applyFeatureChanges(input: ApplyFeatureChangesInput): Promise<ApplyFeatureChangesResult> {
+  const session = await requireSession();
+
+  const inspection = await prisma.inspection.findFirst({
+    where: { id: input.inspectionId, organizationId: session.user.organizationId },
+  });
+  if (!inspection) {
+    throw new Error("Inspección no encontrada en esta organización.");
+  }
+
+  const isCasa = input.propertyType === "CASA";
+  const raw: RawFeatureInput = {
+    hasFrontYard: isCasa && input.hasFrontYard,
+    hasBackYard: isCasa && input.hasBackYard,
+    hasRoofSpace: isCasa && input.hasRoofSpace,
+    hasStairs: isCasa && input.hasStairs,
+    hasPedestrianGate: isCasa && input.hasPedestrianGate,
+    hasVehicleGate: isCasa && input.hasVehicleGate,
+    isVehicleGateAutomatic: isCasa && input.hasVehicleGate && input.isVehicleGateAutomatic,
+    hasTerrace: !isCasa && input.hasTerrace,
+    hasStorageRoom: !isCasa && input.hasStorageRoom,
+    hasParkingSpace: !isCasa && input.hasParkingSpace,
+  };
+  const storageLockType = raw.hasStorageRoom ? input.storageLockType : null;
+  const parkingLocation = raw.hasParkingSpace ? input.parkingLocation : null;
+  const parkingIsMarked = raw.hasParkingSpace ? input.parkingIsMarked : null;
+
+  const diff = await computeFeatureDiff(input.inspectionId, input.propertyType, raw);
+  const featureFlags = deriveFeatureFlags(input.propertyType, raw);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.inspection.update({
+      where: { id: input.inspectionId },
+      data: {
+        propertyType: input.propertyType,
+        hasFrontYard: raw.hasFrontYard,
+        hasBackYard: raw.hasBackYard,
+        hasRoofSpace: raw.hasRoofSpace,
+        hasStairs: raw.hasStairs,
+        hasPedestrianGate: raw.hasPedestrianGate,
+        hasVehicleGate: raw.hasVehicleGate,
+        isVehicleGateAutomatic: raw.isVehicleGateAutomatic,
+        hasTerrace: raw.hasTerrace,
+        hasStorageRoom: raw.hasStorageRoom,
+        storageLockType,
+        hasParkingSpace: raw.hasParkingSpace,
+        parkingLocation,
+        parkingIsMarked,
+      },
+    });
+
+    for (const template of diff.roomsToAdd) {
+      const roomInstanceId = crypto.randomUUID();
+      await tx.roomInstance.create({
+        data: {
+          id: roomInstanceId,
+          inspectionId: input.inspectionId,
+          roomTemplateId: template.id,
+          name: template.name,
+          order: template.order * 10,
+        },
+      });
+      const elementRows = buildElementInstanceRows(
+        template.elementTemplates,
+        featureFlags,
+        raw.isVehicleGateAutomatic,
+        roomInstanceId,
+      );
+      if (elementRows.length > 0) {
+        await tx.elementInstance.createMany({ data: elementRows });
+      }
+    }
+
+    if (diff.elementsToAdd.length > 0) {
+      await tx.elementInstance.createMany({
+        data: diff.elementsToAdd.map(({ elementTemplate, roomInstanceId }) => ({
+          id: crypto.randomUUID(),
+          roomInstanceId,
+          elementTemplateId: elementTemplate.id,
+          name: elementTemplate.name,
+          order: elementTemplate.order,
+          status: "PENDING" as const,
+        })),
+      });
+    }
+  });
+
+  revalidatePath(`/inspecciones/${input.inspectionId}/recintos`);
+  revalidatePath("/");
+
+  return { itemsToRemove: diff.itemsToRemove };
+}

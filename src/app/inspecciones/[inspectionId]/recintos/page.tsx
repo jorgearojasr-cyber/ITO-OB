@@ -39,8 +39,8 @@ export default async function RoomsListPage({ params }: PageProps) {
           subtitle={`${inspection.projectName} — ${inspection.unitLabel}`}
           backHref="/"
           action={
-            <Link href={`/inspecciones/${inspectionId}/distribucion`} className={styles.editLink}>
-              Editar distribución
+            <Link href={`/inspecciones/${inspectionId}/editar`} className={styles.editLink}>
+              Editar inspección
             </Link>
           }
         />

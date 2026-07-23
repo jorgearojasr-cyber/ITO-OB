@@ -1,0 +1,48 @@
+.wrap {
+  padding-top: 8px;
+}
+
+.formError {
+  background: #fde8e6;
+  color: #b3261e;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.checkboxRow label {
+  font-size: 13.5px;
+  color: var(--ink-900);
+  font-weight: 500;
+}
+
+.checkboxRowNested {
+  margin-left: 24px;
+}
+
+.saveBtn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--accent-600);
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  box-shadow: 0 8px 16px -6px rgba(221, 122, 54, 0.55);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+}

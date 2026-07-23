@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { updateRoomCounts, deleteRoomInstance, type RoomCountReduction } from "@/lib/inspections/actions";
 import type { RoomDistributionData, RoomDistributionInstance } from "@/lib/inspections/get-room-distribution-data";
+import { evidenceLabel } from "@/lib/inspections/evidence-label";
 import { DeleteRoomModal } from "./DeleteRoomModal";
 import formStyles from "@/components/ui/form/FormField.module.css";
 import { FormField } from "@/components/ui/form/FormField";
@@ -20,13 +21,6 @@ type PendingDelete = {
   roomSlug: "dormitorios" | "banos";
   instance: RoomDistributionInstance;
 };
-
-function evidenceLabel(instance: RoomDistributionInstance): string {
-  const parts = [`${instance.elementsDone} de ${instance.elementsTotal} elementos revisados`];
-  parts.push(`${instance.photoCount} foto${instance.photoCount === 1 ? "" : "s"}`);
-  parts.push(`${instance.observationCount} ${instance.observationCount === 1 ? "observación" : "observaciones"}`);
-  return parts.join(", ");
-}
 
 export function EditDistributionForm({ inspectionId, data }: EditDistributionFormProps) {
   const [step, setStep] = useState<Step>("counts");
@@ -164,7 +158,7 @@ export function EditDistributionForm({ inspectionId, data }: EditDistributionFor
 
       {pendingDelete && (
         <DeleteRoomModal
-          roomName={pendingDelete.instance.name}
+          itemName={pendingDelete.instance.name}
           photoCount={pendingDelete.instance.photoCount}
           observationCount={pendingDelete.instance.observationCount}
           isPending={isDeleting}
