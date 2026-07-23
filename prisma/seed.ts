@@ -111,10 +111,16 @@ const libraryCategories = [
     icon: "paint",
     articles: [
       {
-        slug: "uniformidad-de-la-pintura",
-        title: "Uniformidad y terminación de la pintura",
-        summary: "Cómo detectar defectos comunes en la pintura de muros y cielos.",
-        body: "La pintura debe verse pareja en color y textura en toda la superficie, sin manchas, escurrimientos ni marcas de rodillo muy visibles. Para revisarla bien, obsérvala con luz rasante (de lado, no de frente): en muros interiores basta con pararte a un paso de distancia, y en fachadas o muros exteriores revisa desde unos metros más atrás, ya que ahí solo importan los defectos más visibles. Pon atención a las esquinas, contornos de puertas y ventanas, y guardapolvos: son los lugares donde más se notan los descuidos de terminación. Grietas finas en la pintura, sobre todo cerca de encuentros entre muro y cielo, pueden ser solo estéticas o pueden indicar un problema mayor detrás; si tienes dudas, coméntalo igual como observación para que quede documentado.",
+        slug: "pintura-interior",
+        title: "Uniformidad y terminación de la pintura interior",
+        summary: "Cómo detectar defectos comunes en la pintura de muros y cielos interiores.",
+        body: "La pintura debe verse pareja en color y textura en toda la superficie, sin manchas, escurrimientos ni marcas de rodillo muy visibles. Para revisarla bien, obsérvala con luz rasante (de lado, no de frente), parado a un paso de distancia (aprox. 1 metro). Pon atención a las esquinas, contornos de puertas y ventanas, y guardapolvos: son los lugares donde más se notan los descuidos de terminación. Grietas finas en la pintura, sobre todo cerca de encuentros entre muro y cielo, pueden ser solo estéticas o pueden indicar un problema mayor detrás; si tienes dudas, coméntalo igual como observación para que quede documentado.",
+      },
+      {
+        slug: "pintura-exterior",
+        title: "Uniformidad y terminación de la pintura exterior",
+        summary: "Cómo detectar defectos comunes en la pintura de fachadas y muros exteriores.",
+        body: "La pintura debe verse pareja en color y textura en toda la superficie, sin manchas, escurrimientos ni marcas de rodillo muy visibles. Para revisarla bien, obsérvala con luz de día desde unos metros de distancia — a esa distancia solo importan los defectos más visibles, no las imperfecciones mínimas. Pon atención a las esquinas, contornos de puertas y ventanas, y aleros: son los lugares donde más se notan los descuidos de terminación. Grietas finas en la pintura pueden ser solo estéticas o pueden indicar un problema mayor detrás; si tienes dudas, coméntalo igual como observación para que quede documentado.",
       },
     ],
   },
@@ -405,6 +411,13 @@ const QUICK_CHECK_ITEMS_BY_ARTICLE_SLUG: Record<string, string[]> = {
     "Pendiente hacia desagüe o borde — el agua no se acumula hacia el interior",
     "Uniones piso-muro y piso-puerta sin grietas ni sellos despegados",
   ],
+  // Mismo texto que tolerances-by-category.ts (pinturas.highlightItems) —
+  // acá van por artículo porque, a diferencia del resto del catálogo,
+  // "Pinturas" tiene 2 artículos (interior/exterior) bajo una sola
+  // categoría, y el derivado por categoría en seedCatalog() mezclaría
+  // ambos tips en los dos artículos si no hay override explícito.
+  "pintura-interior": ["Interior: párate a 1 m con luz angulada (de lado, no de frente)"],
+  "pintura-exterior": ["Exterior: revisa desde 5 m, con luz de día"],
 };
 
 // Checklists reutilizados sin cambios entre varios recintos (evita repetir
@@ -569,7 +582,7 @@ const MUROS_MATERIAL_VARIANTS: SeedElementDef[] = [
   {
     slug: "muros-y-cielos-pintura",
     name: "Muros y cielos",
-    libraryArticleSlug: "uniformidad-de-la-pintura",
+    libraryArticleSlug: "pintura-interior",
     checklist: MUROS_Y_CIELOS_CHECKLIST,
     materialSlot: MaterialSlot.WALL,
     isMaterialVariant: true,
@@ -617,7 +630,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "fachada",
         name: "Fachada",
-        libraryArticleSlug: "uniformidad-de-la-pintura",
+        libraryArticleSlug: "pintura-exterior",
         checklist: [
           "¿La pintura o revestimiento está uniforme, sin manchas ni grietas visibles?",
           "¿No hay filtraciones visibles en la unión entre muros y aleros?",
@@ -701,7 +714,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "muros-y-cielos",
         name: "Muros y cielos",
-        libraryArticleSlug: "uniformidad-de-la-pintura",
+        libraryArticleSlug: "pintura-interior",
         checklist: MUROS_Y_CIELOS_CHECKLIST,
         materialSlot: MaterialSlot.WALL,
       },
@@ -761,7 +774,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "muros-y-cielos",
         name: "Muros y cielos",
-        libraryArticleSlug: "uniformidad-de-la-pintura",
+        libraryArticleSlug: "pintura-interior",
         checklist: MUROS_Y_CIELOS_CHECKLIST,
         materialSlot: MaterialSlot.WALL,
       },
@@ -1002,7 +1015,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "muros-y-cielos",
         name: "Muros y cielos",
-        libraryArticleSlug: "uniformidad-de-la-pintura",
+        libraryArticleSlug: "pintura-interior",
         checklist: MUROS_Y_CIELOS_CHECKLIST,
         materialSlot: MaterialSlot.WALL,
       },
@@ -1267,9 +1280,14 @@ async function seedCatalog(): Promise<SeededRoom[]> {
     });
 
     for (const article of category.articles) {
+      // El override por artículo va primero: la mayoría de las categorías
+      // tienen 1 solo artículo (donde el orden no importa), pero
+      // "Pinturas" tiene 2 (interior/exterior) — si el derivado por
+      // categoría ganara, ambos artículos mostrarían los mismos 2 tips
+      // mezclados en vez de cada uno el suyo.
       const quickCheckItems =
-        toleranceMappingByCategorySlug[category.slug]?.highlightItems.map((h) => h.shortLabel) ??
         QUICK_CHECK_ITEMS_BY_ARTICLE_SLUG[article.slug] ??
+        toleranceMappingByCategorySlug[category.slug]?.highlightItems.map((h) => h.shortLabel) ??
         [];
 
       const createdArticle = await prisma.libraryArticle.upsert({
