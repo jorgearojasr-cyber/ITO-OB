@@ -12,6 +12,7 @@ import type {
   FloorMaterial,
   WallCoveringMaterial,
 } from "@prisma/client";
+import { del } from "@vercel/blob";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
 import {
@@ -26,6 +27,66 @@ import {
   FLOOR_MATERIAL_LABELS,
   WALL_MATERIAL_LABELS,
 } from "@/lib/inspections/material-selection";
+
+type ElementTemplateForInstance = {
+  id: string;
+  slug: string;
+  name: string;
+  order: number;
+  isMaterialVariant: boolean;
+  requiredFeature: Parameters<typeof elementTemplateApplies>[0]["requiredFeature"];
+};
+
+// Compartido entre createInspection y updateRoomCounts — mismo criterio de
+// qué elementos se instancian (excluye variantes de material, respeta
+// features de la vivienda y la variante de portón vehicular elegida).
+function buildElementInstanceRows(
+  elementTemplates: ElementTemplateForInstance[],
+  featureFlags: HouseFeatureFlags,
+  isVehicleGateAutomatic: boolean,
+  roomInstanceId: string,
+): Prisma.ElementInstanceCreateManyInput[] {
+  const rows: Prisma.ElementInstanceCreateManyInput[] = [];
+  for (const element of elementTemplates) {
+    if (element.isMaterialVariant) continue;
+    if (!elementTemplateApplies(element, featureFlags)) continue;
+    if (!vehicleGateVariantApplies(element.slug, isVehicleGateAutomatic)) continue;
+    rows.push({
+      id: crypto.randomUUID(),
+      roomInstanceId,
+      elementTemplateId: element.id,
+      name: element.name,
+      order: element.order,
+      status: "PENDING",
+    });
+  }
+  return rows;
+}
+
+// Extrae los números ya usados en nombres "Singular N" (ej. "Dormitorio 3")
+// — una instancia sola creada con count=1 se llama solo el nombre plural
+// del recinto ("Dormitorios"), sin número, así que no aporta un número usado.
+function extractUsedNumbers(names: string[], singularName: string): Set<number> {
+  const used = new Set<number>();
+  const pattern = new RegExp(`^${singularName} (\\d+)$`);
+  for (const name of names) {
+    const match = name.match(pattern);
+    if (match) used.add(parseInt(match[1], 10));
+  }
+  return used;
+}
+
+// Números disponibles más bajos, rellenando huecos en vez de seguir
+// creciendo (ej. si existen 1 y 3, el siguiente disponible es 2).
+function nextAvailableNumbers(used: Set<number>, count: number): number[] {
+  const result: number[] = [];
+  let n = 1;
+  while (result.length < count) {
+    if (!used.has(n)) result.push(n);
+    n++;
+  }
+  return result;
+}
 
 async function recomputeElementInstanceStatus(elementInstanceId: string) {
   const element = await prisma.elementInstance.findUniqueOrThrow({
@@ -298,23 +359,9 @@ export async function createInspection(
         order: room.order * 10 + (i - 1),
       });
 
-      for (const element of room.elementTemplates) {
-        // Los variantes de material (piso-ceramica, muros-y-cielos-papel-mural,
-        // etc.) nunca se instancian al crear la inspección — solo existen
-        // para que setRoomMaterial reasigne el ElementInstance genérico
-        // ("piso"/"muros-y-cielos") una vez que se responde la pregunta.
-        if (element.isMaterialVariant) continue;
-        if (!elementTemplateApplies(element, featureFlags)) continue;
-        if (!vehicleGateVariantApplies(element.slug, isVehicleGateAutomatic)) continue;
-        elementsData.push({
-          id: crypto.randomUUID(),
-          roomInstanceId,
-          elementTemplateId: element.id,
-          name: element.name,
-          order: element.order,
-          status: "PENDING",
-        });
-      }
+      elementsData.push(
+        ...buildElementInstanceRows(room.elementTemplates, featureFlags, isVehicleGateAutomatic, roomInstanceId),
+      );
     }
   }
 
@@ -492,4 +539,218 @@ export async function setBathroomFixtures(input: SetBathroomFixturesInput): Prom
 
   revalidatePath(`/inspecciones/${input.inspectionId}/elementos/${input.elementInstanceId}`);
   redirect(`/inspecciones/${input.inspectionId}/elementos/${input.elementInstanceId}`);
+}
+
+type RoomCountFieldConfig = {
+  slug: "dormitorios" | "banos";
+  singularName: string;
+  field: "bedroomCount" | "bathroomCount";
+};
+
+const ROOM_COUNT_CONFIG: RoomCountFieldConfig[] = [
+  { slug: "dormitorios", singularName: "Dormitorio", field: "bedroomCount" },
+  { slug: "banos", singularName: "Baño", field: "bathroomCount" },
+];
+
+type UpdateRoomCountsInput = {
+  inspectionId: string;
+  bedroomCount: number;
+  bathroomCount: number;
+};
+
+export type RoomCountReduction = {
+  roomSlug: "dormitorios" | "banos";
+  label: string;
+  from: number;
+  to: number;
+};
+
+export type UpdateRoomCountsResult = {
+  needsReduction: RoomCountReduction[];
+};
+
+// Aumentar es directo (agrega instancias, mismo criterio que
+// createInspection). Reducir NUNCA borra automáticamente acá — solo
+// informa qué recintos necesitan que el usuario elija cuáles eliminar
+// (ver deleteRoomInstance), con evidencia real antes de decidir.
+export async function updateRoomCounts(input: UpdateRoomCountsInput): Promise<UpdateRoomCountsResult> {
+  const session = await requireSession();
+
+  const targetByField = {
+    bedroomCount: Math.min(10, Math.max(1, input.bedroomCount)),
+    bathroomCount: Math.min(10, Math.max(1, input.bathroomCount)),
+  };
+
+  const inspection = await prisma.inspection.findFirst({
+    where: { id: input.inspectionId, organizationId: session.user.organizationId },
+  });
+  if (!inspection) {
+    throw new Error("Inspección no encontrada en esta organización.");
+  }
+
+  const featureFlags: HouseFeatureFlags = {
+    hasTerrace: inspection.hasTerrace,
+    hasRoofSpace: inspection.hasRoofSpace,
+    hasStairs: inspection.hasStairs,
+    hasPedestrianGate: inspection.hasPedestrianGate,
+    hasVehicleGate: inspection.hasVehicleGate,
+    hasStorageRoom: inspection.hasStorageRoom,
+    hasParkingSpace: inspection.hasParkingSpace,
+  };
+
+  const needsReduction: RoomCountReduction[] = [];
+
+  for (const config of ROOM_COUNT_CONFIG) {
+    const target = targetByField[config.field];
+
+    const roomTemplate = await prisma.roomTemplate.findFirst({
+      where: { slug: config.slug },
+      include: { elementTemplates: { orderBy: { order: "asc" } } },
+    });
+    if (!roomTemplate) continue;
+
+    const existingInstances = await prisma.roomInstance.findMany({
+      where: { inspectionId: input.inspectionId, roomTemplateId: roomTemplate.id },
+      select: { id: true, name: true },
+    });
+    const currentCount = existingInstances.length;
+
+    if (target < currentCount) {
+      needsReduction.push({ roomSlug: config.slug, label: config.singularName, from: currentCount, to: target });
+      continue;
+    }
+    if (target === currentCount) continue;
+
+    const toAdd = target - currentCount;
+
+    // Una sola instancia sin numerar (nombre = plural del recinto, ej.
+    // "Dormitorios") pasa a "Dormitorio 1" antes de agregar la segunda —
+    // para no dejar una instancia sin número mezclada con numeradas.
+    if (currentCount === 1 && existingInstances[0].name === roomTemplate.name) {
+      await prisma.roomInstance.update({
+        where: { id: existingInstances[0].id },
+        data: { name: `${config.singularName} 1` },
+      });
+      existingInstances[0] = { ...existingInstances[0], name: `${config.singularName} 1` };
+    }
+
+    const usedNumbers = extractUsedNumbers(
+      existingInstances.map((instance) => instance.name),
+      config.singularName,
+    );
+    const newNumbers = nextAvailableNumbers(usedNumbers, toAdd);
+
+    const roomsData: Prisma.RoomInstanceCreateManyInput[] = [];
+    const elementsData: Prisma.ElementInstanceCreateManyInput[] = [];
+
+    for (const number of newNumbers) {
+      const roomInstanceId = crypto.randomUUID();
+      roomsData.push({
+        id: roomInstanceId,
+        inspectionId: input.inspectionId,
+        roomTemplateId: roomTemplate.id,
+        name: `${config.singularName} ${number}`,
+        order: roomTemplate.order * 10 + (number - 1),
+      });
+      elementsData.push(
+        ...buildElementInstanceRows(
+          roomTemplate.elementTemplates,
+          featureFlags,
+          inspection.isVehicleGateAutomatic,
+          roomInstanceId,
+        ),
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.roomInstance.createMany({ data: roomsData }),
+      prisma.elementInstance.createMany({ data: elementsData }),
+      prisma.inspection.update({ where: { id: input.inspectionId }, data: { [config.field]: target } }),
+    ]);
+  }
+
+  revalidatePath(`/inspecciones/${input.inspectionId}/recintos`);
+  revalidatePath("/");
+
+  return { needsReduction };
+}
+
+type DeleteRoomInstanceInput = {
+  inspectionId: string;
+  roomInstanceId: string;
+};
+
+export type DeleteRoomInstanceResult = {
+  remainingCount: number;
+};
+
+// El DELETE real — se asume que el cliente ya mostró la evidencia y pidió
+// confirmación explícita antes de llamar esto (ver EditDistributionForm).
+// No renombra las instancias que quedan: si se borra "Dormitorio 2" de 3,
+// quedan "Dormitorio 1" y "Dormitorio 3" con hueco en la numeración a
+// propósito — no se reasigna la identidad de un recinto con evidencia real.
+export async function deleteRoomInstance(input: DeleteRoomInstanceInput): Promise<DeleteRoomInstanceResult> {
+  const session = await requireSession();
+
+  const room = await prisma.roomInstance.findFirst({
+    where: {
+      id: input.roomInstanceId,
+      inspectionId: input.inspectionId,
+      inspection: { organizationId: session.user.organizationId },
+    },
+    include: { roomTemplate: true },
+  });
+  if (!room) {
+    throw new Error("Recinto no encontrado en esta organización.");
+  }
+
+  const countConfig = ROOM_COUNT_CONFIG.find((config) => config.slug === room.roomTemplate.slug);
+
+  const elements = await prisma.elementInstance.findMany({
+    where: { roomInstanceId: input.roomInstanceId },
+    select: { id: true },
+  });
+  const elementIds = elements.map((element) => element.id);
+
+  const observations = await prisma.observation.findMany({
+    where: { elementInstanceId: { in: elementIds } },
+    select: { id: true },
+  });
+  const observationIds = observations.map((observation) => observation.id);
+
+  const photos = await prisma.photo.findMany({
+    where: { observationId: { in: observationIds } },
+    select: { id: true, url: true },
+  });
+
+  // Best-effort: borra los archivos reales del blob storage. Si alguno
+  // falla (token, red) no bloquea el borrado en la base — la evidencia
+  // igual desaparece de la app, que es lo que promete el modal.
+  await Promise.allSettled(photos.map((photo) => del(photo.url)));
+
+  await prisma.$transaction(async (tx) => {
+    await tx.photo.deleteMany({ where: { id: { in: photos.map((photo) => photo.id) } } });
+    await tx.observation.deleteMany({ where: { id: { in: observationIds } } });
+    await tx.elementInstance.deleteMany({ where: { id: { in: elementIds } } });
+    await tx.roomInstance.delete({ where: { id: input.roomInstanceId } });
+
+    if (countConfig) {
+      const remaining = await tx.roomInstance.count({
+        where: { inspectionId: input.inspectionId, roomTemplateId: room.roomTemplateId },
+      });
+      await tx.inspection.update({
+        where: { id: input.inspectionId },
+        data: { [countConfig.field]: Math.max(1, remaining) },
+      });
+    }
+  });
+
+  const remainingCount = await prisma.roomInstance.count({
+    where: { inspectionId: input.inspectionId, roomTemplateId: room.roomTemplateId },
+  });
+
+  revalidatePath(`/inspecciones/${input.inspectionId}/recintos`);
+  revalidatePath("/");
+
+  return { remainingCount };
 }

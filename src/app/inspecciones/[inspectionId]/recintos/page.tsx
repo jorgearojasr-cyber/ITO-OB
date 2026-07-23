@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -37,6 +38,11 @@ export default async function RoomsListPage({ params }: PageProps) {
           title="Recintos"
           subtitle={`${inspection.projectName} — ${inspection.unitLabel}`}
           backHref="/"
+          action={
+            <Link href={`/inspecciones/${inspectionId}/distribucion`} className={styles.editLink}>
+              Editar distribución
+            </Link>
+          }
         />
         {rooms.length === 0 ? (
           <EmptyState
