@@ -49,6 +49,12 @@ enum ElementInstanceStatus {
   OBSERVED
 }
 
+enum ReportStatus {
+  PENDING
+  READY
+  FAILED
+}
+
 enum ObservationStatus {
   CORRECT
   OBSERVATION
@@ -138,6 +144,7 @@ model User {
 
   createdInspections Inspection[]             @relation("InspectionCreator")
   collaboratesOn     InspectionCollaborator[]
+  generatedReports   Report[]
   accounts           Account[]
   sessions           Session[]
 
@@ -419,15 +426,22 @@ model LibraryArticle {
 // ---------- Informe final ----------
 
 model Report {
-  id            String     @id @default(cuid())
-  inspectionId  String     @unique
-  inspection    Inspection @relation(fields: [inspectionId], references: [id])
-  pdfStorageKey String?
+  id                  String       @id @default(cuid())
+  inspectionId        String       @unique
+  inspection          Inspection   @relation(fields: [inspectionId], references: [id])
+  status              ReportStatus @default(PENDING)
+  pdfStorageKey       String?
+  errorMessage        String?
+  signatureOwnerUrl   String
+  signatureBuilderUrl String
+  signedAt            DateTime
+  generatedByUserId   String
+  generatedByUser     User         @relation(fields: [generatedByUserId], references: [id])
   // Snapshot congelado de recintos/elementos/observaciones al momento del
   // cierre, para que cambios futuros al catálogo maestro no alteren un
   // informe ya emitido.
-  snapshot      Json
-  generatedAt   DateTime   @default(now())
+  snapshot            Json
+  generatedAt         DateTime     @default(now())
 
   @@map("reports")
 }
