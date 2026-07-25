@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Priority } from "@prisma/client";
+import type { ObservationLifecycleStatus, Priority } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
 
@@ -8,11 +8,13 @@ export type ObservationSummaryItem = {
   id: string;
   comment: string | null;
   priority: Priority | null;
+  lifecycleStatus: ObservationLifecycleStatus | null;
   roomInstanceId: string;
   roomName: string;
   elementInstanceId: string;
   elementName: string;
   thumbnailUrl: string | null;
+  repairPhotos: { id: string; url: string }[];
 };
 
 export type ObservationsSummaryData = {
@@ -43,20 +45,26 @@ export async function getObservationsSummaryData(
     },
     include: {
       elementInstance: { include: { roomInstance: true } },
-      photos: { orderBy: { createdAt: "asc" }, take: 1 },
+      photos: { orderBy: { createdAt: "asc" } },
     },
   });
 
-  const observations: ObservationSummaryItem[] = rows.map((row) => ({
-    id: row.id,
-    comment: row.comment,
-    priority: row.priority,
-    roomInstanceId: row.elementInstance.roomInstanceId,
-    roomName: row.elementInstance.roomInstance.name,
-    elementInstanceId: row.elementInstanceId,
-    elementName: row.elementInstance.name,
-    thumbnailUrl: row.photos[0]?.url ?? null,
-  }));
+  const observations: ObservationSummaryItem[] = rows.map((row) => {
+    const evidencePhotos = row.photos.filter((photo) => photo.kind === "EVIDENCIA");
+    const repairPhotos = row.photos.filter((photo) => photo.kind === "REPARACION");
+    return {
+      id: row.id,
+      comment: row.comment,
+      priority: row.priority,
+      lifecycleStatus: row.lifecycleStatus,
+      roomInstanceId: row.elementInstance.roomInstanceId,
+      roomName: row.elementInstance.roomInstance.name,
+      elementInstanceId: row.elementInstanceId,
+      elementName: row.elementInstance.name,
+      thumbnailUrl: evidencePhotos[0]?.url ?? null,
+      repairPhotos: repairPhotos.map((photo) => ({ id: photo.id, url: photo.url })),
+    };
+  });
 
   observations.sort((a, b) => {
     const rankA = a.priority ? PRIORITY_RANK[a.priority] : PRIORITY_RANK.BAJA + 1;
