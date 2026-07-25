@@ -7,10 +7,11 @@ import { TipOfTheDayCard } from "@/components/inicio/TipOfTheDayCard";
 import { TopBar } from "@/components/inicio/TopBar";
 import { OnboardingCarousel } from "@/components/onboarding/OnboardingCarousel";
 import { getInicioData } from "@/lib/inspections/get-inicio-data";
+import { getUnreadNotificationCount } from "@/lib/notifications/get-notifications-data";
 import styles from "./page.module.css";
 
 export default async function InicioPage() {
-  const data = await getInicioData();
+  const [data, unreadCount] = await Promise.all([getInicioData(), getUnreadNotificationCount()]);
 
   if (!data.hasAnyInspections && !data.hasSeenOnboarding) {
     return <OnboardingCarousel />;
@@ -18,7 +19,7 @@ export default async function InicioPage() {
 
   return (
     <div className={styles.screen}>
-      <TopBar />
+      <TopBar unreadCount={unreadCount} />
       <div className={styles.content}>
         <HeroProgressCard
           inspection={data.inspection}
