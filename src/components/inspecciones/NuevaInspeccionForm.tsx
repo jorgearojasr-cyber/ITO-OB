@@ -12,6 +12,8 @@ const INITIAL_STATE: CreateInspectionState = {};
 
 const REQUIRED_TEXT_FIELDS = ["projectName", "unitLabel", "address"] as const;
 
+const STEP_LABELS = ["Proyecto", "Tipo y distribución", "Características"] as const;
+
 type NuevaInspeccionFormProps = {
   existingProjects: ProjectOption[];
 };
@@ -19,6 +21,7 @@ type NuevaInspeccionFormProps = {
 export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormProps) {
   const [state, formAction, isPending] = useActionState(createInspection, INITIAL_STATE);
 
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [propertyType, setPropertyType] = useState("CASA");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -55,17 +58,49 @@ export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormPro
     });
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    const form = event.currentTarget;
+  function validateStep1(form: HTMLFormElement): Record<string, string> {
     const errors: Record<string, string> = {};
     for (const field of REQUIRED_TEXT_FIELDS) {
       const input = form.elements.namedItem(field) as HTMLInputElement | null;
       if (!input?.value.trim()) errors[field] = "Completa este campo.";
     }
+    return errors;
+  }
+
+  function goToNextStep(form: HTMLFormElement) {
+    if (currentStep === 1) {
+      const errors = validateStep1(form);
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        (form.elements.namedItem(Object.keys(errors)[0]) as HTMLElement | null)?.focus();
+        return;
+      }
+      setFieldErrors({});
+    }
+    setCurrentStep((step) => (step < 3 ? ((step + 1) as 1 | 2 | 3) : step));
+  }
+
+  function goToPreviousStep() {
+    setCurrentStep((step) => (step > 1 ? ((step - 1) as 1 | 2 | 3) : step));
+  }
+
+  // El <form> solo se envía de verdad en el paso 3 — en los pasos 1 y 2,
+  // incluso un Enter dentro de un input dispara "submit", así que lo
+  // interceptamos y lo tratamos como "Siguiente" en vez de dejarlo pasar.
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const form = event.currentTarget;
+    if (currentStep !== 3) {
+      event.preventDefault();
+      goToNextStep(form);
+      return;
+    }
+    // Revalidación defensiva del paso 1 antes del envío real, por si se
+    // volvió atrás y se vació un campo ya validado.
+    const errors = validateStep1(form);
     if (Object.keys(errors).length > 0) {
       event.preventDefault();
+      setCurrentStep(1);
       setFieldErrors(errors);
-      (form.elements.namedItem(Object.keys(errors)[0]) as HTMLElement | null)?.focus();
       return;
     }
     setFieldErrors({});
@@ -75,6 +110,21 @@ export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormPro
     <form action={formAction} onSubmit={handleSubmit} className={styles.form}>
       {state.error && <div className={styles.formError}>{state.error}</div>}
 
+      <div className={styles.progress}>
+        <div className={styles.progressBar}>
+          {[1, 2, 3].map((step) => (
+            <div
+              key={step}
+              className={step <= currentStep ? `${styles.progressSegment} ${styles.progressSegmentOn}` : styles.progressSegment}
+            />
+          ))}
+        </div>
+        <div className={styles.progressLabel}>
+          Paso {currentStep} de 3 — {STEP_LABELS[currentStep - 1]}
+        </div>
+      </div>
+
+      <div style={{ display: currentStep === 1 ? "block" : "none" }}>
       <div className={styles.sectionTitle}>Proyecto</div>
       {existingProjects.length >= 2 && (
         <FormField label="¿Es un proyecto que ya ingresaste?" htmlFor="existingProject">
@@ -120,7 +170,9 @@ export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormPro
       <FormField label="Número de recepción" htmlFor="receptionNumber">
         <input id="receptionNumber" name="receptionNumber" className={formStyles.input} />
       </FormField>
+      </div>
 
+      <div style={{ display: currentStep === 2 ? "block" : "none" }}>
       <div className={styles.sectionTitle}>Tipo de vivienda</div>
       <FormField label="Tipo de vivienda" htmlFor="propertyType" required>
         <ToggleGroup
@@ -157,7 +209,9 @@ export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormPro
           className={formStyles.input}
         />
       </FormField>
+      </div>
 
+      <div style={{ display: currentStep === 3 ? "block" : "none" }}>
       <div className={styles.sectionTitle}>Características de la propiedad</div>
       {propertyType === "CASA" ? (
         <>
@@ -299,10 +353,28 @@ export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormPro
           )}
         </>
       )}
+      </div>
 
-      <button type="submit" className={styles.submitBtn} disabled={isPending}>
-        {isPending ? "Creando…" : "Crear inspección"}
-      </button>
+      <div className={styles.navRow}>
+        {currentStep > 1 && (
+          <button type="button" className={styles.backBtn} onClick={goToPreviousStep}>
+            Atrás
+          </button>
+        )}
+        {currentStep < 3 ? (
+          <button
+            type="button"
+            className={styles.submitBtn}
+            onClick={(event) => goToNextStep(event.currentTarget.form!)}
+          >
+            Siguiente
+          </button>
+        ) : (
+          <button type="submit" className={styles.submitBtn} disabled={isPending}>
+            {isPending ? "Creando…" : "Crear inspección"}
+          </button>
+        )}
+      </div>
     </form>
   );
 }

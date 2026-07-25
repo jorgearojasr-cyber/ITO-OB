@@ -2,6 +2,56 @@
   padding: 4px 20px 40px;
 }
 
+.progress {
+  margin-bottom: 20px;
+}
+
+.progressBar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.progressSegment {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--ink-200);
+}
+
+.progressSegmentOn {
+  background: var(--accent-600);
+}
+
+.progressLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-400);
+}
+
+.navRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.navRow .submitBtn {
+  flex: 1;
+  margin-top: 0;
+}
+
+.backBtn {
+  flex: 1;
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--ink-200);
+  background: var(--white);
+  color: var(--ink-600);
+  font-size: 14.5px;
+  font-weight: 700;
+  font-family: var(--font-body);
+}
+
 .sectionTitle {
   font-family: var(--font-display);
   font-weight: 800;
