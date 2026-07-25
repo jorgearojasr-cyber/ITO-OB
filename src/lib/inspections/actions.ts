@@ -6,6 +6,7 @@ import { after } from "next/server";
 import type {
   Prisma,
   ObservationStatus,
+  ObservationLifecycleStatus,
   Priority,
   PropertyType,
   StorageLockType,
@@ -170,11 +171,30 @@ export async function saveChecklistAnswer(
         inspection: { organizationId: session.user.organizationId },
       },
     },
-    select: { id: true },
+    select: { id: true, roomInstance: { select: { inspection: { select: { status: true } } } } },
   });
   if (!ownedElement) {
     throw new Error("Elemento no encontrado en esta organización.");
   }
+  if (ownedElement.roomInstance.inspection.status === "CLOSED") {
+    throw new Error("No se puede editar el checklist de una inspección cerrada.");
+  }
+
+  const existingObservation = await prisma.observation.findUnique({
+    where: {
+      elementInstanceId_checklistItemTemplateId: { elementInstanceId, checklistItemTemplateId },
+    },
+    select: { status: true, lifecycleStatus: true },
+  });
+  // Si ya estaba en OBSERVATION y sigue en OBSERVATION, no reiniciar el
+  // ciclo de vida solo porque se editó el comentario o la prioridad — eso
+  // borraría progreso de postventa (ej. ya estaba EN_REPARACION).
+  const nextLifecycleStatus: ObservationLifecycleStatus | null =
+    status !== "OBSERVATION"
+      ? null
+      : existingObservation?.status === "OBSERVATION"
+        ? existingObservation.lifecycleStatus
+        : "PENDIENTE";
 
   const observation = await prisma.observation.upsert({
     where: {
@@ -187,6 +207,7 @@ export async function saveChecklistAnswer(
       status,
       comment: status === "OBSERVATION" ? (comment ?? null) : null,
       priority: status === "OBSERVATION" ? (priority ?? null) : null,
+      lifecycleStatus: nextLifecycleStatus,
     },
     create: {
       elementInstanceId,
@@ -194,6 +215,7 @@ export async function saveChecklistAnswer(
       status,
       comment: status === "OBSERVATION" ? (comment ?? null) : null,
       priority: status === "OBSERVATION" ? (priority ?? null) : null,
+      lifecycleStatus: nextLifecycleStatus,
     },
   });
 
@@ -230,10 +252,16 @@ export async function attachPhoto(
         },
       },
     },
-    select: { id: true },
+    select: {
+      id: true,
+      elementInstance: { select: { roomInstance: { select: { inspection: { select: { status: true } } } } } },
+    },
   });
   if (!ownedObservation) {
     throw new Error("Observación no encontrada en esta organización.");
+  }
+  if (ownedObservation.elementInstance.roomInstance.inspection.status === "CLOSED") {
+    throw new Error("No se puede editar el checklist de una inspección cerrada.");
   }
 
   const photo = await prisma.photo.create({
@@ -241,6 +269,7 @@ export async function attachPhoto(
       observationId,
       url,
       contentType: contentType ?? null,
+      kind: "EVIDENCIA",
     },
   });
 
@@ -1200,6 +1229,95 @@ export async function retryReportGeneration(inspectionId: string): Promise<Retry
   revalidatePath(`/inspecciones/${inspectionId}/informe`);
 
   after(() => generateReportPdf(report.id));
+
+  return { success: true };
+}
+
+const LIFECYCLE_LABELS: Record<ObservationLifecycleStatus, string> = {
+  PENDIENTE: "Pendiente",
+  EN_REPARACION: "En reparación",
+  RESUELTO: "Resuelto",
+  VERIFICADO: "Verificado",
+};
+
+type AdvanceObservationLifecycleInput = {
+  observationId: string;
+  lifecycleStatus: ObservationLifecycleStatus;
+  repairPhotoUrls?: string[];
+};
+
+export type AdvanceObservationLifecycleResult = { success: true };
+
+// A diferencia de saveChecklistAnswer/attachPhoto, esta acción funciona
+// sin importar si la inspección está CLOSED — es justamente el flujo de
+// postventa que sigue vivo después del cierre y de que el informe ya se
+// firmó. No toca Report/snapshot en absoluto.
+export async function advanceObservationLifecycle(
+  input: AdvanceObservationLifecycleInput,
+): Promise<AdvanceObservationLifecycleResult> {
+  const session = await requireSession();
+
+  const observation = await prisma.observation.findFirst({
+    where: {
+      id: input.observationId,
+      elementInstance: {
+        roomInstance: { inspection: { organizationId: session.user.organizationId } },
+      },
+    },
+    select: {
+      id: true,
+      status: true,
+      elementInstance: {
+        select: {
+          name: true,
+          roomInstance: { select: { name: true, inspectionId: true } },
+        },
+      },
+    },
+  });
+  if (!observation) {
+    throw new Error("Observación no encontrada en esta organización.");
+  }
+  if (observation.status !== "OBSERVATION") {
+    throw new Error("Solo se puede avanzar el ciclo de vida de una observación.");
+  }
+
+  const inspectionId = observation.elementInstance.roomInstance.inspectionId;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.observation.update({
+      where: { id: input.observationId },
+      data: {
+        lifecycleStatus: input.lifecycleStatus,
+        lifecycleUpdatedAt: new Date(),
+        lifecycleUpdatedByUserId: session.user.id,
+      },
+    });
+
+    if (input.repairPhotoUrls && input.repairPhotoUrls.length > 0) {
+      await tx.photo.createMany({
+        data: input.repairPhotoUrls.map((url) => ({
+          observationId: input.observationId,
+          url,
+          kind: "REPARACION" as const,
+        })),
+      });
+    }
+
+    await tx.notification.create({
+      data: {
+        organizationId: session.user.organizationId,
+        userId: null,
+        createdByUserId: session.user.id,
+        type: "OBSERVATION_LIFECYCLE_CHANGED",
+        title: `${observation.elementInstance.roomInstance.name} · ${observation.elementInstance.name}`,
+        body: `Cambió a "${LIFECYCLE_LABELS[input.lifecycleStatus]}"`,
+        linkUrl: `/inspecciones/${inspectionId}/resumen`,
+      },
+    });
+  });
+
+  revalidatePath(`/inspecciones/${inspectionId}/resumen`);
 
   return { success: true };
 }

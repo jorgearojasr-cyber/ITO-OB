@@ -55,6 +55,22 @@ enum ReportStatus {
   FAILED
 }
 
+enum ObservationLifecycleStatus {
+  PENDIENTE
+  EN_REPARACION
+  RESUELTO
+  VERIFICADO
+}
+
+enum PhotoKind {
+  EVIDENCIA
+  REPARACION
+}
+
+enum NotificationType {
+  OBSERVATION_LIFECYCLE_CHANGED
+}
+
 enum ObservationStatus {
   CORRECT
   OBSERVATION
@@ -122,31 +138,35 @@ model Organization {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  users       User[]
-  inspections Inspection[]
+  users         User[]
+  inspections   Inspection[]
+  notifications Notification[]
 
   @@map("organizations")
 }
 
 model User {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  email          String       @unique
-  passwordHash   String?
-  name           String
-  role           UserRole     @default(PROPIETARIO)
-  emailVerified  DateTime?
-  image          String?
-  hasSeenOnboarding Boolean   @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                String       @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  email             String       @unique
+  passwordHash      String?
+  name              String
+  role              UserRole     @default(PROPIETARIO)
+  emailVerified     DateTime?
+  image             String?
+  hasSeenOnboarding Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
-  createdInspections Inspection[]             @relation("InspectionCreator")
-  collaboratesOn     InspectionCollaborator[]
-  generatedReports   Report[]
-  accounts           Account[]
-  sessions           Session[]
+  createdInspections           Inspection[]             @relation("InspectionCreator")
+  collaboratesOn               InspectionCollaborator[]
+  generatedReports             Report[]
+  lifecycleUpdatedObservations Observation[]
+  notificationsReceived        Notification[]           @relation("NotificationRecipient")
+  notificationsSent            Notification[]           @relation("NotificationActor")
+  accounts                     Account[]
+  sessions                     Session[]
 
   @@map("users")
 }
@@ -251,6 +271,25 @@ model InspectionCollaborator {
   @@map("inspection_collaborators")
 }
 
+model Notification {
+  id              String           @id @default(cuid())
+  organizationId  String
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  userId          String? // null = visible a todos los miembros de la organización
+  user            User?            @relation("NotificationRecipient", fields: [userId], references: [id])
+  createdByUserId String?
+  createdByUser   User?            @relation("NotificationActor", fields: [createdByUserId], references: [id])
+  type            NotificationType
+  title           String
+  body            String?
+  linkUrl         String? // ruta a la que navega al tocarla, ej. /inspecciones/{id}/resumen
+  readAt          DateTime?
+  createdAt       DateTime         @default(now())
+
+  @@index([organizationId, createdAt])
+  @@map("notifications")
+}
+
 // ---------- Catálogo maestro (Template) ----------
 
 model RoomTemplate {
@@ -313,19 +352,19 @@ model ChecklistItemTemplate {
 // ---------- Datos de la inspección (Instance) ----------
 
 model RoomInstance {
-  id             String       @id @default(cuid())
-  inspectionId   String
-  inspection     Inspection   @relation(fields: [inspectionId], references: [id])
-  roomTemplateId String
-  roomTemplate   RoomTemplate @relation(fields: [roomTemplateId], references: [id])
-  name           String // copia editable, ej. "Dormitorio 2"
-  order          Int          @default(0)
+  id                   String                @id @default(cuid())
+  inspectionId         String
+  inspection           Inspection            @relation(fields: [inspectionId], references: [id])
+  roomTemplateId       String
+  roomTemplate         RoomTemplate          @relation(fields: [roomTemplateId], references: [id])
+  name                 String // copia editable, ej. "Dormitorio 2"
+  order                Int                   @default(0)
   floorMaterial        FloorMaterial?
   wallCoveringMaterial WallCoveringMaterial?
   hasShower            Boolean? // null = no respondido; true/false = respondido (Baños)
   hasBathtub           Boolean?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 
   elements ElementInstance[]
 
@@ -352,19 +391,25 @@ model ElementInstance {
 }
 
 model Observation {
-  id                      String                @id @default(cuid())
-  elementInstanceId       String
-  elementInstance         ElementInstance       @relation(fields: [elementInstanceId], references: [id])
-  checklistItemTemplateId String
-  checklistItemTemplate   ChecklistItemTemplate @relation(fields: [checklistItemTemplateId], references: [id])
-  status                  ObservationStatus
-  comment                 String?
-  priority                Priority?
+  id                       String                      @id @default(cuid())
+  elementInstanceId        String
+  elementInstance          ElementInstance             @relation(fields: [elementInstanceId], references: [id])
+  checklistItemTemplateId  String
+  checklistItemTemplate    ChecklistItemTemplate       @relation(fields: [checklistItemTemplateId], references: [id])
+  status                   ObservationStatus
+  comment                  String?
+  priority                 Priority?
+  // Ciclo de vida de postventa — igual que priority, solo tiene sentido
+  // cuando status = OBSERVATION; null en CORRECT o antes de esta feature.
+  lifecycleStatus          ObservationLifecycleStatus?
+  lifecycleUpdatedAt       DateTime?
+  lifecycleUpdatedByUserId String?
+  lifecycleUpdatedByUser   User?                       @relation(fields: [lifecycleUpdatedByUserId], references: [id])
   // Extensible sin migración futura: resultados de análisis IA sobre esta
   // observación (Fase 4 del roadmap).
-  aiMetadata              Json?
-  createdAt               DateTime              @default(now())
-  updatedAt               DateTime              @updatedAt
+  aiMetadata               Json?
+  createdAt                DateTime                    @default(now())
+  updatedAt                DateTime                    @updatedAt
 
   photos Photo[]
 
@@ -380,6 +425,7 @@ model Photo {
   contentType   String?
   width         Int?
   height        Int?
+  kind          PhotoKind   @default(EVIDENCIA)
   // Extensible sin migración futura: metadatos de análisis de imagen IA.
   aiMetadata    Json?
   createdAt     DateTime    @default(now())
@@ -405,17 +451,17 @@ model LibraryCategory {
 }
 
 model LibraryArticle {
-  id         String          @id @default(cuid())
-  categoryId String
-  category   LibraryCategory @relation(fields: [categoryId], references: [id])
-  title      String
-  slug       String
-  summary    String
-  body       String // markdown/richtext
-  quickCheckItems String[] @default([])
-  order      Int             @default(0)
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  id              String          @id @default(cuid())
+  categoryId      String
+  category        LibraryCategory @relation(fields: [categoryId], references: [id])
+  title           String
+  slug            String
+  summary         String
+  body            String // markdown/richtext
+  quickCheckItems String[]        @default([])
+  order           Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   referencedByElements ElementTemplate[]
 
