@@ -138,8 +138,8 @@
 .ctaSecondary {
   width: 100%;
   background: var(--white);
-  border: 1px solid var(--accent-600);
-  color: var(--accent-600);
+  border: 1px solid var(--accent-700);
+  color: var(--accent-700);
   padding: 13px 16px;
   border-radius: var(--radius-sm);
   font-weight: 600;
