@@ -4,10 +4,18 @@ import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
 import { ShareReportButton } from "@/components/ui/ShareReportButton";
 import { ObservationsSummaryList } from "@/components/resumen/ObservationsSummaryList";
+import { CloseInspectionSection } from "@/components/resumen/CloseInspectionSection";
 import { prisma } from "@/lib/db/prisma";
 import { getObservationsSummaryData } from "@/lib/inspections/get-observations-summary-data";
 import { requireSession } from "@/lib/auth/session";
 import styles from "./page.module.css";
+
+// La generación real del PDF (Puppeteer + Chromium headless) puede tardar
+// más que el límite por defecto — closeInspection hereda este maxDuration.
+// 60s es el techo estándar del plan Vercel Hobby (confirmado en este
+// proyecto); si el volumen de fotos por informe resulta insuficiente,
+// hay que evaluar Fluid Compute o acotar fotos/resolución en el PDF.
+export const maxDuration = 60;
 
 type PageProps = {
   params: Promise<{ inspectionId: string }>;
@@ -19,7 +27,7 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
 
   const inspection = await prisma.inspection.findFirst({
     where: { id: inspectionId, organizationId: session.user.organizationId },
-    select: { projectName: true, unitLabel: true },
+    select: { projectName: true, unitLabel: true, status: true },
   });
 
   if (!inspection) {
@@ -49,6 +57,7 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
           }
         />
         <ObservationsSummaryList inspectionId={inspectionId} data={data} />
+        {inspection.status !== "CLOSED" && <CloseInspectionSection inspectionId={inspectionId} />}
       </div>
       <BottomNav active="inspecciones" />
     </div>

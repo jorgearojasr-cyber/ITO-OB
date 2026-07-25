@@ -4,6 +4,7 @@ import styles from "./InformeCover.module.css";
 type InformeCoverProps = {
   inspection: InformeData["inspection"];
   percent: number;
+  generatedAt?: Date;
 };
 
 const dateFormatter = new Intl.DateTimeFormat("es-CL", {
@@ -17,7 +18,7 @@ const PROPERTY_TYPE_LABELS: Record<InformeData["inspection"]["propertyType"], st
   DEPARTAMENTO: "Departamento",
 };
 
-export function InformeCover({ inspection, percent }: InformeCoverProps) {
+export function InformeCover({ inspection, percent, generatedAt = new Date() }: InformeCoverProps) {
   return (
     <div className={`${styles.cover} informe-cover`}>
       <div className={styles.eyebrow}>INFORME DE RECEPCIÓN — OBRABIEN</div>
@@ -68,7 +69,7 @@ export function InformeCover({ inspection, percent }: InformeCoverProps) {
         </div>
       </div>
 
-      <div className={styles.generatedAt}>Generado el {dateFormatter.format(new Date())}</div>
+      <div className={styles.generatedAt}>Generado el {dateFormatter.format(generatedAt)}</div>
     </div>
   );
 }
