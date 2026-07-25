@@ -15,13 +15,17 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async (pathname) => {
-        if (!/^observations\/[^/]+\/[^/]+$/.test(pathname)) {
+        const isPhotoPath = /^observations\/[^/]+\/[^/]+$/.test(pathname);
+        const isSignaturePath = /^signatures\/[^/]+\/(owner|builder)-[^/]+\.png$/.test(pathname);
+        if (!isPhotoPath && !isSignaturePath) {
           throw new Error("Ruta de subida inválida");
         }
 
         return {
-          allowedContentTypes: ["image/jpeg", "image/png", "image/webp", "image/heic"],
-          maximumSizeInBytes: 15 * 1024 * 1024,
+          allowedContentTypes: isSignaturePath
+            ? ["image/png"]
+            : ["image/jpeg", "image/png", "image/webp", "image/heic"],
+          maximumSizeInBytes: isSignaturePath ? 1 * 1024 * 1024 : 15 * 1024 * 1024,
         };
       },
       onUploadCompleted: async () => {

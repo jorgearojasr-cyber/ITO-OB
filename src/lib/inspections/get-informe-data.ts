@@ -143,3 +143,18 @@ export async function getInformeData(inspectionId: string): Promise<InformeData 
     rooms,
   };
 }
+
+// El snapshot congelado en Report.snapshot es el mismo shape que InformeData,
+// pasado por JSON (serializado al cerrar la inspección) — las fechas quedan
+// como strings ISO y hay que convertirlas de vuelta antes de pasarlas a los
+// componentes de /informe, que esperan Date.
+export function hydrateInformeSnapshot(snapshot: unknown): InformeData {
+  const data = snapshot as InformeData;
+  return {
+    ...data,
+    inspection: {
+      ...data.inspection,
+      receptionDate: data.inspection.receptionDate ? new Date(data.inspection.receptionDate) : null,
+    },
+  };
+}

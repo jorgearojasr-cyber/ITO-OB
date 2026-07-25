@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import type {
   Prisma,
   ObservationStatus,
@@ -15,6 +16,8 @@ import type {
 import { del } from "@vercel/blob";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
+import { getInformeData } from "@/lib/inspections/get-informe-data";
+import { generateReportPdf } from "@/lib/reports/generate-report-pdf";
 import {
   type HouseFeatureFlags,
   roomTemplateApplies,
@@ -1109,4 +1112,94 @@ export async function applyFeatureChanges(input: ApplyFeatureChangesInput): Prom
   revalidatePath("/");
 
   return { itemsToRemove: diff.itemsToRemove };
+}
+
+type CloseInspectionInput = {
+  inspectionId: string;
+  signatureOwnerUrl: string;
+  signatureBuilderUrl: string;
+};
+
+export type CloseInspectionResult = { success: true };
+
+// Cerrar la inspección y generar el informe final son la misma acción:
+// se congela un snapshot de los datos actuales en Report.snapshot (para
+// que cambios futuros al catálogo maestro no alteren un informe ya
+// firmado) y se dispara en background, después de responder, la
+// generación real del PDF vía Puppeteer (generateReportPdf).
+export async function closeInspection(input: CloseInspectionInput): Promise<CloseInspectionResult> {
+  const session = await requireSession();
+
+  const inspection = await prisma.inspection.findFirst({
+    where: { id: input.inspectionId, organizationId: session.user.organizationId },
+    select: { id: true, status: true },
+  });
+  if (!inspection) {
+    throw new Error("Inspección no encontrada en esta organización.");
+  }
+  if (inspection.status === "CLOSED") {
+    throw new Error("Esta inspección ya fue cerrada.");
+  }
+
+  const informeData = await getInformeData(input.inspectionId);
+  if (!informeData) {
+    throw new Error("No se pudo construir el snapshot del informe.");
+  }
+  // Redondeo por JSON: las fechas quedan como strings ISO, único formato
+  // válido para el campo Json — get-informe-data.hydrateInformeSnapshot
+  // las vuelve a convertir a Date al leer.
+  const snapshot = JSON.parse(JSON.stringify(informeData));
+
+  const report = await prisma.$transaction(async (tx) => {
+    await tx.inspection.update({
+      where: { id: input.inspectionId },
+      data: { status: "CLOSED" },
+    });
+    return tx.report.create({
+      data: {
+        inspectionId: input.inspectionId,
+        status: "PENDING",
+        signatureOwnerUrl: input.signatureOwnerUrl,
+        signatureBuilderUrl: input.signatureBuilderUrl,
+        signedAt: new Date(),
+        generatedByUserId: session.user.id,
+        snapshot,
+      },
+    });
+  });
+
+  revalidatePath(`/inspecciones/${input.inspectionId}/resumen`);
+  revalidatePath(`/inspecciones/${input.inspectionId}/informe`);
+  revalidatePath("/");
+
+  after(() => generateReportPdf(report.id));
+
+  return { success: true };
+}
+
+export type RetryReportGenerationResult = { success: true };
+
+// Cubre el caso esperable de que Chromium headless falle una vez
+// (timeout, cold start) — vuelve a intentar la misma generación sin
+// tocar el snapshot ni las firmas ya guardadas.
+export async function retryReportGeneration(inspectionId: string): Promise<RetryReportGenerationResult> {
+  const session = await requireSession();
+
+  const report = await prisma.report.findFirst({
+    where: { inspectionId, inspection: { organizationId: session.user.organizationId } },
+    select: { id: true, status: true },
+  });
+  if (!report) {
+    throw new Error("Informe no encontrado en esta organización.");
+  }
+  if (report.status === "READY") {
+    return { success: true };
+  }
+
+  await prisma.report.update({ where: { id: report.id }, data: { status: "PENDING", errorMessage: null } });
+  revalidatePath(`/inspecciones/${inspectionId}/informe`);
+
+  after(() => generateReportPdf(report.id));
+
+  return { success: true };
 }
