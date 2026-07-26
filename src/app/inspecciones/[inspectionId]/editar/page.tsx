@@ -33,12 +33,12 @@ export default async function EditInspectionHubPage({ params }: PageProps) {
           backHref={`/inspecciones/${inspectionId}/recintos`}
         />
         <div className={styles.list}>
-          <Link href={`/inspecciones/${inspectionId}/distribucion`} className={styles.row}>
-            <div className={styles.rowTitle}>Distribución</div>
-            <div className={styles.rowDesc}>N° de dormitorios y baños</div>
-          </Link>
           {canManage && (
             <>
+              <Link href={`/inspecciones/${inspectionId}/distribucion`} className={styles.row}>
+                <div className={styles.rowTitle}>Distribución</div>
+                <div className={styles.rowDesc}>N° de dormitorios y baños</div>
+              </Link>
               <Link href={`/inspecciones/${inspectionId}/caracteristicas`} className={styles.row}>
                 <div className={styles.rowTitle}>Características de la propiedad</div>
                 <div className={styles.rowDesc}>Patio, bodega, estacionamiento, portón, etc.</div>

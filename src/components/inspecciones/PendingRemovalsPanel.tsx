@@ -32,8 +32,8 @@ export function PendingRemovalsPanel({ inspectionId, title, items: initialItems,
         }
         setItems((current) => current.filter((item) => item.id !== target.id));
         setPending(null);
-      } catch {
-        setErrorMessage("No se pudo eliminar. Reintenta.");
+      } catch (caughtError) {
+        setErrorMessage(caughtError instanceof Error ? caughtError.message : "No se pudo eliminar. Reintenta.");
         setPending(null);
       }
     });

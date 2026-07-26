@@ -80,8 +80,10 @@ export function EditPropertyTypeForm({ inspectionId, currentPropertyType }: Edit
         const result = await previewPropertyTypeChange({ inspectionId, propertyType, ...rawFlags });
         setPreview(result);
         setStep("preview");
-      } catch {
-        setErrorMessage("No se pudo calcular el impacto. Reintenta.");
+      } catch (caughtError) {
+        setErrorMessage(
+          caughtError instanceof Error ? caughtError.message : "No se pudo calcular el impacto. Reintenta.",
+        );
       }
     });
   }
@@ -104,8 +106,8 @@ export function EditPropertyTypeForm({ inspectionId, currentPropertyType }: Edit
         } else {
           window.location.href = `/inspecciones/${inspectionId}/recintos`;
         }
-      } catch {
-        setErrorMessage("No se pudo aplicar el cambio. Reintenta.");
+      } catch (caughtError) {
+        setErrorMessage(caughtError instanceof Error ? caughtError.message : "No se pudo aplicar el cambio. Reintenta.");
       }
     });
   }

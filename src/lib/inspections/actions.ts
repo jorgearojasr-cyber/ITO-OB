@@ -641,6 +641,9 @@ export async function updateRoomCounts(input: UpdateRoomCountsInput): Promise<Up
   if (!inspection) {
     throw new Error("Inspección no encontrada en esta organización.");
   }
+  if (!canManageInspection(session.user.role)) {
+    throw new Error("Solo el propietario o un administrador puede realizar esta acción.");
+  }
 
   const featureFlags: HouseFeatureFlags = {
     hasTerrace: inspection.hasTerrace,
@@ -762,6 +765,9 @@ export async function deleteRoomInstance(input: DeleteRoomInstanceInput): Promis
   if (!room) {
     throw new Error("Recinto no encontrado en esta organización.");
   }
+  if (!canManageInspection(session.user.role)) {
+    throw new Error("Solo el propietario o un administrador puede realizar esta acción.");
+  }
 
   const countConfig = ROOM_COUNT_CONFIG.find((config) => config.slug === room.roomTemplate.slug);
 
@@ -839,6 +845,9 @@ export async function deleteElementInstance(input: DeleteElementInstanceInput): 
   });
   if (!element) {
     throw new Error("Elemento no encontrado en esta organización.");
+  }
+  if (!canManageInspection(session.user.role)) {
+    throw new Error("Solo el propietario o un administrador puede realizar esta acción.");
   }
 
   const observations = await prisma.observation.findMany({

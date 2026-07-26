@@ -72,8 +72,8 @@ export function EditFeaturesForm({ inspectionId, data }: EditFeaturesFormProps) 
         } else {
           window.location.href = `/inspecciones/${inspectionId}/recintos`;
         }
-      } catch {
-        setErrorMessage("No se pudo guardar. Reintenta.");
+      } catch (caughtError) {
+        setErrorMessage(caughtError instanceof Error ? caughtError.message : "No se pudo guardar. Reintenta.");
       }
     });
   }

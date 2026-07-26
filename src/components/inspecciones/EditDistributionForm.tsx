@@ -51,8 +51,8 @@ export function EditDistributionForm({ inspectionId, data }: EditDistributionFor
         } else {
           window.location.href = `/inspecciones/${inspectionId}/recintos`;
         }
-      } catch {
-        setErrorMessage("No se pudo guardar. Reintenta.");
+      } catch (caughtError) {
+        setErrorMessage(caughtError instanceof Error ? caughtError.message : "No se pudo guardar. Reintenta.");
       }
     });
   }
@@ -68,8 +68,8 @@ export function EditDistributionForm({ inspectionId, data }: EditDistributionFor
           [roomSlug]: current[roomSlug].filter((item) => item.id !== instance.id),
         }));
         setPendingDelete(null);
-      } catch {
-        setErrorMessage("No se pudo eliminar. Reintenta.");
+      } catch (caughtError) {
+        setErrorMessage(caughtError instanceof Error ? caughtError.message : "No se pudo eliminar. Reintenta.");
         setPendingDelete(null);
       }
     });
