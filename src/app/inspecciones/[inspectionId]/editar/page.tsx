@@ -4,6 +4,7 @@ import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
+import { canManageInspection } from "@/lib/auth/permissions";
 import styles from "./page.module.css";
 
 type PageProps = {
@@ -22,6 +23,8 @@ export default async function EditInspectionHubPage({ params }: PageProps) {
     notFound();
   }
 
+  const canManage = canManageInspection(session.user.role);
+
   return (
     <div className={styles.screen}>
       <div className={styles.content}>
@@ -34,14 +37,18 @@ export default async function EditInspectionHubPage({ params }: PageProps) {
             <div className={styles.rowTitle}>Distribución</div>
             <div className={styles.rowDesc}>N° de dormitorios y baños</div>
           </Link>
-          <Link href={`/inspecciones/${inspectionId}/caracteristicas`} className={styles.row}>
-            <div className={styles.rowTitle}>Características de la propiedad</div>
-            <div className={styles.rowDesc}>Patio, bodega, estacionamiento, portón, etc.</div>
-          </Link>
-          <Link href={`/inspecciones/${inspectionId}/tipo-vivienda`} className={styles.row}>
-            <div className={styles.rowTitle}>Tipo de vivienda</div>
-            <div className={styles.rowDesc}>Casa / Departamento — puede afectar varios recintos a la vez</div>
-          </Link>
+          {canManage && (
+            <>
+              <Link href={`/inspecciones/${inspectionId}/caracteristicas`} className={styles.row}>
+                <div className={styles.rowTitle}>Características de la propiedad</div>
+                <div className={styles.rowDesc}>Patio, bodega, estacionamiento, portón, etc.</div>
+              </Link>
+              <Link href={`/inspecciones/${inspectionId}/tipo-vivienda`} className={styles.row}>
+                <div className={styles.rowTitle}>Tipo de vivienda</div>
+                <div className={styles.rowDesc}>Casa / Departamento — puede afectar varios recintos a la vez</div>
+              </Link>
+            </>
+          )}
         </div>
       </div>
       <BottomNav active="inspecciones" />

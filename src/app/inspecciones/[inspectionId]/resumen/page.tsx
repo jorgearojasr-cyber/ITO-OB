@@ -8,6 +8,7 @@ import { CloseInspectionSection } from "@/components/resumen/CloseInspectionSect
 import { prisma } from "@/lib/db/prisma";
 import { getObservationsSummaryData } from "@/lib/inspections/get-observations-summary-data";
 import { requireSession } from "@/lib/auth/session";
+import { canManageInspection } from "@/lib/auth/permissions";
 import styles from "./page.module.css";
 
 // La generación real del PDF (Puppeteer + Chromium headless) puede tardar
@@ -57,7 +58,9 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
           }
         />
         <ObservationsSummaryList inspectionId={inspectionId} data={data} />
-        {inspection.status !== "CLOSED" && <CloseInspectionSection inspectionId={inspectionId} />}
+        {inspection.status !== "CLOSED" && canManageInspection(session.user.role) && (
+          <CloseInspectionSection inspectionId={inspectionId} />
+        )}
       </div>
       <BottomNav active="inspecciones" />
     </div>

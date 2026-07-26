@@ -17,6 +17,7 @@ import type {
 import { del } from "@vercel/blob";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
+import { canManageInspection } from "@/lib/auth/permissions";
 import { getInformeData } from "@/lib/inspections/get-informe-data";
 import { generateReportPdf } from "@/lib/reports/generate-report-pdf";
 import {
@@ -1118,6 +1119,9 @@ export async function applyFeatureChanges(input: ApplyFeatureChangesInput): Prom
   if (!inspection) {
     throw new Error("Inspección no encontrada en esta organización.");
   }
+  if (!canManageInspection(session.user.role)) {
+    throw new Error("Solo el propietario o un administrador puede realizar esta acción.");
+  }
 
   const isCasa = input.propertyType === "CASA";
   const raw: RawFeatureInput = {
@@ -1237,6 +1241,9 @@ export async function closeInspection(input: CloseInspectionInput): Promise<Clos
   }
   if (inspection.status === "CLOSED") {
     throw new Error("Esta inspección ya fue cerrada.");
+  }
+  if (!canManageInspection(session.user.role)) {
+    throw new Error("Solo el propietario o un administrador puede realizar esta acción.");
   }
 
   const informeData = await getInformeData(input.inspectionId);
