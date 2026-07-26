@@ -1,12 +1,14 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
+import { prisma } from "@/lib/db/prisma";
 
 export async function POST(request: Request): Promise<NextResponse> {
   const session = await auth();
   if (!session?.user?.organizationId) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
+  const organizationId = session.user.organizationId;
 
   const body = (await request.json()) as HandleUploadBody;
 
@@ -15,10 +17,39 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async (pathname) => {
-        const isPhotoPath = /^observations\/[^/]+\/[^/]+$/.test(pathname);
-        const isSignaturePath = /^signatures\/[^/]+\/(owner|builder)-[^/]+\.png$/.test(pathname);
+        const photoMatch = /^observations\/([^/]+)\/[^/]+$/.exec(pathname);
+        const signatureMatch = /^signatures\/([^/]+)\/(owner|builder)-[^/]+\.png$/.exec(pathname);
+        const isPhotoPath = photoMatch !== null;
+        const isSignaturePath = signatureMatch !== null;
         if (!isPhotoPath && !isSignaturePath) {
           throw new Error("Ruta de subida inválida");
+        }
+
+        // Defensa en profundidad: attachPhoto ya revalida propiedad antes de
+        // escribir en la base, pero sin esto cualquier usuario autenticado
+        // (de cualquier organización) podía pedir un token de subida válido
+        // apuntando a un Observation.id/Inspection.id ajeno.
+        if (photoMatch) {
+          const observationId = photoMatch[1];
+          const owned = await prisma.observation.findFirst({
+            where: {
+              id: observationId,
+              elementInstance: { roomInstance: { inspection: { organizationId } } },
+            },
+            select: { id: true },
+          });
+          if (!owned) {
+            throw new Error("Observación no encontrada en esta organización.");
+          }
+        } else if (signatureMatch) {
+          const inspectionId = signatureMatch[1];
+          const owned = await prisma.inspection.findFirst({
+            where: { id: inspectionId, organizationId },
+            select: { id: true },
+          });
+          if (!owned) {
+            throw new Error("Inspección no encontrada en esta organización.");
+          }
         }
 
         return {
