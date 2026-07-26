@@ -13,6 +13,11 @@ export type HouseFeatureFlags = {
   hasVehicleGate: boolean;
   hasStorageRoom: boolean;
   hasParkingSpace: boolean;
+  hasGas: boolean;
+  hasClimatizacion: boolean;
+  hasPool: boolean;
+  hasQuincho: boolean;
+  hasPerimeterFence: boolean;
 };
 
 // Compartida entre recintos (RoomTemplate) y elementos individuales
@@ -37,6 +42,16 @@ export function hasRequiredFeature(requiredFeature: RoomFeatureRequirement, flag
       return flags.hasStorageRoom;
     case "ESTACIONAMIENTO":
       return flags.hasParkingSpace;
+    case "GAS":
+      return flags.hasGas;
+    case "CLIMATIZACION":
+      return flags.hasClimatizacion;
+    case "PISCINA":
+      return flags.hasPool;
+    case "QUINCHO":
+      return flags.hasQuincho;
+    case "CIERRE_PERIMETRAL":
+      return flags.hasPerimeterFence;
   }
 }
 

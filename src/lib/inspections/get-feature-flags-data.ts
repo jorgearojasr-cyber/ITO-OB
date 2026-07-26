@@ -19,6 +19,11 @@ export type FeatureFlagsData = {
   hasParkingSpace: boolean;
   parkingLocation: ParkingLocation | null;
   parkingIsMarked: boolean | null;
+  hasGas: boolean;
+  hasClimatizacion: boolean;
+  hasPool: boolean;
+  hasQuincho: boolean;
+  hasPerimeterFence: boolean;
 } | null;
 
 export async function getFeatureFlagsData(inspectionId: string): Promise<FeatureFlagsData> {
@@ -41,6 +46,11 @@ export async function getFeatureFlagsData(inspectionId: string): Promise<Feature
       hasParkingSpace: true,
       parkingLocation: true,
       parkingIsMarked: true,
+      hasGas: true,
+      hasClimatizacion: true,
+      hasPool: true,
+      hasQuincho: true,
+      hasPerimeterFence: true,
     },
   });
 

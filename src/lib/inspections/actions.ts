@@ -341,6 +341,12 @@ export async function createInspection(
       : null;
   const parkingIsMarked = hasParkingSpace ? formData.get("parkingIsMarked") === "on" : null;
 
+  const hasGas = formData.get("hasGas") === "on";
+  const hasClimatizacion = formData.get("hasClimatizacion") === "on";
+  const hasPool = isCasa && formData.get("hasPool") === "on";
+  const hasQuincho = isCasa && formData.get("hasQuincho") === "on";
+  const hasPerimeterFence = isCasa && formData.get("hasPerimeterFence") === "on";
+
   const featureFlags: HouseFeatureFlags = {
     hasTerrace: isCasa ? hasFrontYard || hasBackYard : hasTerrace,
     hasRoofSpace,
@@ -349,6 +355,11 @@ export async function createInspection(
     hasVehicleGate,
     hasStorageRoom,
     hasParkingSpace,
+    hasGas,
+    hasClimatizacion,
+    hasPool,
+    hasQuincho,
+    hasPerimeterFence,
   };
 
   const session = await requireSession();
@@ -432,6 +443,11 @@ export async function createInspection(
         hasParkingSpace,
         parkingLocation,
         parkingIsMarked,
+        hasGas,
+        hasClimatizacion,
+        hasPool,
+        hasQuincho,
+        hasPerimeterFence,
         bedroomCount,
         bathroomCount,
         status: "IN_PROGRESS",
@@ -628,6 +644,11 @@ export async function updateRoomCounts(input: UpdateRoomCountsInput): Promise<Up
     hasVehicleGate: inspection.hasVehicleGate,
     hasStorageRoom: inspection.hasStorageRoom,
     hasParkingSpace: inspection.hasParkingSpace,
+    hasGas: inspection.hasGas,
+    hasClimatizacion: inspection.hasClimatizacion,
+    hasPool: inspection.hasPool,
+    hasQuincho: inspection.hasQuincho,
+    hasPerimeterFence: inspection.hasPerimeterFence,
   };
 
   const needsReduction: RoomCountReduction[] = [];
@@ -842,11 +863,32 @@ export async function deleteElementInstance(input: DeleteElementInstanceInput): 
 // ---------- Características de la propiedad (7 flags) + tipo de vivienda ----------
 
 // Recintos completos que solo existen si su feature está activo.
-const FEATURE_ROOM_SLUGS = ["terraza-patio", "techumbre", "escalera", "bodega", "estacionamiento"] as const;
-// Elementos sueltos dentro de "Exterior" (que siempre existe) gatillados
+const FEATURE_ROOM_SLUGS = [
+  "terraza-patio",
+  "techumbre",
+  "escalera",
+  "bodega",
+  "estacionamiento",
+  "piscina",
+  "quincho",
+] as const;
+// Elementos sueltos dentro de un recinto que siempre existe, gatillados
 // por feature — porton-vehicular-manual/automatico son variantes
 // mutuamente excluyentes del mismo feature (ver vehicleGateVariantApplies).
-const GATED_EXTERIOR_ELEMENT_SLUGS = ["reja-peatonal", "porton-vehicular-manual", "porton-vehicular-automatico"] as const;
+const GATED_EXTERIOR_ELEMENT_SLUGS = [
+  "reja-peatonal",
+  "porton-vehicular-manual",
+  "porton-vehicular-automatico",
+  "cierre-perimetral",
+] as const;
+const GATED_INSTALACIONES_ELEMENT_SLUGS = ["instalacion-de-gas", "climatizacion-calefaccion"] as const;
+// Recintos que siempre existen pero tienen elementos sueltos gatillados
+// por feature adentro (a diferencia de FEATURE_ROOM_SLUGS, el recinto en
+// sí no depende de ningún feature).
+const GATED_ELEMENT_HOST_ROOMS = [
+  { roomSlug: "exterior", elementSlugs: GATED_EXTERIOR_ELEMENT_SLUGS },
+  { roomSlug: "instalaciones", elementSlugs: GATED_INSTALACIONES_ELEMENT_SLUGS },
+] as const;
 
 type RawFeatureInput = {
   hasFrontYard: boolean;
@@ -859,6 +901,11 @@ type RawFeatureInput = {
   hasTerrace: boolean;
   hasStorageRoom: boolean;
   hasParkingSpace: boolean;
+  hasGas: boolean;
+  hasClimatizacion: boolean;
+  hasPool: boolean;
+  hasQuincho: boolean;
+  hasPerimeterFence: boolean;
 };
 
 function deriveFeatureFlags(propertyType: PropertyType, raw: RawFeatureInput): HouseFeatureFlags {
@@ -871,6 +918,11 @@ function deriveFeatureFlags(propertyType: PropertyType, raw: RawFeatureInput): H
     hasVehicleGate: isCasa && raw.hasVehicleGate,
     hasStorageRoom: !isCasa && raw.hasStorageRoom,
     hasParkingSpace: !isCasa && raw.hasParkingSpace,
+    hasGas: raw.hasGas,
+    hasClimatizacion: raw.hasClimatizacion,
+    hasPool: isCasa && raw.hasPool,
+    hasQuincho: isCasa && raw.hasQuincho,
+    hasPerimeterFence: isCasa && raw.hasPerimeterFence,
   };
 }
 
@@ -910,8 +962,9 @@ async function computeFeatureDiff(
 }> {
   const featureFlags = deriveFeatureFlags(propertyType, raw);
 
+  const hostRoomSlugs = GATED_ELEMENT_HOST_ROOMS.map((host) => host.roomSlug);
   const roomTemplates = await prisma.roomTemplate.findMany({
-    where: { slug: { in: [...FEATURE_ROOM_SLUGS, "exterior"] } },
+    where: { slug: { in: [...FEATURE_ROOM_SLUGS, ...hostRoomSlugs] } },
     include: { elementTemplates: { orderBy: { order: "asc" } } },
   });
   const roomTemplateBySlug = new Map(roomTemplates.map((template) => [template.slug, template]));
@@ -951,20 +1004,21 @@ async function computeFeatureDiff(
 
   const elementsToAdd: { elementTemplate: ElementTemplateForInstance; roomInstanceId: string }[] = [];
 
-  const exteriorTemplate = roomTemplateBySlug.get("exterior");
-  const exteriorInstance = await prisma.roomInstance.findFirst({
-    where: { inspectionId, roomTemplate: { slug: "exterior" } },
-    select: { id: true },
-  });
+  for (const host of GATED_ELEMENT_HOST_ROOMS) {
+    const hostTemplate = roomTemplateBySlug.get(host.roomSlug);
+    const hostInstance = await prisma.roomInstance.findFirst({
+      where: { inspectionId, roomTemplate: { slug: host.roomSlug } },
+      select: { id: true },
+    });
+    if (!hostTemplate || !hostInstance) continue;
 
-  if (exteriorTemplate && exteriorInstance) {
-    const gatedTemplates = exteriorTemplate.elementTemplates.filter((template) =>
-      (GATED_EXTERIOR_ELEMENT_SLUGS as readonly string[]).includes(template.slug),
+    const gatedTemplates = hostTemplate.elementTemplates.filter((template) =>
+      (host.elementSlugs as readonly string[]).includes(template.slug),
     );
     const existingElements = await prisma.elementInstance.findMany({
       where: {
-        roomInstanceId: exteriorInstance.id,
-        elementTemplate: { slug: { in: [...GATED_EXTERIOR_ELEMENT_SLUGS] } },
+        roomInstanceId: hostInstance.id,
+        elementTemplate: { slug: { in: [...host.elementSlugs] } },
       },
       include: {
         elementTemplate: { select: { slug: true } },
@@ -979,7 +1033,7 @@ async function computeFeatureDiff(
       const existing = existingElements.find((element) => element.elementTemplate.slug === template.slug);
 
       if (shouldExist && !existing) {
-        elementsToAdd.push({ elementTemplate: template, roomInstanceId: exteriorInstance.id });
+        elementsToAdd.push({ elementTemplate: template, roomInstanceId: hostInstance.id });
       } else if (!shouldExist && existing) {
         const observationCount = existing.observations.filter((o) => o.status === "OBSERVATION").length;
         const photoCount = existing.observations.reduce((sum, o) => sum + o.photos.length, 0);
@@ -1072,6 +1126,11 @@ export async function applyFeatureChanges(input: ApplyFeatureChangesInput): Prom
     hasTerrace: !isCasa && input.hasTerrace,
     hasStorageRoom: !isCasa && input.hasStorageRoom,
     hasParkingSpace: !isCasa && input.hasParkingSpace,
+    hasGas: input.hasGas,
+    hasClimatizacion: input.hasClimatizacion,
+    hasPool: isCasa && input.hasPool,
+    hasQuincho: isCasa && input.hasQuincho,
+    hasPerimeterFence: isCasa && input.hasPerimeterFence,
   };
   const storageLockType = raw.hasStorageRoom ? input.storageLockType : null;
   const parkingLocation = raw.hasParkingSpace ? input.parkingLocation : null;
@@ -1098,6 +1157,11 @@ export async function applyFeatureChanges(input: ApplyFeatureChangesInput): Prom
         hasParkingSpace: raw.hasParkingSpace,
         parkingLocation,
         parkingIsMarked,
+        hasGas: raw.hasGas,
+        hasClimatizacion: raw.hasClimatizacion,
+        hasPool: raw.hasPool,
+        hasQuincho: raw.hasQuincho,
+        hasPerimeterFence: raw.hasPerimeterFence,
       },
     });
 
