@@ -466,7 +466,7 @@ const ILUMINACION_CHECKLIST = [
 
 type ChecklistItemSeedDef =
   | string
-  | { question: string; requiresShower?: boolean; requiresBathtub?: boolean };
+  | { question: string; requiresShower?: boolean; requiresBathtub?: boolean; helpText?: string };
 
 type SeedElementDef = {
   slug: string;
@@ -686,6 +686,17 @@ const roomTemplates: SeedRoomDef[] = [
           "¿El motor abre y cierra sin esfuerzo ni ruido excesivo?",
           "¿El control remoto funciona correctamente a una distancia normal?",
           "¿Tiene sistema de seguridad (sensor o reversa) que detiene el portón si encuentra un obstáculo?",
+        ],
+      },
+      {
+        slug: "cierre-perimetral",
+        name: "Cierre perimetral",
+        libraryArticleSlug: null,
+        requiredFeature: RoomFeatureRequirement.CIERRE_PERIMETRAL,
+        checklist: [
+          "¿El cierre perimetral (reja o pandereta) rodea completamente el terreno sin tramos faltantes?",
+          "¿Está bien fijado, sin secciones sueltas, oxidadas o dañadas?",
+          "¿La altura y terminación son parejas en todo su recorrido?",
         ],
       },
     ],
@@ -1157,6 +1168,45 @@ const roomTemplates: SeedRoomDef[] = [
           "¿Es fácil de ubicar y accionar en caso de emergencia?",
         ],
       },
+      {
+        slug: "instalacion-de-gas",
+        name: "Instalación de gas",
+        libraryArticleSlug: null,
+        requiredFeature: RoomFeatureRequirement.GAS,
+        // Revisión visual general — sin respaldo normativo SEC todavía
+        // (ver diagnóstico previo a esta feature). No reemplaza una
+        // certificación de gasfitería habilitado.
+        checklist: [
+          {
+            question: "¿Se percibe olor a gas en algún punto de la instalación?",
+            helpText: "Revisión visual y olfativa general — no reemplaza una certificación de gasfitería habilitado.",
+          },
+          {
+            question: "¿La llave de paso general del gas es accesible y fácil de identificar?",
+            helpText: "Revisión visual general — no reemplaza una certificación de gasfitería habilitado.",
+          },
+          {
+            question:
+              "¿Las conexiones y mangueras visibles se ven en buen estado, sin cortes, roturas ni corrosión?",
+            helpText: "Revisión visual general — no reemplaza una certificación de gasfitería habilitado.",
+          },
+          {
+            question: "¿El calefont o los artefactos a gas tienen ventilación hacia el exterior (rejilla o ducto visible)?",
+            helpText: "Revisión visual general — no reemplaza una certificación de gasfitería habilitado.",
+          },
+        ],
+      },
+      {
+        slug: "climatizacion-calefaccion",
+        name: "Climatización / calefacción",
+        libraryArticleSlug: null,
+        requiredFeature: RoomFeatureRequirement.CLIMATIZACION,
+        checklist: [
+          "¿El equipo de climatización/calefacción enciende y responde a los controles?",
+          "¿No hay ruidos anormales, vibraciones ni olores al encenderlo?",
+          "¿La instalación (cañerías, ductos o unidad exterior) está fijada firmemente, sin filtraciones visibles?",
+        ],
+      },
     ],
   },
   {
@@ -1240,6 +1290,78 @@ const roomTemplates: SeedRoomDef[] = [
           "¿El piso no tiene grietas, hoyos ni desniveles importantes?",
           "¿La iluminación del sector permite ver con claridad?",
           "¿Hay espacio suficiente para maniobrar y estacionar sin dificultad?",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "piscina",
+    name: "Piscina",
+    order: 15,
+    icon: "pool",
+    requiredFeature: RoomFeatureRequirement.PISCINA,
+    appliesToCasa: true,
+    appliesToDepto: false,
+    elements: [
+      {
+        slug: "cierre-de-seguridad",
+        name: "Cierre de seguridad",
+        libraryArticleSlug: null,
+        // Revisión visual general — sin respaldo normativo todavía (ver
+        // diagnóstico previo a esta feature).
+        checklist: [
+          {
+            question: "¿El cierre perimetral de la piscina impide el acceso de niños sin supervisión?",
+            helpText: "Revisión visual general — no reemplaza una certificación de seguridad de piscinas.",
+          },
+          {
+            question: "¿El portón o reja de acceso a la piscina cierra y traba correctamente?",
+            helpText: "Revisión visual general — no reemplaza una certificación de seguridad de piscinas.",
+          },
+        ],
+      },
+      {
+        slug: "estructura-y-filtracion",
+        name: "Estructura y filtración",
+        libraryArticleSlug: null,
+        checklist: [
+          {
+            question: "¿Se observan grietas, filtraciones o desprendimientos visibles en la estructura o revestimiento?",
+            helpText: "Revisión visual general — no reemplaza una certificación de seguridad de piscinas.",
+          },
+          {
+            question: "¿El sistema de filtración/bomba enciende y funciona sin ruidos ni olores anormales?",
+            helpText: "Revisión visual general — no reemplaza una certificación de seguridad de piscinas.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "quincho",
+    name: "Quincho",
+    order: 16,
+    icon: "quincho",
+    requiredFeature: RoomFeatureRequirement.QUINCHO,
+    appliesToCasa: true,
+    appliesToDepto: false,
+    elements: [
+      {
+        slug: "techumbre-y-estructura",
+        name: "Techumbre y estructura",
+        libraryArticleSlug: null,
+        checklist: [
+          "¿La techumbre está bien fijada, sin filtraciones ni piezas sueltas?",
+          "¿La estructura (pilares, vigas) se ve firme y sin grietas visibles?",
+        ],
+      },
+      {
+        slug: "terminaciones-e-instalaciones",
+        name: "Terminaciones e instalaciones",
+        libraryArticleSlug: null,
+        checklist: [
+          "¿Los enchufes e iluminación del quincho funcionan correctamente?",
+          "¿Las superficies (piso, muros) están parejas y sin fisuras visibles?",
         ],
       },
     ],
@@ -1381,10 +1503,10 @@ async function seedCatalog(): Promise<SeededRoom[]> {
       const checklistItemIds: string[] = [];
 
       for (const [questionIndex, item] of element.checklist.entries()) {
-        const { question, requiresShower, requiresBathtub } =
+        const { question, requiresShower, requiresBathtub, helpText } =
           typeof item === "string"
-            ? { question: item, requiresShower: false, requiresBathtub: false }
-            : { requiresShower: false, requiresBathtub: false, ...item };
+            ? { question: item, requiresShower: false, requiresBathtub: false, helpText: null }
+            : { requiresShower: false, requiresBathtub: false, helpText: null, ...item };
 
         const existing = await prisma.checklistItemTemplate.findFirst({
           where: { elementTemplateId: createdElement.id, question },
@@ -1392,7 +1514,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
         if (existing) {
           await prisma.checklistItemTemplate.update({
             where: { id: existing.id },
-            data: { order: questionIndex, requiresShower, requiresBathtub },
+            data: { order: questionIndex, requiresShower, requiresBathtub, helpText },
           });
           checklistItemIds.push(existing.id);
         } else {
@@ -1402,6 +1524,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
               question,
               requiresShower,
               requiresBathtub,
+              helpText,
               order: questionIndex,
             },
           });
@@ -1539,6 +1662,11 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
     hasVehicleGate: true,
     hasStorageRoom: false,
     hasParkingSpace: false,
+    hasGas: true,
+    hasClimatizacion: true,
+    hasPool: true,
+    hasQuincho: true,
+    hasPerimeterFence: true,
   };
   const demoIsVehicleGateAutomatic = true;
   // La demo es CASA — "terraza" se guarda como patio delantero + trasero,
@@ -1565,6 +1693,11 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
       isVehicleGateAutomatic: demoIsVehicleGateAutomatic,
       hasStorageRoom: false,
       hasParkingSpace: false,
+      hasGas: demoFeatureFlags.hasGas,
+      hasClimatizacion: demoFeatureFlags.hasClimatizacion,
+      hasPool: demoFeatureFlags.hasPool,
+      hasQuincho: demoFeatureFlags.hasQuincho,
+      hasPerimeterFence: demoFeatureFlags.hasPerimeterFence,
       status: "IN_PROGRESS",
       receptionDate: new Date(),
     },
