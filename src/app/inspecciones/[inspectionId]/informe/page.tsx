@@ -121,6 +121,13 @@ export default async function InformePage({ params }: PageProps) {
               signedAt={report!.signedAt}
             />
           )}
+          {/* Next.js hace streaming SSR — networkidle0 en Puppeteer no
+              garantiza que el documento terminó de llegar completo antes
+              de capturar el PDF (confirmado: informes largos quedaban
+              truncados aunque la misma página cargada en un navegador
+              normal sí traía todo el contenido). generate-report-pdf.ts
+              espera explícitamente este marcador antes de imprimir. */}
+          <div id="informe-render-complete" />
         </div>
       </div>
       <div className="no-print">

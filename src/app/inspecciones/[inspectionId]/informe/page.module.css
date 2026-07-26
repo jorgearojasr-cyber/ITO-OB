@@ -28,6 +28,16 @@
 }
 
 @media print {
+  /* Chromium no fragmenta bien contenedores flex al imprimir a PDF — el
+     contenido que no cabe en el cálculo de altura del flex se recorta en
+     vez de fluir a páginas nuevas (confirmado: dos informes reales
+     generados en esta sesión quedaban truncados en 5 páginas, perdiendo
+     Firmas). BottomNav ya está oculto en impresión (.no-print), así que
+     el flex de .screen no cumple ningún propósito acá. */
+  .screen {
+    display: block;
+  }
+
   .wrap {
     background: none;
     padding: 0;

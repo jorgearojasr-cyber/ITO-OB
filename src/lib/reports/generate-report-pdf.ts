@@ -66,6 +66,12 @@ export async function generateReportPdf(reportId: string): Promise<void> {
     await page.goto(`${origin}/inspecciones/${report.inspectionId}/informe`, {
       waitUntil: "networkidle0",
     });
+    // Next.js hace streaming SSR — networkidle0 no garantiza que el
+    // documento terminó de llegar completo (confirmado: informes largos
+    // quedaban truncados en el PDF aunque la misma página cargada en un
+    // navegador normal sí traía todo el contenido). Se espera el
+    // marcador que /informe renderiza al final del todo antes de imprimir.
+    await page.waitForSelector("#informe-render-complete", { timeout: 15_000 });
     await page.emulateMediaType("print");
     const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
 
