@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
+import { inspectionAccessWhere } from "@/lib/auth/inspection-access";
 import { FLOOR_MATERIAL_LABELS, WALL_MATERIAL_LABELS } from "@/lib/inspections/material-selection";
 
 export type ElementInstanceData = {
@@ -45,7 +46,7 @@ export async function getElementInstanceData(
       id: elementInstanceId,
       roomInstance: {
         inspectionId,
-        inspection: { organizationId: session.user.organizationId },
+        inspection: inspectionAccessWhere(session.user.id, session.user.organizationId),
       },
     },
     include: {

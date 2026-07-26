@@ -170,6 +170,8 @@ model User {
   lifecycleUpdatedObservations Observation[]
   notificationsReceived        Notification[]           @relation("NotificationRecipient")
   notificationsSent            Notification[]           @relation("NotificationActor")
+  createdInvites                InspectionInvite[]      @relation("InviteCreator")
+  acceptedInvites               InspectionInvite[]      @relation("InviteAcceptor")
   accounts                     Account[]
   sessions                     Session[]
 
@@ -263,6 +265,7 @@ model Inspection {
 
   rooms         RoomInstance[]
   collaborators InspectionCollaborator[]
+  invites       InspectionInvite[]
   report        Report?
 
   @@index([organizationId])
@@ -279,6 +282,41 @@ model InspectionCollaborator {
 
   @@unique([inspectionId, userId])
   @@map("inspection_collaborators")
+}
+
+enum InspectionInviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+// Invitación de acceso puntual a UNA inspección para alguien fuera de la
+// Organization (ej. constructora) — ver InspectionCollaborator, que es
+// donde queda el acceso real una vez aceptada. No hay infraestructura de
+// email en el proyecto: el link con `token` se comparte a mano, y `email`
+// es AUTO-DECLARADO por quien acepta (no hay verificación real de
+// correo). La seguridad efectiva de este mecanismo es posesión del link
+// con el token, no identidad verificada del destinatario — `email` solo
+// evita que una sesión ya logueada con otra cuenta acepte el invite por
+// error, no impide que el link se reenvíe a un tercero. Aceptable
+// mientras el acceso otorgado siga acotado a lectura de /resumen +
+// adjuntar evidencia/avanzar ciclo de vida (ver inspection-access.ts).
+model InspectionInvite {
+  id               String                 @id @default(cuid())
+  inspectionId     String
+  inspection       Inspection             @relation(fields: [inspectionId], references: [id])
+  token            String                 @unique @default(cuid())
+  email            String
+  status           InspectionInviteStatus @default(PENDING)
+  createdByUserId  String
+  createdBy        User                   @relation("InviteCreator", fields: [createdByUserId], references: [id])
+  acceptedByUserId String?
+  acceptedBy       User?                  @relation("InviteAcceptor", fields: [acceptedByUserId], references: [id])
+  expiresAt        DateTime
+  createdAt        DateTime               @default(now())
+
+  @@index([inspectionId])
+  @@map("inspection_invites")
 }
 
 model Notification {

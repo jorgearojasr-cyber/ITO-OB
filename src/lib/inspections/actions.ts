@@ -18,6 +18,7 @@ import { del } from "@vercel/blob";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
 import { canManageInspection } from "@/lib/auth/permissions";
+import { inspectionAccessWhere } from "@/lib/auth/inspection-access";
 import { getInformeData } from "@/lib/inspections/get-informe-data";
 import { generateReportPdf } from "@/lib/reports/generate-report-pdf";
 import {
@@ -254,7 +255,7 @@ export async function attachPhoto(
       elementInstance: {
         roomInstance: {
           inspectionId,
-          inspection: { organizationId: session.user.organizationId },
+          inspection: inspectionAccessWhere(session.user.id, session.user.organizationId),
         },
       },
     },
@@ -1371,7 +1372,7 @@ export async function advanceObservationLifecycle(
     where: {
       id: input.observationId,
       elementInstance: {
-        roomInstance: { inspection: { organizationId: session.user.organizationId } },
+        roomInstance: { inspection: inspectionAccessWhere(session.user.id, session.user.organizationId) },
       },
     },
     select: {

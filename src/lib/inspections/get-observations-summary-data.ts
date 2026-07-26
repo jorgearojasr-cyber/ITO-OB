@@ -3,6 +3,7 @@ import "server-only";
 import type { ObservationLifecycleStatus, Priority } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
+import { inspectionAccessWhere } from "@/lib/auth/inspection-access";
 
 export type ObservationSummaryItem = {
   id: string;
@@ -39,7 +40,7 @@ export async function getObservationsSummaryData(
       elementInstance: {
         roomInstance: {
           inspectionId,
-          inspection: { organizationId: session.user.organizationId },
+          inspection: inspectionAccessWhere(session.user.id, session.user.organizationId),
         },
       },
     },

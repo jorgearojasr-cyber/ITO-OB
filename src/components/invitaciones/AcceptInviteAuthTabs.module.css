@@ -1,0 +1,10 @@
+.linkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-700);
+  font-weight: 700;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}

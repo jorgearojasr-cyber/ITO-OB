@@ -14,8 +14,11 @@ const dateFormatter = new Intl.DateTimeFormat("es-CL", {
 
 export function InspectionListItem({ inspection }: InspectionListItemProps) {
   const isCompleted = inspection.statusLabel === "COMPLETADA";
+  // Un colaborador externo solo tiene acceso a /resumen y /elementos/[id] de
+  // esta inspección (ver inspection-access.ts) — nunca al recorrido por
+  // recintos, así que su link siempre va directo al resumen.
   const href =
-    !isCompleted && inspection.firstRoomId
+    !inspection.isCollaboration && !isCompleted && inspection.firstRoomId
       ? `/inspecciones/${inspection.id}/recintos/${inspection.firstRoomId}`
       : `/inspecciones/${inspection.id}/resumen`;
 
@@ -30,6 +33,7 @@ export function InspectionListItem({ inspection }: InspectionListItemProps) {
           {isCompleted ? "Completada" : "En progreso"}
         </span>
       </div>
+      {inspection.isCollaboration && <div className={styles.collabBadge}>Colaboras aquí</div>}
       <div className={styles.meta}>{inspection.address}</div>
       {inspection.date && <div className={styles.meta}>{dateFormatter.format(inspection.date)}</div>}
       <div className={styles.progressWrap}>
