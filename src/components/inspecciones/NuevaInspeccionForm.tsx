@@ -287,6 +287,18 @@ export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormPro
               />
             </FormField>
           )}
+          <div className={styles.checkboxRow}>
+            <input id="hasPool" name="hasPool" type="checkbox" />
+            <label htmlFor="hasPool">¿Tiene piscina?</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input id="hasQuincho" name="hasQuincho" type="checkbox" />
+            <label htmlFor="hasQuincho">¿Tiene quincho?</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input id="hasPerimeterFence" name="hasPerimeterFence" type="checkbox" />
+            <label htmlFor="hasPerimeterFence">¿Tiene cierre perimetral (rejas/panderetas)?</label>
+          </div>
         </>
       ) : (
         <>
@@ -353,6 +365,14 @@ export function NuevaInspeccionForm({ existingProjects }: NuevaInspeccionFormPro
           )}
         </>
       )}
+      <div className={styles.checkboxRow}>
+        <input id="hasGas" name="hasGas" type="checkbox" />
+        <label htmlFor="hasGas">¿Tiene instalación de gas?</label>
+      </div>
+      <div className={styles.checkboxRow}>
+        <input id="hasClimatizacion" name="hasClimatizacion" type="checkbox" />
+        <label htmlFor="hasClimatizacion">¿Tiene climatización o calefacción?</label>
+      </div>
       </div>
 
       <div className={styles.navRow}>

@@ -31,6 +31,12 @@ export function EditFeaturesForm({ inspectionId, data }: EditFeaturesFormProps) 
   const [parkingLocation, setParkingLocation] = useState(data.parkingLocation ?? "SUPERFICIE");
   const [parkingIsMarked, setParkingIsMarked] = useState(data.parkingIsMarked ?? true);
 
+  const [hasGas, setHasGas] = useState(data.hasGas);
+  const [hasClimatizacion, setHasClimatizacion] = useState(data.hasClimatizacion);
+  const [hasPool, setHasPool] = useState(data.hasPool);
+  const [hasQuincho, setHasQuincho] = useState(data.hasQuincho);
+  const [hasPerimeterFence, setHasPerimeterFence] = useState(data.hasPerimeterFence);
+
   const [pendingRemovals, setPendingRemovals] = useState<PendingRemovalItem[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSaving, startTransition] = useTransition();
@@ -55,6 +61,11 @@ export function EditFeaturesForm({ inspectionId, data }: EditFeaturesFormProps) 
           storageLockType: hasStorageRoom ? storageLockType : null,
           parkingLocation: hasParkingSpace ? parkingLocation : null,
           parkingIsMarked: hasParkingSpace ? parkingIsMarked : null,
+          hasGas,
+          hasClimatizacion,
+          hasPool,
+          hasQuincho,
+          hasPerimeterFence,
         });
         if (result.itemsToRemove.length > 0) {
           setPendingRemovals(result.itemsToRemove);
@@ -151,6 +162,33 @@ export function EditFeaturesForm({ inspectionId, data }: EditFeaturesFormProps) 
               />
             </FormField>
           )}
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasPool"
+              type="checkbox"
+              checked={hasPool}
+              onChange={(event) => setHasPool(event.target.checked)}
+            />
+            <label htmlFor="hasPool">¿Tiene piscina?</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasQuincho"
+              type="checkbox"
+              checked={hasQuincho}
+              onChange={(event) => setHasQuincho(event.target.checked)}
+            />
+            <label htmlFor="hasQuincho">¿Tiene quincho?</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasPerimeterFence"
+              type="checkbox"
+              checked={hasPerimeterFence}
+              onChange={(event) => setHasPerimeterFence(event.target.checked)}
+            />
+            <label htmlFor="hasPerimeterFence">¿Tiene cierre perimetral (rejas/panderetas)?</label>
+          </div>
         </>
       ) : (
         <>
@@ -221,6 +259,20 @@ export function EditFeaturesForm({ inspectionId, data }: EditFeaturesFormProps) 
           )}
         </>
       )}
+
+      <div className={styles.checkboxRow}>
+        <input id="hasGas" type="checkbox" checked={hasGas} onChange={(event) => setHasGas(event.target.checked)} />
+        <label htmlFor="hasGas">¿Tiene instalación de gas?</label>
+      </div>
+      <div className={styles.checkboxRow}>
+        <input
+          id="hasClimatizacion"
+          type="checkbox"
+          checked={hasClimatizacion}
+          onChange={(event) => setHasClimatizacion(event.target.checked)}
+        />
+        <label htmlFor="hasClimatizacion">¿Tiene climatización o calefacción?</label>
+      </div>
 
       <button type="button" className={styles.saveBtn} onClick={handleSave} disabled={isSaving}>
         {isSaving ? "Guardando…" : "Guardar cambios"}

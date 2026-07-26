@@ -44,6 +44,12 @@ export function EditPropertyTypeForm({ inspectionId, currentPropertyType }: Edit
   const [parkingLocation, setParkingLocation] = useState<"SUBTERRANEO" | "SUPERFICIE">("SUPERFICIE");
   const [parkingIsMarked, setParkingIsMarked] = useState(true);
 
+  const [hasGas, setHasGas] = useState(false);
+  const [hasClimatizacion, setHasClimatizacion] = useState(false);
+  const [hasPool, setHasPool] = useState(false);
+  const [hasQuincho, setHasQuincho] = useState(false);
+  const [hasPerimeterFence, setHasPerimeterFence] = useState(false);
+
   const [preview, setPreview] = useState<PropertyTypeDiffPreview | null>(null);
   const [pendingRemovals, setPendingRemovals] = useState<PendingRemovalItem[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -60,6 +66,11 @@ export function EditPropertyTypeForm({ inspectionId, currentPropertyType }: Edit
     hasTerrace,
     hasStorageRoom,
     hasParkingSpace,
+    hasGas,
+    hasClimatizacion,
+    hasPool,
+    hasQuincho,
+    hasPerimeterFence,
   };
 
   function handlePreview() {
@@ -245,6 +256,33 @@ export function EditPropertyTypeForm({ inspectionId, currentPropertyType }: Edit
                   />
                 </FormField>
               )}
+              <div className={styles.checkboxRow}>
+                <input
+                  id="hasPool"
+                  type="checkbox"
+                  checked={hasPool}
+                  onChange={(event) => setHasPool(event.target.checked)}
+                />
+                <label htmlFor="hasPool">¿Tiene piscina?</label>
+              </div>
+              <div className={styles.checkboxRow}>
+                <input
+                  id="hasQuincho"
+                  type="checkbox"
+                  checked={hasQuincho}
+                  onChange={(event) => setHasQuincho(event.target.checked)}
+                />
+                <label htmlFor="hasQuincho">¿Tiene quincho?</label>
+              </div>
+              <div className={styles.checkboxRow}>
+                <input
+                  id="hasPerimeterFence"
+                  type="checkbox"
+                  checked={hasPerimeterFence}
+                  onChange={(event) => setHasPerimeterFence(event.target.checked)}
+                />
+                <label htmlFor="hasPerimeterFence">¿Tiene cierre perimetral (rejas/panderetas)?</label>
+              </div>
             </>
           ) : (
             <>
@@ -315,6 +353,24 @@ export function EditPropertyTypeForm({ inspectionId, currentPropertyType }: Edit
               )}
             </>
           )}
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasGas"
+              type="checkbox"
+              checked={hasGas}
+              onChange={(event) => setHasGas(event.target.checked)}
+            />
+            <label htmlFor="hasGas">¿Tiene instalación de gas?</label>
+          </div>
+          <div className={styles.checkboxRow}>
+            <input
+              id="hasClimatizacion"
+              type="checkbox"
+              checked={hasClimatizacion}
+              onChange={(event) => setHasClimatizacion(event.target.checked)}
+            />
+            <label htmlFor="hasClimatizacion">¿Tiene climatización o calefacción?</label>
+          </div>
         </>
       )}
 
