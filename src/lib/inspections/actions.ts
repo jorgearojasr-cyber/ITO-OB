@@ -20,6 +20,11 @@ import { requireSession } from "@/lib/auth/session";
 import { getInformeData } from "@/lib/inspections/get-informe-data";
 import { generateReportPdf } from "@/lib/reports/generate-report-pdf";
 import {
+  MAX_REPORT_RETRIES,
+  REPORT_RETRY_COOLDOWN_MS,
+  REPORT_RETRY_COUNT_RESET_MS,
+} from "@/lib/inspections/report-retry-config";
+import {
   type HouseFeatureFlags,
   roomTemplateApplies,
   elementTemplateApplies,
@@ -1257,6 +1262,7 @@ export async function closeInspection(input: CloseInspectionInput): Promise<Clos
         signedAt: new Date(),
         generatedByUserId: session.user.id,
         snapshot,
+        lastAttemptAt: new Date(),
       },
     });
   });
@@ -1274,13 +1280,15 @@ export type RetryReportGenerationResult = { success: true };
 
 // Cubre el caso esperable de que Chromium headless falle una vez
 // (timeout, cold start) — vuelve a intentar la misma generación sin
-// tocar el snapshot ni las firmas ya guardadas.
+// tocar el snapshot ni las firmas ya guardadas. El límite de intentos y
+// el cooldown son server-side a propósito — el disabled del botón en
+// InformeToolbar es solo UX, no una barrera real.
 export async function retryReportGeneration(inspectionId: string): Promise<RetryReportGenerationResult> {
   const session = await requireSession();
 
   const report = await prisma.report.findFirst({
     where: { inspectionId, inspection: { organizationId: session.user.organizationId } },
-    select: { id: true, status: true },
+    select: { id: true, status: true, retryCount: true, lastAttemptAt: true },
   });
   if (!report) {
     throw new Error("Informe no encontrado en esta organización.");
@@ -1289,7 +1297,29 @@ export async function retryReportGeneration(inspectionId: string): Promise<Retry
     return { success: true };
   }
 
-  await prisma.report.update({ where: { id: report.id }, data: { status: "PENDING", errorMessage: null } });
+  const msSinceLastAttempt = Date.now() - report.lastAttemptAt.getTime();
+  const retriesExhausted = report.retryCount >= MAX_REPORT_RETRIES;
+  // Si se agotaron los reintentos hace más de una hora, se trata como una
+  // ventana nueva — cubre el caso de un problema transitorio de la
+  // plataforma en vez de dejar el informe sin salida para siempre.
+  const canResetAfterExhaustion = retriesExhausted && msSinceLastAttempt > REPORT_RETRY_COUNT_RESET_MS;
+
+  if (retriesExhausted && !canResetAfterExhaustion) {
+    throw new Error("Se alcanzó el máximo de reintentos para este informe.");
+  }
+  if (!retriesExhausted && msSinceLastAttempt < REPORT_RETRY_COOLDOWN_MS) {
+    throw new Error("Espera unos segundos antes de volver a intentar.");
+  }
+
+  await prisma.report.update({
+    where: { id: report.id },
+    data: {
+      status: "PENDING",
+      errorMessage: null,
+      retryCount: canResetAfterExhaustion ? 1 : { increment: 1 },
+      lastAttemptAt: new Date(),
+    },
+  });
   revalidatePath(`/inspecciones/${inspectionId}/informe`);
 
   after(() => generateReportPdf(report.id));

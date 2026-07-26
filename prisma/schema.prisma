@@ -498,6 +498,13 @@ model Report {
   // informe ya emitido.
   snapshot            Json
   generatedAt         DateTime     @default(now())
+  // Cuándo empezó el intento de generación actual (creación o reintento) —
+  // sirve tanto para detectar un PENDING atascado (después de N segundos
+  // sin cambiar de estado) como para el cooldown entre reintentos.
+  lastAttemptAt       DateTime     @default(now())
+  // Reintentos explícitos vía retryReportGeneration (no cuenta el intento
+  // inicial de closeInspection) — limita el gasto de Chromium cold-start.
+  retryCount          Int          @default(0)
 
   @@map("reports")
 }
