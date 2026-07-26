@@ -15,8 +15,19 @@ type InformeToolbarProps = {
   shareUrl: string;
   shareText: string;
   inspectionId: string;
-  report: { status: ReportStatus; pdfStorageKey: string | null } | null;
+  report: {
+    status: ReportStatus;
+    pdfStorageKey: string | null;
+    errorMessage: string | null;
+    isRetryExhausted: boolean;
+  } | null;
 };
+
+// Sin cola/cron en el proyecto: la reconciliación real ocurre en el
+// servidor (ver informe/page.tsx) la próxima vez que esta pantalla se
+// recarga — este timer es solo la señal al usuario de que algo no anda
+// bien, no reemplaza esa reconciliación.
+const SLOW_GENERATION_WARNING_MS = 90_000;
 
 const PdfIcon = () => (
   <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
@@ -33,6 +44,8 @@ const PdfIcon = () => (
 export function InformeToolbar({ title, subtitle, backHref, shareUrl, shareText, inspectionId, report }: InformeToolbarProps) {
   const router = useRouter();
   const [isRetrying, setIsRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const [isSlow, setIsSlow] = useState(false);
 
   // El PDF se genera en background — mientras esté PENDING, revalidamos
   // la pantalla cada 3s hasta que pase a READY/FAILED (sin infra de
@@ -41,14 +54,22 @@ export function InformeToolbar({ title, subtitle, backHref, shareUrl, shareText,
   useEffect(() => {
     if (report?.status !== "PENDING") return;
     const interval = setInterval(() => router.refresh(), 3000);
-    return () => clearInterval(interval);
+    const slowTimer = setTimeout(() => setIsSlow(true), SLOW_GENERATION_WARNING_MS);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(slowTimer);
+    };
   }, [report?.status, router]);
 
   async function handleRetry() {
     setIsRetrying(true);
+    setRetryError(null);
+    setIsSlow(false);
     try {
       await retryReportGeneration(inspectionId);
       router.refresh();
+    } catch (error) {
+      setRetryError(error instanceof Error ? error.message : "No se pudo reintentar la generación.");
     } finally {
       setIsRetrying(false);
     }
@@ -71,7 +92,7 @@ export function InformeToolbar({ title, subtitle, backHref, shareUrl, shareText,
             {report?.status === "PENDING" && (
               <button type="button" className={styles.exportBtn} disabled>
                 <PdfIcon />
-                Generando…
+                {isSlow ? "Esto se está demorando…" : "Generando…"}
               </button>
             )}
             {report?.status === "READY" && report.pdfStorageKey && (
@@ -80,7 +101,7 @@ export function InformeToolbar({ title, subtitle, backHref, shareUrl, shareText,
                 Descargar PDF
               </a>
             )}
-            {report?.status === "FAILED" && (
+            {report?.status === "FAILED" && !report.isRetryExhausted && (
               <button type="button" className={styles.exportBtn} onClick={handleRetry} disabled={isRetrying}>
                 <PdfIcon />
                 {isRetrying ? "Reintentando…" : "Reintentar generación"}
@@ -90,6 +111,15 @@ export function InformeToolbar({ title, subtitle, backHref, shareUrl, shareText,
           </div>
         }
       />
+      {report?.status === "FAILED" && report.isRetryExhausted && (
+        <div className={styles.errorMessage}>
+          {report.errorMessage ?? "No se pudo generar el informe."} No pudimos generarlo después de varios
+          intentos — contáctanos para ayudarte a resolverlo.
+        </div>
+      )}
+      {report?.status === "FAILED" && !report.isRetryExhausted && (retryError || report.errorMessage) && (
+        <div className={styles.errorMessage}>{retryError ?? report.errorMessage} Puedes reintentar.</div>
+      )}
     </div>
   );
 }
