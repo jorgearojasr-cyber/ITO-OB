@@ -19,6 +19,7 @@ export type ElementInstanceData = {
     body: string;
     quickCheckItems: string[];
   } | null;
+  lacksNormativeBacking: boolean;
   checklist: {
     checklistItemTemplateId: string;
     question: string;
@@ -131,6 +132,7 @@ export async function getElementInstanceData(
           quickCheckItems: element.elementTemplate.referenceLibraryArticle.quickCheckItems,
         }
       : null,
+    lacksNormativeBacking: element.elementTemplate.lacksNormativeBacking,
     checklist,
   };
 }

@@ -1,5 +1,6 @@
 import { StatusChip } from "@/components/ui/StatusChip";
 import { PriorityBadge } from "@/components/ui/PriorityBadge";
+import { NormativeScopeNotice } from "@/components/ui/NormativeScopeNotice";
 import type { InformeElement } from "@/lib/inspections/get-informe-data";
 import styles from "./InformeElementRow.module.css";
 
@@ -17,6 +18,7 @@ export function InformeElementRow({ element, roomName }: InformeElementRowProps)
         <span className={styles.name}>{element.name}</span>
         <StatusChip status={element.status} />
       </div>
+      {element.lacksNormativeBacking && <NormativeScopeNotice variant="line" />}
 
       {flaggedObservations.length > 0 && (
         <div className={styles.observations}>

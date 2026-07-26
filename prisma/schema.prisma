@@ -332,6 +332,13 @@ model ElementTemplate {
   referenceLibraryArticle   LibraryArticle?        @relation(fields: [referenceLibraryArticleId], references: [id])
   materialSlot              MaterialSlot? // FLOOR en "piso"+variantes, WALL en "muros-y-cielos"+variantes
   isMaterialVariant         Boolean                @default(false) // true = no se instancia al crear la inspección, solo vía reasignación tras elegir material
+  // true solo en partidas de seguridad sin ficha del Manual de Tolerancias
+  // CDT (gas, piscina) — el checklist es de observación general, no de
+  // cumplimiento normativo verificado. Gatilla un aviso visual explícito
+  // en el checklist y en el informe/PDF (ver ElementLibraryCard/
+  // InformeElementRow) — no se puede derivar de referenceLibraryArticleId
+  // (muchos elementos normales tampoco tienen ficha) ni de helpText.
+  lacksNormativeBacking     Boolean                @default(false)
   createdAt                 DateTime               @default(now())
   updatedAt                 DateTime               @updatedAt
 

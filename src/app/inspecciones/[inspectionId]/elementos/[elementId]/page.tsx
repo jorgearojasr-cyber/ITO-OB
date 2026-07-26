@@ -45,7 +45,10 @@ export default async function ElementInstancePage({ params }: PageProps) {
           />
         ) : (
           <>
-            <ElementLibraryCard libraryArticle={element.libraryArticle} />
+            <ElementLibraryCard
+              libraryArticle={element.libraryArticle}
+              lacksNormativeBacking={element.lacksNormativeBacking}
+            />
             <ElementChecklist
               inspectionId={inspectionId}
               elementInstanceId={element.id}

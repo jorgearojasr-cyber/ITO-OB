@@ -488,6 +488,8 @@ type SeedElementDef = {
   // instancian al crear la inspección, solo vía reasignación en
   // setRoomMaterial tras responder la pregunta.
   isMaterialVariant?: boolean;
+  // true solo en gas/piscina — ver comentario en schema.prisma.
+  lacksNormativeBacking?: boolean;
 };
 
 // Variantes de material de "Piso" — mismo contenido en los 5 recintos
@@ -1176,6 +1178,7 @@ const roomTemplates: SeedRoomDef[] = [
         // Revisión visual general — sin respaldo normativo SEC todavía
         // (ver diagnóstico previo a esta feature). No reemplaza una
         // certificación de gasfitería habilitado.
+        lacksNormativeBacking: true,
         checklist: [
           {
             question: "¿Se percibe olor a gas en algún punto de la instalación?",
@@ -1309,6 +1312,7 @@ const roomTemplates: SeedRoomDef[] = [
         libraryArticleSlug: null,
         // Revisión visual general — sin respaldo normativo todavía (ver
         // diagnóstico previo a esta feature).
+        lacksNormativeBacking: true,
         checklist: [
           {
             question: "¿El cierre perimetral de la piscina impide el acceso de niños sin supervisión?",
@@ -1324,6 +1328,7 @@ const roomTemplates: SeedRoomDef[] = [
         slug: "estructura-y-filtracion",
         name: "Estructura y filtración",
         libraryArticleSlug: null,
+        lacksNormativeBacking: true,
         checklist: [
           {
             question: "¿Se observan grietas, filtraciones o desprendimientos visibles en la estructura o revestimiento?",
@@ -1472,6 +1477,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
       const requiredFeature = element.requiredFeature ?? RoomFeatureRequirement.NINGUNA;
       const materialSlot = element.materialSlot ?? null;
       const isMaterialVariant = element.isMaterialVariant ?? false;
+      const lacksNormativeBacking = element.lacksNormativeBacking ?? false;
 
       const createdElement = await prisma.elementTemplate.upsert({
         where: {
@@ -1487,6 +1493,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
           referenceLibraryArticleId,
           materialSlot,
           isMaterialVariant,
+          lacksNormativeBacking,
         },
         create: {
           roomTemplateId: createdRoom.id,
@@ -1497,6 +1504,7 @@ async function seedCatalog(): Promise<SeededRoom[]> {
           referenceLibraryArticleId,
           materialSlot,
           isMaterialVariant,
+          lacksNormativeBacking,
         },
       });
 

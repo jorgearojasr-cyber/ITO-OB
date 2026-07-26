@@ -16,6 +16,7 @@ export type InformeElement = {
   id: string;
   name: string;
   status: ElementInstanceStatus;
+  lacksNormativeBacking: boolean;
   observations: InformeObservation[];
 };
 
@@ -62,6 +63,7 @@ export async function getInformeData(inspectionId: string): Promise<InformeData 
           elements: {
             orderBy: { order: "asc" },
             include: {
+              elementTemplate: { select: { lacksNormativeBacking: true } },
               observations: {
                 include: {
                   checklistItemTemplate: true,
@@ -86,6 +88,7 @@ export async function getInformeData(inspectionId: string): Promise<InformeData 
       id: element.id,
       name: element.name,
       status: element.status,
+      lacksNormativeBacking: element.elementTemplate.lacksNormativeBacking,
       observations: element.observations.map((observation) => ({
         question: observation.checklistItemTemplate.question,
         status: observation.status,

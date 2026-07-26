@@ -1,8 +1,14 @@
 import { ElementDetailAccordion } from "./ElementDetailAccordion";
+import { NormativeScopeNotice } from "@/components/ui/NormativeScopeNotice";
 import styles from "./ElementLibraryCard.module.css";
 
 type ElementLibraryCardProps = {
   libraryArticle: { title: string; body: string; quickCheckItems: string[] } | null;
+  // Opcional: solo aplica cuando la card se usa en el contexto de un
+  // elemento de inspección (ver /elementos/[elementId]) — al navegar la
+  // Biblioteca técnica de forma independiente (/biblioteca/...) no hay
+  // ningún ElementTemplate detrás, así que no corresponde.
+  lacksNormativeBacking?: boolean;
 };
 
 function CheckIcon() {
@@ -13,7 +19,10 @@ function CheckIcon() {
   );
 }
 
-export function ElementLibraryCard({ libraryArticle }: ElementLibraryCardProps) {
+export function ElementLibraryCard({ libraryArticle, lacksNormativeBacking = false }: ElementLibraryCardProps) {
+  if (lacksNormativeBacking) {
+    return <NormativeScopeNotice variant="card" />;
+  }
   if (!libraryArticle) {
     return <div className={styles.empty}>Aún no hay ficha técnica para este elemento.</div>;
   }
