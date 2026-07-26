@@ -94,6 +94,11 @@ enum RoomFeatureRequirement {
   PORTON_VEHICULAR
   BODEGA
   ESTACIONAMIENTO
+  GAS
+  CLIMATIZACION
+  PISCINA
+  QUINCHO
+  CIERRE_PERIMETRAL
 }
 
 enum StorageLockType {
@@ -243,6 +248,11 @@ model Inspection {
   hasParkingSpace        Boolean          @default(false) // depto: "¿Tiene estacionamiento?"
   parkingLocation        ParkingLocation?
   parkingIsMarked        Boolean?
+  hasGas                 Boolean          @default(false) // casa y depto: "¿Tiene instalación de gas?"
+  hasClimatizacion       Boolean          @default(false) // casa y depto: "¿Tiene climatización o calefacción?"
+  hasPool                Boolean          @default(false) // casa: "¿Tiene piscina?"
+  hasQuincho             Boolean          @default(false) // casa: "¿Tiene quincho?"
+  hasPerimeterFence      Boolean          @default(false) // casa: "¿Tiene cierre perimetral (rejas/panderetas)?"
   bedroomCount           Int              @default(1)
   bathroomCount          Int              @default(1)
   receptionDate          DateTime?
