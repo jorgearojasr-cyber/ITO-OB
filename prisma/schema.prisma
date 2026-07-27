@@ -315,6 +315,7 @@ model InspectionInvite {
   expiresAt        DateTime
   createdAt        DateTime               @default(now())
 
+  @@unique([inspectionId, email])
   @@index([inspectionId])
   @@map("inspection_invites")
 }

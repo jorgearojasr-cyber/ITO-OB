@@ -494,7 +494,7 @@ export async function setRoomMaterial(input: SetRoomMaterialInput): Promise<void
     where: {
       id: input.roomInstanceId,
       inspectionId: input.inspectionId,
-      inspection: { organizationId: session.user.organizationId },
+      inspection: inspectionAccessWhere(session.user.id, session.user.organizationId),
     },
     select: { id: true, roomTemplateId: true },
   });
@@ -571,7 +571,7 @@ export async function setBathroomFixtures(input: SetBathroomFixturesInput): Prom
     where: {
       id: input.roomInstanceId,
       inspectionId: input.inspectionId,
-      inspection: { organizationId: session.user.organizationId },
+      inspection: inspectionAccessWhere(session.user.id, session.user.organizationId),
     },
     select: { id: true },
   });

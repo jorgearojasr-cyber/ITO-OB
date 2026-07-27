@@ -30,11 +30,23 @@ export async function createInspectionInvite(
     throw new Error("Solo el propietario o un administrador puede realizar esta acción.");
   }
 
-  const invite = await prisma.inspectionInvite.create({
-    data: {
+  // Una invitación por (inspección, email): si ya existía una (pendiente,
+  // aceptada o revocada) para este email, se reutiliza la fila en vez de
+  // acumular duplicados — vuelve a quedar PENDING con un token y
+  // vencimiento nuevos, así que el link anterior deja de servir.
+  const invite = await prisma.inspectionInvite.upsert({
+    where: { inspectionId_email: { inspectionId: input.inspectionId, email } },
+    create: {
       inspectionId: input.inspectionId,
       email,
       createdByUserId: session.user.id,
+      expiresAt: new Date(Date.now() + INVITE_EXPIRATION_DAYS * 24 * 60 * 60 * 1000),
+    },
+    update: {
+      status: "PENDING",
+      token: crypto.randomUUID(),
+      createdByUserId: session.user.id,
+      acceptedByUserId: null,
       expiresAt: new Date(Date.now() + INVITE_EXPIRATION_DAYS * 24 * 60 * 60 * 1000),
     },
     select: { token: true },
