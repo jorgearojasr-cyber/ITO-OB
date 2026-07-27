@@ -1827,9 +1827,18 @@ async function backfillRoomMaterials() {
   }
 }
 
+// SEED_CATALOG_ONLY=true salta seedDemoInspection() -- esa función crea
+// la organización/usuario demo con una contraseña hardcodeada
+// (DEMO_USER_PASSWORD) en el código fuente, apta solo para dev/local.
+// Usar esta variable al sembrar una base real (producción) para traer
+// solo el catálogo editorial (RoomTemplate/ElementTemplate/
+// ChecklistItemTemplate), sin publicar una cuenta de login válida con
+// password conocido.
 async function main() {
   const seededRooms = await seedCatalog();
-  await seedDemoInspection(seededRooms);
+  if (process.env.SEED_CATALOG_ONLY !== "true") {
+    await seedDemoInspection(seededRooms);
+  }
   await backfillRoomMaterials();
 }
 
