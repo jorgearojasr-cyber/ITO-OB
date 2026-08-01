@@ -172,6 +172,7 @@ model User {
   notificationsSent            Notification[]           @relation("NotificationActor")
   createdInvites                InspectionInvite[]      @relation("InviteCreator")
   acceptedInvites               InspectionInvite[]      @relation("InviteAcceptor")
+  passwordResetTokens           PasswordResetToken[]
   accounts                     Account[]
   sessions                     Session[]
 
@@ -318,6 +319,26 @@ model InspectionInvite {
   @@unique([inspectionId, email])
   @@index([inspectionId])
   @@map("inspection_invites")
+}
+
+// tokenHash es SHA-256 del token plano -- el token en sí nunca se
+// guarda, solo se envía una vez por correo. A diferencia de una
+// contraseña (baja entropía, elegida por un humano), el token es
+// aleatorio de alta entropía generado por el servidor, así que SHA-256
+// alcanza; bcrypt existiría solo para agregar latencia sin beneficio
+// real acá. usedAt marca el token como consumido para que no sea
+// reutilizable ni siquiera dentro de la ventana de expiresAt.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model Notification {

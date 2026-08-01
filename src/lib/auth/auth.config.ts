@@ -8,6 +8,12 @@ export const authConfig = {
   },
   session: {
     strategy: "jwt",
+    // Antes: sin maxAge explícito (default de NextAuth, 30 días). Sin
+    // sessionVersion ni revalidación por request, un JWT emitido antes
+    // de un reset de contraseña sigue siendo válido hasta que expira
+    // solo -- acortar la ventana a 7 días es la mitigación elegida en
+    // vez de agregar una consulta a la base en cada request.
+    maxAge: 60 * 60 * 24 * 7,
   },
   callbacks: {
     authorized({ auth }) {

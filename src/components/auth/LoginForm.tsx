@@ -28,6 +28,9 @@ export function LoginForm() {
       </button>
 
       <div className={styles.footer}>
+        <Link href="/recuperar-password">¿Olvidaste tu contraseña?</Link>
+      </div>
+      <div className={styles.footer}>
         ¿No tienes cuenta? <Link href="/registro">Crea una</Link>
       </div>
     </form>
