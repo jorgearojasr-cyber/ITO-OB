@@ -20,6 +20,10 @@ export type ElementInstanceData = {
     body: string;
     quickCheckItems: string[];
   } | null;
+  // Slug de LibraryCategory, solo para resolver ejemplos Bien/Mal
+  // reutilizando goodBadExamplesByCategorySlug -- no forma parte del
+  // modelo de datos de la inspección, es puramente de lectura.
+  categorySlug: string | null;
   lacksNormativeBacking: boolean;
   checklist: {
     checklistItemTemplateId: string;
@@ -53,7 +57,7 @@ export async function getElementInstanceData(
       roomInstance: true,
       elementTemplate: {
         include: {
-          referenceLibraryArticle: true,
+          referenceLibraryArticle: { include: { category: { select: { slug: true } } } },
           checklistItemTemplates: { orderBy: { order: "asc" } },
         },
       },
@@ -133,6 +137,7 @@ export async function getElementInstanceData(
           quickCheckItems: element.elementTemplate.referenceLibraryArticle.quickCheckItems,
         }
       : null,
+    categorySlug: element.elementTemplate.referenceLibraryArticle?.category?.slug ?? null,
     lacksNormativeBacking: element.elementTemplate.lacksNormativeBacking,
     checklist,
   };

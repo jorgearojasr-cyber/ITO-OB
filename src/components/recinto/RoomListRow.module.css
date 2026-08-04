@@ -8,6 +8,11 @@
   padding: 14px;
 }
 
+.rowCurrent {
+  border-color: var(--accent-600);
+  border-width: 1.5px;
+}
+
 .body {
   flex: 1;
   min-width: 0;
@@ -32,7 +37,7 @@
 
 .fill {
   height: 100%;
-  background: var(--green-500);
+  background: var(--accent-600);
   border-radius: 999px;
 }
 

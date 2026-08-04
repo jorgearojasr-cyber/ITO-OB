@@ -468,7 +468,11 @@ export async function createInspection(
 
   const firstRoomId = roomsData[0]?.id as string | undefined;
   if (firstRoomId) {
-    redirect(`/inspecciones/${inspectionId}/recintos/${firstRoomId}`);
+    // Antes de entrar al primer recinto, un respiro con Don José Luis
+    // (Sprint 2b) -- la pantalla de bienvenida recalcula este mismo
+    // primer recinto por su cuenta (mismo criterio de orden), así que
+    // pasarlo acá no es su única fuente de verdad.
+    redirect(`/inspecciones/${inspectionId}/bienvenida`);
   }
   redirect("/");
 }

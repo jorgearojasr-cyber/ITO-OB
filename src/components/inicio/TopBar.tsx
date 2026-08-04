@@ -1,11 +1,16 @@
 import Link from "next/link";
+import { DonJoseLuisPresence } from "@/components/ui/DonJoseLuisPresence";
 import styles from "./TopBar.module.css";
 
 type TopBarProps = {
   unreadCount?: number;
+  // Mensaje de acompañamiento de Don José Luis, ya resuelto por el caller
+  // según el estado de la inspección. Sin mensaje, el componente no
+  // aparece -- el TopBar no calcula nada por su cuenta.
+  donJoseLuisMessage?: string;
 };
 
-export function TopBar({ unreadCount = 0 }: TopBarProps) {
+export function TopBar({ unreadCount = 0, donJoseLuisMessage }: TopBarProps) {
   return (
     <div className={styles.topbar}>
       <div className={styles.brand}>
@@ -41,7 +46,9 @@ export function TopBar({ unreadCount = 0 }: TopBarProps) {
           <span className={styles.name}>ObraBien Inspección</span>
         </div>
       </div>
-      <Link href="/notificaciones" className={styles.iconBtn} aria-label="Notificaciones">
+      <div className={styles.rightGroup}>
+        {donJoseLuisMessage && <DonJoseLuisPresence message={donJoseLuisMessage} />}
+        <Link href="/notificaciones" className={styles.iconBtn} aria-label="Notificaciones">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path
             d="M10 2.5C7.6 2.5 5.6 4.5 5.6 6.9V9.4C5.6 9.9 5.4 10.4 5.1 10.8L4 12.3C3.5 13 4 14 4.9 14H15.1C16 14 16.5 13 16 12.3L14.9 10.8C14.6 10.4 14.4 9.9 14.4 9.4V6.9C14.4 4.5 12.4 2.5 10 2.5Z"
@@ -56,8 +63,9 @@ export function TopBar({ unreadCount = 0 }: TopBarProps) {
             strokeLinecap="round"
           />
         </svg>
-        {unreadCount > 0 && <span className={styles.dotBadge} />}
-      </Link>
+          {unreadCount > 0 && <span className={styles.dotBadge} />}
+        </Link>
+      </div>
     </div>
   );
 }

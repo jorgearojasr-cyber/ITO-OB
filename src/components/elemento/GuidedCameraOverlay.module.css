@@ -1,0 +1,142 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #0b0e14;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 150ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(env(safe-area-inset-top, 0px), 16px) 16px 12px;
+}
+
+.close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 14px;
+}
+
+.topLabel {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-body);
+}
+
+.topSpacer {
+  width: 32px;
+}
+
+.guide {
+  flex: 1;
+  margin: 0 24px;
+  border: 2.5px dashed rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+}
+
+.guideIcon {
+  font-size: 44px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tip {
+  margin: 0;
+  color: #fff;
+  font-size: 13px;
+  text-align: center;
+  padding: 0 24px;
+  opacity: 0.85;
+}
+
+.preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.previewImg {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.bottom {
+  padding: 20px 24px calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+
+.bottomRow {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+
+.primaryBtn {
+  flex: 1;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent-600);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 13px;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+}
+
+.secondaryBtn {
+  flex: 1;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 13px;
+}
+
+.secondaryBtn:disabled {
+  opacity: 0.5;
+}
+
+.error {
+  margin: 0 24px;
+  color: #ff8a80;
+  font-size: 12.5px;
+  text-align: center;
+}

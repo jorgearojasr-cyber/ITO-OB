@@ -3,6 +3,7 @@ import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
 import { RoomProgressBar } from "@/components/recinto/RoomProgressBar";
 import { ElementListItem } from "@/components/recinto/ElementListItem";
+import { RoomCompletionBanner } from "@/components/recinto/RoomCompletionBanner";
 import { getRoomInstanceData } from "@/lib/inspections/get-room-instance-data";
 import styles from "./page.module.css";
 
@@ -21,7 +22,16 @@ export default async function RoomInstancePage({ params }: PageProps) {
   return (
     <div className={styles.screen}>
       <div className={styles.content}>
-        <BackHeader title={room.name} backHref="/" />
+        <BackHeader
+          title={room.name}
+          subtitle={`${room.projectName} — ${room.unitLabel}`}
+          backHref={`/inspecciones/${inspectionId}/recintos`}
+          action={
+            <span className={styles.positionPill}>
+              Recinto {room.position} de {room.totalRooms}
+            </span>
+          }
+        />
         <RoomProgressBar {...room.progress} />
         <div className={styles.list}>
           {room.elements.map((element) => (
@@ -35,6 +45,9 @@ export default async function RoomInstancePage({ params }: PageProps) {
             />
           ))}
         </div>
+        {room.progress.total > 0 && room.progress.percent === 100 && (
+          <RoomCompletionBanner roomName={room.name} inspectionId={inspectionId} nextPendingRoom={room.nextPendingRoom} />
+        )}
       </div>
       <BottomNav active="inspecciones" />
     </div>

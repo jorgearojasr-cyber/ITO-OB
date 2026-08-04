@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
+import { findNextPendingRoom } from "./next-pending-room";
 
 export type InicioData = {
   inspection: {
@@ -108,9 +109,7 @@ export async function getInicioData(): Promise<InicioData> {
   );
   const percent = totalElements === 0 ? 0 : Math.round((doneElements / totalElements) * 100);
 
-  const nextRoom = rooms.find((room) =>
-    room.elements.some((element) => element.status === "PENDING"),
-  );
+  const nextRoom = findNextPendingRoom(rooms);
   const nextStep = nextRoom
     ? {
         roomInstanceId: nextRoom.id,

@@ -19,7 +19,10 @@ const STEPS = [
     miniSteps: [
       { label: "Recintos", desc: "Elige el recinto que estás revisando." },
       { label: "Elementos", desc: "Repasa cada elemento de ese recinto." },
-      { label: "Observaciones", desc: "Marca ✔ u ⚠ — con foto y prioridad si hay un problema." },
+      {
+        label: "Observaciones",
+        desc: "Marca \"Está bien\" o \"Reportar un problema\" — con foto y prioridad si hay un problema.",
+      },
     ],
   },
   {

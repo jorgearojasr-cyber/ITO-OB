@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChecklistItemRow } from "./ChecklistItemRow";
+import { ChecklistItemCard } from "./ChecklistItemCard";
 import type { ElementInstanceData } from "@/lib/inspections/get-element-instance-data";
 import styles from "./ElementChecklist.module.css";
 
@@ -13,6 +13,12 @@ type ElementChecklistProps = {
   roomInstanceId: string;
   roomName: string;
   checklist: ElementInstanceData["checklist"];
+  // Puramente de presentación: le avisan al wrapper visual (Don José
+  // Luis + progreso en el header) cuántos ítems van respondidos y cuándo
+  // mostrar la confirmación "Escuchando". No participan del guardado ni
+  // del cálculo de "elemento revisado" de abajo.
+  onProgressChange?: (answeredCount: number) => void;
+  onAction?: () => void;
 };
 
 export function ElementChecklist({
@@ -22,10 +28,20 @@ export function ElementChecklist({
   roomInstanceId,
   roomName,
   checklist,
+  onProgressChange,
+  onAction,
 }: ElementChecklistProps) {
   const [answeredIds, setAnsweredIds] = useState<Set<string>>(
     () => new Set(checklist.filter((item) => item.observation !== null).map((item) => item.checklistItemTemplateId)),
   );
+
+  // En un efecto, no dentro del updater de setAnsweredIds -- llamar al
+  // setState de un componente padre desde el updater de otro componente
+  // pasa durante la fase de render de React y produce "Cannot update a
+  // component while rendering a different component".
+  useEffect(() => {
+    onProgressChange?.(answeredIds.size);
+  }, [answeredIds, onProgressChange]);
 
   function handleAnswered(checklistItemTemplateId: string) {
     setAnsweredIds((current) => {
@@ -42,7 +58,7 @@ export function ElementChecklist({
     <>
       <div className={styles.list}>
         {checklist.map((item) => (
-          <ChecklistItemRow
+          <ChecklistItemCard
             key={item.checklistItemTemplateId}
             inspectionId={inspectionId}
             elementInstanceId={elementInstanceId}
@@ -53,6 +69,7 @@ export function ElementChecklist({
             helpText={item.helpText}
             initialObservation={item.observation}
             onAnswered={handleAnswered}
+            onAction={onAction}
           />
         ))}
       </div>

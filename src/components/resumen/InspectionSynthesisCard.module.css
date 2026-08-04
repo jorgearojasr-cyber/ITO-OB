@@ -1,0 +1,86 @@
+.card {
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  margin: 0 20px 16px;
+  animation: fadeInUp 300ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.good {
+  background: var(--green-100);
+  border: 1px solid #cdeedb;
+}
+
+.attention {
+  background: var(--amber-100);
+  border: 1px solid #f5dcae;
+}
+
+.eyebrow {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.good .eyebrow {
+  color: #0f4a32;
+}
+
+.attention .eyebrow {
+  color: #8a5a0f;
+}
+
+/* El titular es el elemento dominante de la card -- tipografía grande,
+   línea de progreso deliberadamente más chica y separada, para que el
+   progreso quede claramente subordinado (Sprint 4, Etapa 4). */
+.headline {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 19.5px;
+  line-height: 1.32;
+  letter-spacing: -0.1px;
+  color: var(--ink-900);
+}
+
+.progress {
+  margin: 0 0 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(16, 24, 40, 0.08);
+  font-size: 12px;
+  color: var(--ink-600);
+  font-weight: 500;
+}
+
+.priorityRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.priorityItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-900);
+}

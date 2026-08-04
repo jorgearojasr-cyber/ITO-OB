@@ -60,7 +60,10 @@ export function CloseInspectionModal({ inspectionId, onCancel }: CloseInspection
       ]);
 
       await closeInspection({ inspectionId, signatureOwnerUrl, signatureBuilderUrl });
-      router.push(`/inspecciones/${inspectionId}/informe`);
+      // ?justClosed=1 activa la pantalla de cierre como estado inicial de
+      // /informe (Sprint 5) -- no es una ruta nueva, ver
+      // Sprint-5-Validacion-Finalizacion-Inspeccion.md, Escenario 6.
+      router.push(`/inspecciones/${inspectionId}/informe?justClosed=1`);
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "No se pudo cerrar la inspección.");
       setIsPending(false);
@@ -87,7 +90,10 @@ export function CloseInspectionModal({ inspectionId, onCancel }: CloseInspection
           no quede inutilizable al mostrarse. clearOnResize=false evita que un
           resize de ventana intente releer ese layout y lo vuelva a poner en 0.
         */}
-        <div className={styles.padWrap} style={{ display: step === 1 ? "block" : "none" }}>
+        <div
+          className={ownerHasSignature ? `${styles.padWrap} ${styles.padWrapCaptured}` : styles.padWrap}
+          style={{ display: step === 1 ? "block" : "none" }}
+        >
           <SignatureCanvas
             ref={ownerRef}
             penColor="#1a1f2b"
@@ -95,8 +101,12 @@ export function CloseInspectionModal({ inspectionId, onCancel }: CloseInspection
             canvasProps={{ width: 500, height: 200, className: styles.pad }}
             onEnd={() => setOwnerHasSignature(true)}
           />
+          {ownerHasSignature && <div className={styles.captureBadge}>✓</div>}
         </div>
-        <div className={styles.padWrap} style={{ display: step === 2 ? "block" : "none" }}>
+        <div
+          className={builderHasSignature ? `${styles.padWrap} ${styles.padWrapCaptured}` : styles.padWrap}
+          style={{ display: step === 2 ? "block" : "none" }}
+        >
           <SignatureCanvas
             ref={builderRef}
             penColor="#1a1f2b"
@@ -104,7 +114,13 @@ export function CloseInspectionModal({ inspectionId, onCancel }: CloseInspection
             canvasProps={{ width: 500, height: 200, className: styles.pad }}
             onEnd={() => setBuilderHasSignature(true)}
           />
+          {builderHasSignature && <div className={styles.captureBadge}>✓</div>}
         </div>
+
+        {step === 1 && ownerHasSignature && <div className={styles.confirmLine}>✓ Firma capturada</div>}
+        {step === 2 && builderHasSignature && (
+          <div className={styles.confirmLine}>✓ Firma capturada — ambas partes registradas</div>
+        )}
 
         <button
           type="button"

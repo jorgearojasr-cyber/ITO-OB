@@ -1,0 +1,263 @@
+.card {
+  margin: 0 20px 12px;
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  transition: background-color 200ms ease-out, border-color 200ms ease-out;
+}
+
+.cardCorrect {
+  background: var(--green-100);
+  border-color: transparent;
+}
+
+.cardObservation {
+  background: var(--amber-100);
+  border-color: transparent;
+}
+
+.questionRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.question {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-900);
+  line-height: 1.4;
+}
+
+.savedBadge {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #0f4a32;
+  background: var(--green-100);
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.helpText {
+  font-size: 12px;
+  color: var(--ink-400);
+  margin-top: 3px;
+}
+
+.fastpath {
+  margin-top: 12px;
+}
+
+.primaryBtn {
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--green-500);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 13.5px;
+  padding: 11px;
+  box-shadow: 0 8px 16px -9px rgba(63, 201, 138, 0.65);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+}
+
+.checkBadge {
+  margin-top: 10px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0f4a32;
+}
+
+.secondaryRow {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.secondaryLink {
+  border: none;
+  background: none;
+  color: var(--ink-400);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 4px;
+}
+
+.secondaryLink:disabled {
+  opacity: 0.6;
+}
+
+.expandPanel {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--ink-200);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: expandIn 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expandPanel {
+    animation: none;
+  }
+}
+
+@keyframes expandIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.textareaWrap {
+  position: relative;
+}
+
+.aiSlot {
+  position: absolute;
+  top: -9px;
+  right: 8px;
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--purple-500);
+  background: var(--purple-100);
+  padding: 2px 7px;
+  border-radius: 999px;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 64px;
+  border: 1px solid var(--ink-200);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  color: var(--ink-900);
+  resize: vertical;
+  background: var(--white);
+}
+
+.textarea:focus {
+  outline: 2px solid var(--accent-600);
+  outline-offset: 1px;
+}
+
+.priorityRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priorityLabel {
+  font-size: 12px;
+  color: var(--ink-400);
+  font-weight: 600;
+}
+
+.priorityOption {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ink-200);
+  background: var(--white);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-600);
+  font-family: var(--font-body);
+}
+
+/* Mismos tokens semánticos que PriorityBadge (Resumen/Informe) -- la
+   prioridad se ve igual en todas las pantallas donde aparece. */
+.priorityOptionOnAlta {
+  background: var(--amber-500);
+  border-color: var(--amber-500);
+  color: #fff;
+}
+
+.priorityOptionOnMedia {
+  background: var(--purple-500);
+  border-color: var(--purple-500);
+  color: #fff;
+}
+
+.priorityOptionOnBaja {
+  background: var(--ink-600);
+  border-color: var(--ink-600);
+  color: #fff;
+}
+
+.photoRow {
+  margin-top: 10px;
+}
+
+.photoBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent-100);
+  color: var(--accent-700);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+/* Deshabilitado hasta que la pregunta tenga respuesta -- debe leerse
+   claramente distinto, no solo una opacidad sutil (mismo criterio que
+   tenía ChecklistItemRow). */
+.photoBtnDisabled {
+  background: transparent;
+  border: 1px dashed var(--ink-200);
+  color: var(--ink-400);
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+
+.uploadError {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #b3261e;
+  font-weight: 500;
+}
+
+.thumbnails {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.thumbnailBtn {
+  padding: 0;
+  border: none;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--ink-200);
+}

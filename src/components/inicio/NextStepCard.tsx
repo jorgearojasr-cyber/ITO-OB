@@ -6,10 +6,15 @@ type NextStepCardProps = {
   inspectionId: string;
   nextStep: InicioData["nextStep"];
   hasAnyInspections: boolean;
+  // Ya disponible en InicioData -- se suma como prop para distinguir
+  // "sin recintos" de "100% revisado" sin ningún dato ni cálculo nuevo.
+  progress: InicioData["progress"];
 };
 
-export function NextStepCard({ inspectionId, nextStep, hasAnyInspections }: NextStepCardProps) {
+export function NextStepCard({ inspectionId, nextStep, hasAnyInspections, progress }: NextStepCardProps) {
   if (!nextStep) {
+    const isFullyReviewed = hasAnyInspections && progress.totalRooms > 0 && progress.percent === 100;
+
     return (
       <div className={styles.card}>
         <div className={styles.thumb}>
@@ -24,16 +29,21 @@ export function NextStepCard({ inspectionId, nextStep, hasAnyInspections }: Next
           </svg>
         </div>
         <div className={styles.info}>
-          <div className={styles.eyebrow}>SIGUIENTE PASO</div>
-          {hasAnyInspections ? (
+          <div className={styles.eyebrow}>CONTINUEMOS</div>
+          {isFullyReviewed ? (
             <>
-              <div className={styles.title}>Sin pendientes</div>
-              <div className={styles.desc}>Ya revisaste todos los elementos de esta inspección.</div>
+              <div className={styles.title}>Ya recorriste todo</div>
+              <div className={styles.desc}>Revisa el resumen para cerrar la inspección.</div>
+            </>
+          ) : hasAnyInspections ? (
+            <>
+              <div className={styles.title}>Retomemos cuando quieras</div>
+              <div className={styles.desc}>Revisa tus inspecciones anteriores o empieza una nueva.</div>
             </>
           ) : (
             <>
-              <div className={styles.title}>Crea tu primera inspección</div>
-              <div className={styles.desc}>Empieza registrando el proyecto y la unidad que vas a recibir.</div>
+              <div className={styles.title}>Empecemos por acá</div>
+              <div className={styles.desc}>Registra el proyecto y la unidad que vas a recibir.</div>
             </>
           )}
         </div>
@@ -56,8 +66,8 @@ export function NextStepCard({ inspectionId, nextStep, hasAnyInspections }: Next
         </svg>
       </div>
       <div className={styles.info}>
-        <div className={styles.eyebrow}>SIGUIENTE PASO</div>
-        <div className={styles.title}>{nextStep.roomName}</div>
+        <div className={styles.eyebrow}>CONTINUEMOS</div>
+        <div className={styles.title}>Sigamos en {nextStep.roomName}</div>
         <div className={styles.desc}>
           Tienes {nextStep.pendingCount} elemento{nextStep.pendingCount === 1 ? "" : "s"} pendiente
           {nextStep.pendingCount === 1 ? "" : "s"} por revisar.

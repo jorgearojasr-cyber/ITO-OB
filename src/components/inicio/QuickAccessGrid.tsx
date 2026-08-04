@@ -3,30 +3,19 @@ import styles from "./QuickAccessGrid.module.css";
 
 const items = [
   {
-    label: "Recintos",
-    subtitle: "Ver y revisar",
-    active: true,
-    icon: (
-      <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-        <path d="M3 9.5L10 3.5L17 9.5" stroke="#222B49" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M5 8.3V16H15V8.3" stroke="#222B49" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-  {
     label: "Elementos",
     subtitle: "Ver todos",
-    active: false,
+    iconBg: "var(--green-100)",
     icon: (
       <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-        <path d="M4 5.5H16M4 10H16M4 14.5H11" stroke="#222B49" strokeWidth="1.7" strokeLinecap="round" />
+        <path d="M4 5.5H16M4 10H16M4 14.5H11" stroke="#2E9E68" strokeWidth="1.7" strokeLinecap="round" />
       </svg>
     ),
   },
   {
     label: "Observaciones",
     subtitle: "Ver todas",
-    active: false,
+    iconBg: "var(--amber-100)",
     icon: (
       <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
         <path d="M10 3L18 16.5H2L10 3Z" stroke="#DD7A36" strokeWidth="1.7" strokeLinejoin="round" />
@@ -38,12 +27,12 @@ const items = [
   {
     label: "Mis fotos",
     subtitle: "Ver galería",
-    active: false,
+    iconBg: "var(--purple-100)",
     icon: (
       <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-        <rect x="3" y="6" width="14" height="10" rx="2" stroke="#222B49" strokeWidth="1.7" />
-        <circle cx="10" cy="11" r="2.6" stroke="#222B49" strokeWidth="1.7" />
-        <path d="M7.3 6L8.3 4H11.7L12.7 6" stroke="#222B49" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        <rect x="3" y="6" width="14" height="10" rx="2" stroke="#8E6EF0" strokeWidth="1.7" />
+        <circle cx="10" cy="11" r="2.6" stroke="#8E6EF0" strokeWidth="1.7" />
+        <path d="M7.3 6L8.3 4H11.7L12.7 6" stroke="#8E6EF0" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -54,15 +43,52 @@ type QuickAccessGridProps = {
 };
 
 export function QuickAccessGrid({ inspectionId }: QuickAccessGridProps) {
+  const featured = (
+    <div className={styles.featuredBody}>
+      <span className={styles.featuredLabel}>Recintos</span>
+      <span className={styles.featuredSubtitle}>Ver y revisar todos</span>
+    </div>
+  );
+
+  const featuredIcon = (
+    <div className={styles.featuredIcon}>
+      <svg width="21" height="21" viewBox="0 0 20 20" fill="none">
+        <path d="M3 9.5L10 3.5L17 9.5" stroke="#8E6EF0" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M5 8.3V16H15V8.3" stroke="#8E6EF0" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+
+  const chevron = (
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+      <path d="M7.5 4.5L13 10L7.5 15.5" stroke="var(--accent-600)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+
   return (
     <div className={styles.sectionPad}>
       <div className={styles.sectionTitle}>Acceso rápido</div>
+
+      {inspectionId ? (
+        <Link href={`/inspecciones/${inspectionId}/recintos`} className={styles.featured}>
+          {featuredIcon}
+          {featured}
+          {chevron}
+        </Link>
+      ) : (
+        <div className={styles.featured}>
+          {featuredIcon}
+          {featured}
+        </div>
+      )}
+
       <div className={styles.grid}>
         {items.map((item) => {
-          const className = item.active ? `${styles.item} ${styles.itemActive}` : styles.item;
           const content = (
             <>
-              <div className={styles.icon}>{item.icon}</div>
+              <div className={styles.icon} style={{ background: item.iconBg }}>
+                {item.icon}
+              </div>
               <span className={styles.label}>{item.label}</span>
               <span className={styles.subtitle}>{item.subtitle}</span>
             </>
@@ -70,7 +96,7 @@ export function QuickAccessGrid({ inspectionId }: QuickAccessGridProps) {
 
           if (item.label === "Elementos" && inspectionId) {
             return (
-              <Link key={item.label} href={`/inspecciones/${inspectionId}/elementos`} className={className}>
+              <Link key={item.label} href={`/inspecciones/${inspectionId}/elementos`} className={styles.item}>
                 {content}
               </Link>
             );
@@ -78,15 +104,7 @@ export function QuickAccessGrid({ inspectionId }: QuickAccessGridProps) {
 
           if (item.label === "Observaciones" && inspectionId) {
             return (
-              <Link key={item.label} href={`/inspecciones/${inspectionId}/resumen`} className={className}>
-                {content}
-              </Link>
-            );
-          }
-
-          if (item.label === "Recintos" && inspectionId) {
-            return (
-              <Link key={item.label} href={`/inspecciones/${inspectionId}/recintos`} className={className}>
+              <Link key={item.label} href={`/inspecciones/${inspectionId}/resumen`} className={styles.item}>
                 {content}
               </Link>
             );
@@ -94,14 +112,14 @@ export function QuickAccessGrid({ inspectionId }: QuickAccessGridProps) {
 
           if (item.label === "Mis fotos") {
             return (
-              <Link key={item.label} href="/fotos" className={className}>
+              <Link key={item.label} href="/fotos" className={styles.item}>
                 {content}
               </Link>
             );
           }
 
           return (
-            <div key={item.label} className={className}>
+            <div key={item.label} className={styles.item}>
               {content}
             </div>
           );

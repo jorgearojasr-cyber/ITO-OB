@@ -15,3 +15,67 @@
 .bottomSpacer {
   height: 12px;
 }
+
+/*
+  Sistema Responsive Oficial (D1) -- patrón P2 · contenido + contexto
+  62/38, aplicado a Inicio (naturaleza "Escritorio real", D1 §10).
+  Notebook: rail de 88px a la izquierda, contenedor hasta 1080px.
+  Desktop: sidebar de 248px, contenedor hasta 1280px, centrado.
+  El orden de lectura de móvil (hero, siguiente paso, acceso rápido,
+  consejo, biblioteca) no cambia -- el grid solo reagrupa visualmente
+  los mismos cinco bloques, nunca reordena el DOM (regla S5).
+*/
+@media (min-width: 1024px) {
+  .screen {
+    max-width: none;
+    padding-left: 88px;
+  }
+
+  .content {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    display: grid;
+    grid-template-columns: 62% 38%;
+    column-gap: 24px;
+    row-gap: 20px;
+    align-items: start;
+    grid-template-areas:
+      "hero  quick"
+      "next  quick"
+      "lib   tip";
+  }
+
+  .hero {
+    grid-area: hero;
+  }
+  .next {
+    grid-area: next;
+  }
+  .quick {
+    grid-area: quick;
+    position: sticky;
+    top: 24px;
+  }
+  .tip {
+    grid-area: tip;
+  }
+  .library {
+    grid-area: lib;
+  }
+
+  .bottomSpacer {
+    display: none;
+  }
+}
+
+@media (min-width: 1440px) {
+  .screen {
+    padding-left: 248px;
+  }
+
+  .content {
+    max-width: 1280px;
+    padding: 40px 32px;
+  }
+}

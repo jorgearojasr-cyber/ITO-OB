@@ -4,11 +4,13 @@ import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
 import { ShareReportButton } from "@/components/ui/ShareReportButton";
 import { ObservationsSummaryList } from "@/components/resumen/ObservationsSummaryList";
+import { InspectionSynthesisCard } from "@/components/resumen/InspectionSynthesisCard";
 import { CloseInspectionSection } from "@/components/resumen/CloseInspectionSection";
 import { InviteCollaboratorSection } from "@/components/resumen/InviteCollaboratorSection";
 import { prisma } from "@/lib/db/prisma";
 import { getObservationsSummaryData } from "@/lib/inspections/get-observations-summary-data";
 import { getInspectionInvitesData } from "@/lib/inspections/get-invite-data";
+import { computeInspectionSynthesis, formatSynthesisProgressText } from "@/lib/inspections/synthesis-rules";
 import { requireSession } from "@/lib/auth/session";
 import { canManageInspection } from "@/lib/auth/permissions";
 import { inspectionAccessWhere } from "@/lib/auth/inspection-access";
@@ -48,6 +50,20 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
   const data = await getObservationsSummaryData(inspectionId);
   const invites = canManage ? await getInspectionInvitesData(inspectionId) : [];
 
+  // Síntesis "¿Cómo quedó esta vivienda?" (Sprint 4) -- calculada acá,
+  // en la page, con el mismo criterio ya usado en Inicio/Bienvenida:
+  // el componente de presentación recibe el resultado ya resuelto, sin
+  // lógica de negocio propia.
+  const byPriority = data.observations.reduce(
+    (acc, observation) => {
+      if (observation.priority) acc[observation.priority] += 1;
+      return acc;
+    },
+    { ALTA: 0, MEDIA: 0, BAJA: 0 },
+  );
+  const synthesis = computeInspectionSynthesis({ totalObservations: data.observations.length, byPriority });
+  const progressText = formatSynthesisProgressText(data.progress);
+
   return (
     <div className={styles.screen}>
       <div className={styles.content}>
@@ -70,8 +86,26 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
             ) : undefined
           }
         />
+        <InspectionSynthesisCard
+          tone={synthesis.tone}
+          headline={synthesis.headline}
+          progressText={progressText}
+          byPriority={byPriority}
+        />
         <ObservationsSummaryList inspectionId={inspectionId} data={data} />
         {inspection.status !== "CLOSED" && canManage && <CloseInspectionSection inspectionId={inspectionId} />}
+        {inspection.status === "CLOSED" && isOrgMember && (
+          <div className={styles.closedSection}>
+            <span className={styles.closedBadge}>✓ Inspección cerrada</span>
+            <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeCta}>
+              <span className={styles.informeCtaIcon}>📄</span>
+              <span className={styles.informeCtaBody}>
+                <span className={styles.informeCtaTitle}>Ver el informe firmado</span>
+                <span className={styles.informeCtaDesc}>Documento oficial de cierre, con firmas</span>
+              </span>
+            </Link>
+          </div>
+        )}
         {canManage && <InviteCollaboratorSection inspectionId={inspectionId} invites={invites} />}
       </div>
       <BottomNav active="inspecciones" />

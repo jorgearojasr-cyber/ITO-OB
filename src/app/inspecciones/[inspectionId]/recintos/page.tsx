@@ -49,6 +49,11 @@ export default async function RoomsListPage({ params }: PageProps) {
             className={styles.emptyMargin}
             title="Aún no hay recintos"
             description="Los recintos de esta inspección van a aparecer acá."
+            action={
+              <Link href="/" className={styles.editLink}>
+                Volver a Inicio
+              </Link>
+            }
           />
         ) : (
           <div className={styles.list}>
@@ -60,6 +65,7 @@ export default async function RoomsListPage({ params }: PageProps) {
                 total={room.total}
                 percent={room.percent}
                 href={`/inspecciones/${inspectionId}/recintos/${room.id}`}
+                isCurrent={room.isCurrent}
               />
             ))}
           </div>

@@ -19,3 +19,15 @@
   gap: 10px;
   padding: 0 20px;
 }
+
+.positionPill {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-700);
+  background: var(--accent-100);
+  padding: 5px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}

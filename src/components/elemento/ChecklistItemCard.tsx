@@ -6,12 +6,14 @@ import { upload } from "@vercel/blob/client";
 import type { ObservationStatus, Priority } from "@prisma/client";
 import { attachPhoto, saveChecklistAnswer } from "@/lib/inspections/actions";
 import { PhotoLightbox } from "@/components/ui/PhotoLightbox";
-import styles from "./ChecklistItemRow.module.css";
+import { GuidedCameraOverlay } from "./GuidedCameraOverlay";
+import styles from "./ChecklistItemCard.module.css";
 
 type Photo = { id: string; url: string };
 type SaveState = "idle" | "saved" | "error";
+type CameraPhase = "guide" | "preview";
 
-type ChecklistItemRowProps = {
+type ChecklistItemCardProps = {
   inspectionId: string;
   elementInstanceId: string;
   elementName: string;
@@ -27,11 +29,19 @@ type ChecklistItemRowProps = {
     photos: Photo[];
   } | null;
   onAnswered?: (checklistItemTemplateId: string) => void;
+  // Dispara la confirmación "Escuchando" de Don José Luis en el padre.
+  // Puramente de presentación -- no cambia qué se guarda ni cuándo.
+  onAction?: () => void;
 };
 
 const PRIORITIES: Priority[] = ["ALTA", "MEDIA", "BAJA"];
+const PRIORITY_ON_CLASS: Record<Priority, string> = {
+  ALTA: "priorityOptionOnAlta",
+  MEDIA: "priorityOptionOnMedia",
+  BAJA: "priorityOptionOnBaja",
+};
 
-export function ChecklistItemRow({
+export function ChecklistItemCard({
   inspectionId,
   elementInstanceId,
   elementName,
@@ -41,7 +51,8 @@ export function ChecklistItemRow({
   helpText,
   initialObservation,
   onAnswered,
-}: ChecklistItemRowProps) {
+  onAction,
+}: ChecklistItemCardProps) {
   const photoAlt = `Foto de ${elementName} — ${roomName}`;
   const [status, setStatus] = useState<ObservationStatus | null>(initialObservation?.status ?? null);
   const [comment, setComment] = useState(initialObservation?.comment ?? "");
@@ -53,6 +64,10 @@ export function ChecklistItemRow({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraPhase, setCameraPhase] = useState<CameraPhase>("guide");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function persist(nextStatus: ObservationStatus, nextComment: string, nextPriority: Priority) {
@@ -68,6 +83,7 @@ export function ChecklistItemRow({
         });
         setObservationId(result.observationId);
         setSaveState("saved");
+        onAction?.();
         setTimeout(() => setSaveState((current) => (current === "saved" ? "idle" : current)), 1500);
       } catch (error) {
         unstable_rethrow(error);
@@ -103,18 +119,50 @@ export function ChecklistItemRow({
 
   function handlePhotoButtonClick() {
     if (!observationId) return;
+    setUploadError(null);
+    setCameraPhase("guide");
+    setCameraOpen(true);
+  }
+
+  function handleOpenNativeCamera() {
     fileInputRef.current?.click();
   }
 
-  async function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file || !observationId) return;
+    if (!file) return;
+    setPendingFile(file);
+    setPendingPreviewUrl(URL.createObjectURL(file));
+    setCameraPhase("preview");
+  }
+
+  function clearPendingPhoto() {
+    if (pendingPreviewUrl) URL.revokeObjectURL(pendingPreviewUrl);
+    setPendingFile(null);
+    setPendingPreviewUrl(null);
+  }
+
+  function handleRetakePhoto() {
+    clearPendingPhoto();
+    setCameraPhase("guide");
+    fileInputRef.current?.click();
+  }
+
+  function handleCancelCamera() {
+    clearPendingPhoto();
+    setCameraOpen(false);
+    setCameraPhase("guide");
+    setUploadError(null);
+  }
+
+  async function handleConfirmPhoto() {
+    if (!pendingFile || !observationId) return;
 
     setUploadError(null);
     setIsUploading(true);
     try {
-      const blob = await upload(`observations/${observationId}/${crypto.randomUUID()}-${file.name}`, file, {
+      const blob = await upload(`observations/${observationId}/${crypto.randomUUID()}-${pendingFile.name}`, pendingFile, {
         access: "public",
         handleUploadUrl: "/api/blob/upload",
       });
@@ -128,6 +176,10 @@ export function ChecklistItemRow({
       });
 
       setPhotos((current) => [...current, { id: result.photoId, url: result.url }]);
+      clearPendingPhoto();
+      setCameraOpen(false);
+      setCameraPhase("guide");
+      onAction?.();
     } catch (error) {
       unstable_rethrow(error);
       setUploadError(error instanceof Error ? error.message : "No se pudo subir la foto");
@@ -136,8 +188,10 @@ export function ChecklistItemRow({
     }
   }
 
+  const isAnswered = status !== null;
+
   return (
-    <div className={styles.row}>
+    <div className={isAnswered ? `${styles.card} ${status === "CORRECT" ? styles.cardCorrect : styles.cardObservation}` : styles.card}>
       <div className={styles.questionRow}>
         <div>
           <div className={styles.question}>{question}</div>
@@ -146,37 +200,69 @@ export function ChecklistItemRow({
         {saveState === "saved" && <span className={styles.savedBadge}>Guardado ✓</span>}
       </div>
 
-      <div className={styles.actions}>
+      {status === null && (
+        <div className={styles.fastpath}>
+          <button type="button" className={styles.primaryBtn} onClick={handleMarkCorrect} disabled={isPending}>
+            ✓ Está bien
+          </button>
+        </div>
+      )}
+
+      {status === "CORRECT" && <div className={styles.checkBadge}>✓ Está bien — registrado</div>}
+
+      {status !== "OBSERVATION" && (
+        <div className={styles.secondaryRow}>
+          <button type="button" className={styles.secondaryLink} onClick={handleMarkObservation} disabled={isPending}>
+            {status === "CORRECT" ? "En realidad tiene un problema" : "Reportar un problema"}
+          </button>
+        </div>
+      )}
+
+      {status === "OBSERVATION" && (
+        <div className={styles.expandPanel}>
+          <div className={styles.textareaWrap}>
+            <span className={styles.aiSlot}>✨ IA (futuro)</span>
+            <textarea
+              className={styles.textarea}
+              placeholder="Describe lo que observaste…"
+              value={comment}
+              onChange={(event) => setComment(event.target.value)}
+              onBlur={handleCommentBlur}
+            />
+          </div>
+          <div className={styles.priorityRow}>
+            <span className={styles.priorityLabel}>Prioridad:</span>
+            {PRIORITIES.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={
+                  priority === option
+                    ? `${styles.priorityOption} ${styles[PRIORITY_ON_CLASS[option]]}`
+                    : styles.priorityOption
+                }
+                onClick={() => handlePriorityChange(option)}
+              >
+                {option === "ALTA" ? "Alta" : option === "MEDIA" ? "Media" : "Baja"}
+              </button>
+            ))}
+          </div>
+          <button type="button" className={styles.secondaryLink} onClick={handleMarkCorrect} disabled={isPending}>
+            En realidad está bien
+          </button>
+        </div>
+      )}
+
+      <div className={styles.photoRow}>
         <button
           type="button"
-          className={status === "CORRECT" ? `${styles.actionBtn} ${styles.correctOn}` : styles.actionBtn}
-          onClick={handleMarkCorrect}
-          disabled={isPending}
-        >
-          ✔ Correcto
-        </button>
-        <button
-          type="button"
-          className={status === "OBSERVATION" ? `${styles.actionBtn} ${styles.observationOn}` : styles.actionBtn}
-          onClick={handleMarkObservation}
-          disabled={isPending}
-        >
-          ⚠ Observación
-        </button>
-        <button
-          type="button"
-          className={
-            observationId
-              ? `${styles.actionBtn} ${styles.photoBtn}`
-              : `${styles.actionBtn} ${styles.photoBtn} ${styles.photoBtnDisabled}`
-          }
+          className={observationId ? styles.photoBtn : `${styles.photoBtn} ${styles.photoBtnDisabled}`}
           onClick={handlePhotoButtonClick}
-          disabled={isPending || isUploading || !observationId}
-          aria-label="Agregar fotografía"
-          title={observationId ? "Agregar fotografía" : "Marca ✔ u ⚠ primero para poder agregar una foto"}
+          disabled={isPending || !observationId}
+          aria-label="Agregar fotografía guiada"
+          title={observationId ? "Agregar fotografía guiada" : "Marca 'Está bien' o 'Reportar un problema' primero"}
         >
-          {isUploading ? "…" : "📷"}
-          {photos.length > 0 && <span className={styles.photoCount}>{photos.length}</span>}
+          📷 {photos.length > 0 ? `${photos.length} foto${photos.length > 1 ? "s" : ""}` : "Agregar fotografía"}
         </button>
         <input
           ref={fileInputRef}
@@ -188,11 +274,7 @@ export function ChecklistItemRow({
         />
       </div>
 
-      {saveState === "error" && (
-        <div className={styles.uploadError}>No se pudo guardar, reintenta.</div>
-      )}
-
-      {uploadError && <div className={styles.uploadError}>{uploadError}</div>}
+      {saveState === "error" && <div className={styles.uploadError}>No se pudo guardar, reintenta.</div>}
 
       {photos.length > 0 && (
         <div className={styles.thumbnails}>
@@ -219,33 +301,17 @@ export function ChecklistItemRow({
         />
       )}
 
-      {status === "OBSERVATION" && (
-        <div className={styles.observationPanel}>
-          <textarea
-            className={styles.textarea}
-            placeholder="Describe lo que observaste…"
-            value={comment}
-            onChange={(event) => setComment(event.target.value)}
-            onBlur={handleCommentBlur}
-          />
-          <div className={styles.priorityRow}>
-            <span className={styles.priorityLabel}>Prioridad:</span>
-            {PRIORITIES.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={
-                  priority === option
-                    ? `${styles.priorityOption} ${styles.priorityOptionOn}`
-                    : styles.priorityOption
-                }
-                onClick={() => handlePriorityChange(option)}
-              >
-                {option === "ALTA" ? "Alta" : option === "MEDIA" ? "Media" : "Baja"}
-              </button>
-            ))}
-          </div>
-        </div>
+      {cameraOpen && (
+        <GuidedCameraOverlay
+          phase={cameraPhase}
+          previewUrl={pendingPreviewUrl ?? undefined}
+          isUploading={isUploading}
+          error={uploadError}
+          onOpenCamera={handleOpenNativeCamera}
+          onConfirm={handleConfirmPhoto}
+          onRetake={handleRetakePhoto}
+          onCancel={handleCancelCamera}
+        />
       )}
     </div>
   );

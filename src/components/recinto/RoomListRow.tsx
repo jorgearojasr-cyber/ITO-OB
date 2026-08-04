@@ -7,14 +7,15 @@ type RoomListRowProps = {
   total: number;
   percent: number;
   href: string;
+  isCurrent?: boolean;
 };
 
-export function RoomListRow({ name, done, total, percent, href }: RoomListRowProps) {
+export function RoomListRow({ name, done, total, percent, href, isCurrent = false }: RoomListRowProps) {
   const pending = total - done;
   const isDone = total > 0 && pending === 0;
 
   return (
-    <Link href={href} className={styles.row}>
+    <Link href={href} className={isCurrent ? `${styles.row} ${styles.rowCurrent}` : styles.row}>
       <div className={styles.body}>
         <div className={styles.name}>{name}</div>
         <div className={styles.track}>

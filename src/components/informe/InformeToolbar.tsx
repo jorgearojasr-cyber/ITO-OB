@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { ShareReportButton } from "@/components/ui/ShareReportButton";
 import { retryReportGeneration } from "@/lib/inspections/actions";
+import { useReportPolling } from "@/lib/informe/use-report-polling";
 import type { ReportStatus } from "@prisma/client";
 import styles from "./InformeToolbar.module.css";
 
@@ -23,12 +24,6 @@ type InformeToolbarProps = {
   } | null;
 };
 
-// Sin cola/cron en el proyecto: la reconciliación real ocurre en el
-// servidor (ver informe/page.tsx) la próxima vez que esta pantalla se
-// recarga — este timer es solo la señal al usuario de que algo no anda
-// bien, no reemplaza esa reconciliación.
-const SLOW_GENERATION_WARNING_MS = 90_000;
-
 const PdfIcon = () => (
   <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
     <path
@@ -43,28 +38,14 @@ const PdfIcon = () => (
 
 export function InformeToolbar({ title, subtitle, backHref, shareUrl, shareText, inspectionId, report }: InformeToolbarProps) {
   const router = useRouter();
+  const { isSlow, resetSlow } = useReportPolling(report?.status);
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
-  const [isSlow, setIsSlow] = useState(false);
-
-  // El PDF se genera en background — mientras esté PENDING, revalidamos
-  // la pantalla cada 3s hasta que pase a READY/FAILED (sin infra de
-  // polling nueva, es lo más simple dado que no hay websockets ni SSE
-  // en el proyecto).
-  useEffect(() => {
-    if (report?.status !== "PENDING") return;
-    const interval = setInterval(() => router.refresh(), 3000);
-    const slowTimer = setTimeout(() => setIsSlow(true), SLOW_GENERATION_WARNING_MS);
-    return () => {
-      clearInterval(interval);
-      clearTimeout(slowTimer);
-    };
-  }, [report?.status, router]);
 
   async function handleRetry() {
     setIsRetrying(true);
     setRetryError(null);
-    setIsSlow(false);
+    resetSlow();
     try {
       await retryReportGeneration(inspectionId);
       router.refresh();

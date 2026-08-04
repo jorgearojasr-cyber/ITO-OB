@@ -21,6 +21,10 @@ export type ObservationSummaryItem = {
 export type ObservationsSummaryData = {
   observations: ObservationSummaryItem[];
   rooms: { id: string; name: string }[];
+  // Solo lectura, mismo cálculo que ya usan get-inicio-data.ts y
+  // get-rooms-list-data.ts -- necesario para la síntesis del Sprint 4
+  // ("¿Cómo quedó esta vivienda?"), no existía antes en este archivo.
+  progress: { totalElements: number; doneElements: number; percent: number };
 };
 
 const PRIORITY_RANK: Record<Priority, number> = {
@@ -34,21 +38,36 @@ export async function getObservationsSummaryData(
 ): Promise<ObservationsSummaryData> {
   const session = await requireSession();
 
-  const rows = await prisma.observation.findMany({
-    where: {
-      status: "OBSERVATION",
-      elementInstance: {
-        roomInstance: {
-          inspectionId,
-          inspection: inspectionAccessWhere(session.user.id, session.user.organizationId),
+  const [rows, rooms] = await Promise.all([
+    prisma.observation.findMany({
+      where: {
+        status: "OBSERVATION",
+        elementInstance: {
+          roomInstance: {
+            inspectionId,
+            inspection: inspectionAccessWhere(session.user.id, session.user.organizationId),
+          },
         },
       },
-    },
-    include: {
-      elementInstance: { include: { roomInstance: true } },
-      photos: { orderBy: { createdAt: "asc" } },
-    },
-  });
+      include: {
+        elementInstance: { include: { roomInstance: true } },
+        photos: { orderBy: { createdAt: "asc" } },
+      },
+    }),
+    prisma.roomInstance.findMany({
+      where: { inspectionId, inspection: inspectionAccessWhere(session.user.id, session.user.organizationId) },
+      select: { elements: { select: { status: true } } },
+    }),
+  ]);
+
+  const allElements = rooms.flatMap((room) => room.elements);
+  const totalElements = allElements.length;
+  const doneElements = allElements.filter((element) => element.status !== "PENDING").length;
+  const progress = {
+    totalElements,
+    doneElements,
+    percent: totalElements === 0 ? 0 : Math.round((doneElements / totalElements) * 100),
+  };
 
   const observations: ObservationSummaryItem[] = rows.map((row) => {
     const evidencePhotos = row.photos.filter((photo) => photo.kind === "EVIDENCIA");
@@ -86,5 +105,6 @@ export async function getObservationsSummaryData(
   return {
     observations,
     rooms: Array.from(roomsById.values()),
+    progress,
   };
 }

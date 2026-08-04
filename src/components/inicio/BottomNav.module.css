@@ -44,3 +44,85 @@
   box-shadow: 0 10px 20px -6px rgba(221, 122, 54, 0.6);
   border: 5px solid var(--paper);
 }
+
+.fabLabel {
+  display: none;
+}
+
+/* Notebook (1024-1439px): rail lateral 88px, icono sobre etiqueta --
+   mismo orden vertical que el tab bar, solo cambia posición y forma
+   (Sistema Responsive Oficial D1, §08). R6: tab bar y rail/sidebar
+   nunca coexisten -- el corte es exactamente en 1024px. */
+@media (min-width: 1024px) {
+  .bottomnav.responsive {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: auto;
+    width: 88px;
+    height: 100vh;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 28px;
+    padding: 20px 8px;
+    border-top: none;
+    border-right: 1px solid var(--ink-200);
+  }
+
+  .bottomnav.responsive .navItem span {
+    font-size: 9.5px;
+  }
+
+  .bottomnav.responsive .fab {
+    position: static;
+    width: 100%;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    margin-top: 0;
+    border: none;
+    gap: 6px;
+  }
+}
+
+/* Desktop (>=1440px): sidebar 248px, etiquetas a la derecha del icono
+   (D1 §08). El botón de nueva inspección muestra su etiqueta. */
+@media (min-width: 1440px) {
+  .bottomnav.responsive {
+    width: 248px;
+    align-items: stretch;
+    padding: 24px 16px;
+    gap: 4px;
+  }
+
+  .bottomnav.responsive .navItem {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 10px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .bottomnav.responsive .navItem span {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .bottomnav.responsive .navItemActive {
+    background: var(--accent-100);
+  }
+
+  .bottomnav.responsive .fab {
+    flex-direction: row;
+    padding: 0 14px;
+    margin-bottom: 16px;
+  }
+
+  .bottomnav.responsive .fabLabel {
+    display: inline;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: var(--font-body);
+  }
+}

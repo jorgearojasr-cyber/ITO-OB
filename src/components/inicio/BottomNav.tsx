@@ -3,14 +3,21 @@ import styles from "./BottomNav.module.css";
 
 type BottomNavProps = {
   active: "inicio" | "inspecciones" | "biblioteca" | "perfil";
+  // Activa la transformación responsive (tab bar -> rail -> sidebar,
+  // D1 §08). Opt-in por pantalla: BottomNav es compartido por las 12
+  // pantallas de la app, así que el rail/sidebar solo se habilita en
+  // las pantallas ya migradas al Sistema Responsive -- las demás
+  // siguen viendo el tab bar de siempre hasta que les toque su propio
+  // sprint, sin regresión visual mientras tanto.
+  responsive?: boolean;
 };
 
-export function BottomNav({ active }: BottomNavProps) {
+export function BottomNav({ active, responsive = false }: BottomNavProps) {
   const itemClass = (key: BottomNavProps["active"]) =>
     active === key ? `${styles.navItem} ${styles.navItemActive}` : styles.navItem;
 
   return (
-    <div className={styles.bottomnav}>
+    <div className={responsive ? `${styles.bottomnav} ${styles.responsive}` : styles.bottomnav}>
       <Link className={itemClass("inicio")} href="/">
         <svg width="21" height="21" viewBox="0 0 20 20" fill="none">
           <path d="M3 9L10 3L17 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -30,6 +37,7 @@ export function BottomNav({ active }: BottomNavProps) {
         <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
           <path d="M10 4V16M4 10H16" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
         </svg>
+        <span className={styles.fabLabel}>Nueva inspección</span>
       </Link>
       <Link className={itemClass("biblioteca")} href="/biblioteca">
         <svg width="21" height="21" viewBox="0 0 20 20" fill="none">

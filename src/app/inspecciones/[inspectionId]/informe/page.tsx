@@ -5,6 +5,7 @@ import { InformeCover } from "@/components/informe/InformeCover";
 import { InformeSummary } from "@/components/informe/InformeSummary";
 import { InformeRoomSection } from "@/components/informe/InformeRoomSection";
 import { InformeSignatures } from "@/components/informe/InformeSignatures";
+import { InformeCloseGate } from "@/components/informe/InformeCloseGate";
 import { getInformeData, hydrateInformeSnapshot } from "@/lib/inspections/get-informe-data";
 import { MAX_REPORT_RETRIES, REPORT_RETRY_COUNT_RESET_MS } from "@/lib/inspections/report-retry-config";
 import { prisma } from "@/lib/db/prisma";
@@ -14,6 +15,7 @@ import "./print.css";
 
 type PageProps = {
   params: Promise<{ inspectionId: string }>;
+  searchParams: Promise<{ justClosed?: string }>;
 };
 
 // Sin cola/cron en el proyecto: after() es "mejor esfuerzo" y un Report
@@ -36,8 +38,9 @@ function isRetryExhausted(retryCount: number, lastAttemptAt: Date): boolean {
   return retryCount >= MAX_REPORT_RETRIES && Date.now() - lastAttemptAt.getTime() <= REPORT_RETRY_COUNT_RESET_MS;
 }
 
-export default async function InformePage({ params }: PageProps) {
+export default async function InformePage({ params, searchParams }: PageProps) {
   const { inspectionId } = await params;
+  const { justClosed } = await searchParams;
   const session = await requireSession();
 
   const inspection = await prisma.inspection.findFirst({
@@ -82,54 +85,77 @@ export default async function InformePage({ params }: PageProps) {
     notFound();
   }
 
+  const reportForClient = report
+    ? {
+        status: report.status,
+        pdfStorageKey: report.pdfStorageKey,
+        errorMessage: report.errorMessage,
+        isRetryExhausted: isRetryExhausted(report.retryCount, report.lastAttemptAt),
+      }
+    : null;
+
+  // La pantalla de cierre es el estado inicial de esta misma ruta, no una
+  // ruta nueva (Sprint 5, Etapa 4, Escenario 6) -- así reutiliza tal cual
+  // el polling y la reconciliación de arriba, sin duplicar el umbral de
+  // 90s en un tercer lugar. Solo se activa justo después de cerrar
+  // (CloseInspectionModal navega con ?justClosed=1); revisitas normales de
+  // /informe nunca la muestran.
+  const showClosingExperience = justClosed === "1" && isClosed && reportForClient !== null;
+
   return (
     <div className={styles.screen}>
-      <div className={styles.wrap}>
-        <InformeToolbar
-          title="Informe final"
-          subtitle={`${data.inspection.projectName} — ${data.inspection.unitLabel}`}
-          backHref={`/inspecciones/${inspectionId}/resumen`}
-          shareUrl={`/inspecciones/${inspectionId}/informe`}
-          shareText={`Informe de recepción - ${data.inspection.projectName} — ${data.inspection.unitLabel}`}
-          inspectionId={inspectionId}
-          report={
-            report
-              ? {
-                  status: report.status,
-                  pdfStorageKey: report.pdfStorageKey,
-                  errorMessage: report.errorMessage,
-                  isRetryExhausted: isRetryExhausted(report.retryCount, report.lastAttemptAt),
-                }
-              : null
-          }
-        />
-        <div className={styles.paper}>
-          <InformeCover
-            inspection={data.inspection}
-            percent={data.summary.percent}
-            generatedAt={isClosed ? report!.generatedAt : undefined}
+      <InformeCloseGate
+        showInitially={showClosingExperience}
+        closingProps={
+          showClosingExperience && reportForClient
+            ? {
+                inspectionId,
+                projectName: data.inspection.projectName,
+                unitLabel: data.inspection.unitLabel,
+                summary: data.summary,
+                report: reportForClient,
+              }
+            : null
+        }
+      >
+        <div className={styles.wrap}>
+          <InformeToolbar
+            title="Informe final"
+            subtitle={`${data.inspection.projectName} — ${data.inspection.unitLabel}`}
+            backHref={`/inspecciones/${inspectionId}/resumen`}
+            shareUrl={`/inspecciones/${inspectionId}/informe`}
+            shareText={`Informe de recepción - ${data.inspection.projectName} — ${data.inspection.unitLabel}`}
+            inspectionId={inspectionId}
+            report={reportForClient}
           />
-          <InformeSummary summary={data.summary} />
-          <div className={styles.sectionTitle}>Recorrido por recinto</div>
-          {data.rooms.map((room) => (
-            <InformeRoomSection key={room.id} room={room} />
-          ))}
-          {isClosed && (
-            <InformeSignatures
-              signatureOwnerUrl={report!.signatureOwnerUrl}
-              signatureBuilderUrl={report!.signatureBuilderUrl}
-              signedAt={report!.signedAt}
+          <div className={styles.paper}>
+            <InformeCover
+              inspection={data.inspection}
+              percent={data.summary.percent}
+              generatedAt={isClosed ? report!.generatedAt : undefined}
             />
-          )}
-          {/* Next.js hace streaming SSR — networkidle0 en Puppeteer no
-              garantiza que el documento terminó de llegar completo antes
-              de capturar el PDF (confirmado: informes largos quedaban
-              truncados aunque la misma página cargada en un navegador
-              normal sí traía todo el contenido). generate-report-pdf.ts
-              espera explícitamente este marcador antes de imprimir. */}
-          <div id="informe-render-complete" />
+            <InformeSummary summary={data.summary} />
+            <div className={styles.sectionTitle}>Recorrido por recinto</div>
+            {data.rooms.map((room) => (
+              <InformeRoomSection key={room.id} room={room} />
+            ))}
+            {isClosed && (
+              <InformeSignatures
+                signatureOwnerUrl={report!.signatureOwnerUrl}
+                signatureBuilderUrl={report!.signatureBuilderUrl}
+                signedAt={report!.signedAt}
+              />
+            )}
+            {/* Next.js hace streaming SSR — networkidle0 en Puppeteer no
+                garantiza que el documento terminó de llegar completo antes
+                de capturar el PDF (confirmado: informes largos quedaban
+                truncados aunque la misma página cargada en un navegador
+                normal sí traía todo el contenido). generate-report-pdf.ts
+                espera explícitamente este marcador antes de imprimir. */}
+            <div id="informe-render-complete" />
+          </div>
         </div>
-      </div>
+      </InformeCloseGate>
       <div className="no-print">
         <BottomNav active="inspecciones" />
       </div>

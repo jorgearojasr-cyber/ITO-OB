@@ -3,6 +3,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 20px 18px;
+  gap: 10px;
 }
 
 .iconBtn {
@@ -16,12 +17,24 @@
   border: none;
   color: var(--ink-900);
   position: relative;
+  flex-shrink: 0;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
+}
+
+/* La campana nunca se oculta; DonJoseLuisPresence es lo primero que cede
+   espacio si el ancho no alcanza (ver spec visual, sección Responsive). */
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .logo {

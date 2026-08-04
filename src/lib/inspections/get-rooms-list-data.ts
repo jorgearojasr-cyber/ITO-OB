@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
+import { findNextPendingRoom } from "./next-pending-room";
 
 export type RoomListItem = {
   id: string;
@@ -9,6 +10,10 @@ export type RoomListItem = {
   done: number;
   total: number;
   percent: number;
+  // true para el recinto que resuelve el algoritmo único de
+  // "siguiente pendiente" (ver docs/PRODUCT_DECISIONS.md) -- a lo más
+  // un recinto de la lista lo tiene en true.
+  isCurrent: boolean;
 };
 
 export async function getRoomsListData(inspectionId: string): Promise<RoomListItem[] | null> {
@@ -28,6 +33,8 @@ export async function getRoomsListData(inspectionId: string): Promise<RoomListIt
     include: { elements: true },
   });
 
+  const currentRoom = findNextPendingRoom(rooms);
+
   return rooms.map((room) => {
     const total = room.elements.length;
     const done = room.elements.filter((element) => element.status !== "PENDING").length;
@@ -37,6 +44,7 @@ export async function getRoomsListData(inspectionId: string): Promise<RoomListIt
       done,
       total,
       percent: total === 0 ? 0 : Math.round((done / total) * 100),
+      isCurrent: room.id === currentRoom?.id,
     };
   });
 }

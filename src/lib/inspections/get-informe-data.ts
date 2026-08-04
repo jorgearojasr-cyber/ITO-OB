@@ -42,6 +42,7 @@ export type InformeData = {
     percent: number;
     totalRooms: number;
     totalElements: number;
+    doneElements: number;
     totalObservations: number;
     totalPhotos: number;
     byPriority: Record<Priority, number>;
@@ -139,6 +140,7 @@ export async function getInformeData(inspectionId: string): Promise<InformeData 
       percent,
       totalRooms: rooms.length,
       totalElements,
+      doneElements,
       totalObservations: flaggedObservations.length,
       totalPhotos,
       byPriority,

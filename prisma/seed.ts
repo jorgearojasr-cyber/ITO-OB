@@ -362,6 +362,21 @@ const libraryCategories = [
       },
     ],
   },
+  {
+    slug: "calefont-y-termo-electrico",
+    name: "Calefont y termo eléctrico",
+    order: 24,
+    icon: "heater",
+    articles: [
+      {
+        slug: "calefont-y-termo-electrico",
+        title: "Funcionamiento y seguridad del calefont o termo eléctrico",
+        summary:
+          "Qué revisar para confirmar que el calefont o termo eléctrico entrega agua caliente de forma segura, sin fugas ni riesgo de intoxicación.",
+        body: "El calefont (a gas) o el termo eléctrico es el equipo que entrega agua caliente a la vivienda. Abre la llave de agua caliente más cercana y confirma que el agua sale caliente de forma estable, sin variar de golpe entre fría y caliente. Revisa alrededor del equipo y sus conexiones que no haya manchas de humedad, goteo ni olor a gas — cualquiera de estas señales debe registrarse de inmediato como observación de prioridad alta, no es un detalle menor.\n\nSi el equipo es a gas, la ventilación es lo más importante de revisar: debe existir una rejilla o ducto visible hacia el exterior, sin objetos que la bloqueen. Un calefont a gas sin ventilación adecuada acumula monóxido de carbono, un gas que no se huele ni se ve — es un riesgo real, no una formalidad normativa. Revisa también que no haya cortinas, ropa u otros materiales combustibles cerca del equipo. Esta es una revisión visual general y no reemplaza una certificación de gasfitería habilitado: ante cualquier duda sobre la instalación de gas, es preferible pedir una revisión especializada antes de usar el equipo.",
+      },
+    ],
+  },
 ];
 
 // Checklist corto ("nivel 1") para los artículos SIN match en
@@ -418,6 +433,11 @@ const QUICK_CHECK_ITEMS_BY_ARTICLE_SLUG: Record<string, string[]> = {
   // ambos tips en los dos artículos si no hay override explícito.
   "pintura-interior": ["Interior: párate a 1 m con luz angulada (de lado, no de frente)"],
   "pintura-exterior": ["Exterior: revisa desde 5 m, con luz de día"],
+  "calefont-y-termo-electrico": [
+    "Entrega agua caliente de forma estable",
+    "Sin fugas de agua ni olor a gas alrededor del equipo",
+    "Si es a gas: ventilación hacia el exterior visible y sin bloquear",
+  ],
 };
 
 // Checklists reutilizados sin cambios entre varios recintos (evita repetir
@@ -1222,7 +1242,7 @@ const roomTemplates: SeedRoomDef[] = [
       {
         slug: "calefont-o-termo",
         name: "Calefont o termo eléctrico",
-        libraryArticleSlug: null,
+        libraryArticleSlug: "calefont-y-termo-electrico",
         checklist: [
           "¿Entrega agua caliente de forma estable?",
           "¿No presenta fugas de agua ni de gas?",
