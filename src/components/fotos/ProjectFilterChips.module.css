@@ -24,3 +24,23 @@
   background: var(--accent-100);
   color: var(--accent-700);
 }
+
+/*
+  Desde 1024px este filtro deja de ser un scroll horizontal de chips y
+  pasa a ser el índice vertical de proyectos que pide D1 §10 para "Mis
+  fotos" en escritorio -- mismos destinos, misma cantidad, solo cambia
+  su forma (igual criterio que la navegación de BottomNav, D1 §08).
+*/
+@media (min-width: 1024px) {
+  .scroll {
+    flex-direction: column;
+    overflow-x: visible;
+    padding: 0;
+    margin: 0;
+  }
+
+  .chip {
+    white-space: normal;
+    text-align: left;
+  }
+}

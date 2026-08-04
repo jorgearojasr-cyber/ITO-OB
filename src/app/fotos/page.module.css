@@ -23,3 +23,63 @@
 .emptyMargin {
   margin: 20px 20px 0;
 }
+
+/*
+  D1 §10 -- "Mis fotos" es "Escritorio real", patrón P4 · Grilla de
+  evidencia (2 columnas notebook, 3 desktop) con el filtro de
+  proyectos convertido en índice vertical a la izquierda (mismo
+  espíritu que el panel de filtros de la Lista Global de Elementos).
+*/
+@media (min-width: 1024px) {
+  .screen {
+    max-width: none;
+    padding-left: 88px;
+  }
+
+  .content {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 24px 24px 32px;
+  }
+
+  .layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .filters {
+    width: 240px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 24px;
+  }
+
+  .list {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    padding: 0;
+  }
+
+  .emptyMargin {
+    flex: 1;
+    margin: 0;
+  }
+}
+
+@media (min-width: 1440px) {
+  .screen {
+    padding-left: 248px;
+  }
+
+  .content {
+    max-width: 1280px;
+  }
+
+  .list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

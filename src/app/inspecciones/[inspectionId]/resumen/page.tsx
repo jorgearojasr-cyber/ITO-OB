@@ -67,48 +67,54 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
   return (
     <div className={styles.screen}>
       <div className={styles.content}>
-        <BackHeader
-          title="Resumen de observaciones"
-          subtitle={`${inspection.projectName} — ${inspection.unitLabel}`}
-          backHref="/"
-          action={
-            isOrgMember ? (
-              <div className={styles.actions}>
-                <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeLink}>
-                  Ver informe
-                </Link>
-                <ShareReportButton
-                  url={`/inspecciones/${inspectionId}/informe`}
-                  title="Informe de recepción"
-                  text={`Informe de recepción - ${inspection.projectName} — ${inspection.unitLabel}`}
-                />
-              </div>
-            ) : undefined
-          }
-        />
-        <InspectionSynthesisCard
-          tone={synthesis.tone}
-          headline={synthesis.headline}
-          progressText={progressText}
-          byPriority={byPriority}
-        />
-        <ObservationsSummaryList inspectionId={inspectionId} data={data} />
-        {inspection.status !== "CLOSED" && canManage && <CloseInspectionSection inspectionId={inspectionId} />}
-        {inspection.status === "CLOSED" && isOrgMember && (
-          <div className={styles.closedSection}>
-            <span className={styles.closedBadge}>✓ Inspección cerrada</span>
-            <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeCta}>
-              <span className={styles.informeCtaIcon}>📄</span>
-              <span className={styles.informeCtaBody}>
-                <span className={styles.informeCtaTitle}>Ver el informe firmado</span>
-                <span className={styles.informeCtaDesc}>Documento oficial de cierre, con firmas</span>
-              </span>
-            </Link>
-          </div>
-        )}
-        {canManage && <InviteCollaboratorSection inspectionId={inspectionId} invites={invites} />}
+        <div className={styles.header}>
+          <BackHeader
+            title="Resumen de observaciones"
+            subtitle={`${inspection.projectName} — ${inspection.unitLabel}`}
+            backHref="/"
+            action={
+              isOrgMember ? (
+                <div className={styles.actions}>
+                  <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeLink}>
+                    Ver informe
+                  </Link>
+                  <ShareReportButton
+                    url={`/inspecciones/${inspectionId}/informe`}
+                    title="Informe de recepción"
+                    text={`Informe de recepción - ${inspection.projectName} — ${inspection.unitLabel}`}
+                  />
+                </div>
+              ) : undefined
+            }
+          />
+        </div>
+        <div className={styles.main}>
+          <InspectionSynthesisCard
+            tone={synthesis.tone}
+            headline={synthesis.headline}
+            progressText={progressText}
+            byPriority={byPriority}
+          />
+          <ObservationsSummaryList inspectionId={inspectionId} data={data} />
+        </div>
+        <div className={styles.context}>
+          {inspection.status !== "CLOSED" && canManage && <CloseInspectionSection inspectionId={inspectionId} />}
+          {inspection.status === "CLOSED" && isOrgMember && (
+            <div className={styles.closedSection}>
+              <span className={styles.closedBadge}>✓ Inspección cerrada</span>
+              <Link href={`/inspecciones/${inspectionId}/informe`} className={styles.informeCta}>
+                <span className={styles.informeCtaIcon}>📄</span>
+                <span className={styles.informeCtaBody}>
+                  <span className={styles.informeCtaTitle}>Ver el informe firmado</span>
+                  <span className={styles.informeCtaDesc}>Documento oficial de cierre, con firmas</span>
+                </span>
+              </Link>
+            </div>
+          )}
+          {canManage && <InviteCollaboratorSection inspectionId={inspectionId} invites={invites} />}
+        </div>
       </div>
-      <BottomNav active="inspecciones" />
+      <BottomNav active="inspecciones" responsive />
     </div>
   );
 }

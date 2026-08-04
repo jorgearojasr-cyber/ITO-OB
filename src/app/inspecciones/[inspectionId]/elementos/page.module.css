@@ -22,3 +22,26 @@
 .emptyMargin {
   margin-top: 20px;
 }
+
+@media (min-width: 1024px) {
+  .screen {
+    max-width: none;
+    padding-left: 88px;
+  }
+
+  .content {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .screen {
+    padding-left: 248px;
+  }
+
+  .content {
+    max-width: 1280px;
+  }
+}

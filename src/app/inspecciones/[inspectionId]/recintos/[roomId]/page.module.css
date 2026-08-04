@@ -31,3 +31,52 @@
   border-radius: 999px;
   white-space: nowrap;
 }
+
+.roomIndex {
+  display: none;
+}
+
+/*
+  Patrón P3 · Maestro-detalle (D1 §11), aplicado a Recintos (D1 §10:
+  "Escritorio real" -- recintos a la izquierda, detalle del recinto
+  seleccionado a la derecha). El detalle conserva su ancho de lectura
+  de 640px aunque sobre espacio (regla P3).
+*/
+@media (min-width: 1024px) {
+  .screen {
+    max-width: none;
+    padding-left: 88px;
+  }
+
+  .layout {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 24px;
+    padding: 32px 24px;
+  }
+
+  .roomIndex {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 300px;
+    flex-shrink: 0;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+    position: sticky;
+    top: 32px;
+  }
+
+  .content {
+    width: 640px;
+    flex-shrink: 0;
+    padding-bottom: 0;
+  }
+}
+
+@media (min-width: 1440px) {
+  .screen {
+    padding-left: 248px;
+  }
+}

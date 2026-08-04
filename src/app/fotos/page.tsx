@@ -25,22 +25,26 @@ export default async function AllPhotosPage({ searchParams }: PageProps) {
     <div className={styles.screen}>
       <div className={styles.content}>
         <BackHeader title="Mis fotos" backHref="/" />
-        <ProjectFilterChips options={options} selectedInspectionId={inspeccion} />
-        {photos.length === 0 ? (
-          <EmptyState
-            className={styles.emptyMargin}
-            title="Aún no hay fotos"
-            description="Las fotos que agregues al revisar cada elemento van a aparecer acá."
-          />
-        ) : (
-          <div className={styles.list}>
-            {photos.map((photo) => (
-              <PhotoListItem key={photo.id} photo={photo} showProject={showProject} />
-            ))}
+        <div className={styles.layout}>
+          <div className={styles.filters}>
+            <ProjectFilterChips options={options} selectedInspectionId={inspeccion} />
           </div>
-        )}
+          {photos.length === 0 ? (
+            <EmptyState
+              className={styles.emptyMargin}
+              title="Aún no hay fotos"
+              description="Las fotos que agregues al revisar cada elemento van a aparecer acá."
+            />
+          ) : (
+            <div className={styles.list}>
+              {photos.map((photo) => (
+                <PhotoListItem key={photo.id} photo={photo} showProject={showProject} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-      <BottomNav active="inspecciones" />
+      <BottomNav active="inspecciones" responsive />
     </div>
   );
 }

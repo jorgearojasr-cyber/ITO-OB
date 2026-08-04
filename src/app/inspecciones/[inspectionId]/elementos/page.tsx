@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ElementListRow } from "@/components/elementos/ElementListRow";
+import { ElementsListFiltered } from "@/components/elementos/ElementsListFiltered";
 import { prisma } from "@/lib/db/prisma";
 import { getElementsListData } from "@/lib/inspections/get-elements-list-data";
 import { requireSession } from "@/lib/auth/session";
@@ -42,14 +42,10 @@ export default async function ElementsListPage({ params }: PageProps) {
             description="Los elementos de cada recinto van a aparecer acá a medida que avances en el recorrido."
           />
         ) : (
-          <div className={styles.list}>
-            {elements.map((element) => (
-              <ElementListRow key={element.id} inspectionId={inspectionId} element={element} />
-            ))}
-          </div>
+          <ElementsListFiltered inspectionId={inspectionId} elements={elements} />
         )}
       </div>
-      <BottomNav active="inspecciones" />
+      <BottomNav active="inspecciones" responsive />
     </div>
   );
 }

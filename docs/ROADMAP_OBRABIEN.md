@@ -98,6 +98,12 @@ realmente excelente.
 - **Rondas de validación**: pendientes de agendar y ejecutar. Se
   registrarán acá a medida que se completen (`Fase2-Ronda-N-Hallazgos.md`
   por ronda).
+- **Excepción aprobada dentro de esta fase**: implementación del
+  sistema visual D1–D4 sobre las 6 pantallas del Milestone 1 (ver
+  "Milestone 2" más abajo) — el usuario autorizó explícitamente
+  anular la pausa de cambios visuales para este trabajo puntual, ya
+  cerrado. La pausa general de nuevos módulos funcionales sigue
+  vigente para todo lo demás.
 
 ---
 
@@ -106,6 +112,64 @@ realmente excelente.
 Un hito agrupa varios sprints ya cerrados bajo un objetivo de producto
 mayor — a diferencia de un sprint, no pasa por las 6 etapas; se
 registra cuando el usuario lo declara alcanzado.
+
+### Milestone 2 — "Fase 1 — Implementación visual completada"
+
+**Estado: ✅ Completado** (declarado tras el cierre de la revisión
+integral de las 6 pantallas D1–D4, ver sección "Implementación del
+Sistema Visual" arriba para el detalle completo por pantalla).
+
+**Nota de nomenclatura**: el nombre de este hito fue definido
+explícitamente por el usuario y contiene la palabra "Fase 1" — no debe
+confundirse con la **Fase 1 — Construcción de la Experiencia
+Principal** del proyecto (ver "Fases del proyecto" arriba), ya cerrada
+con anterioridad y sin relación directa con este hito. Este hito
+ocurrió cronológicamente **dentro de la Fase 2 — Validación del
+Producto**, como una excepción explícita a la pausa de nuevos cambios
+visuales/funcionales que esa fase estableció (aprobada por el usuario
+específicamente para este trabajo, ver sección "Implementación del
+Sistema Visual" para el detalle de esa decisión).
+
+El sistema visual principal de ObraBien Inspecciones —el conjunto de
+documentos "Claude Design" D1 (Sistema Responsive), D2 (Inicio), D3
+(Recintos/Lista Global/Ficha) y D4 (Resumen de Observaciones/Mis
+Fotos), más la Auditoría Final— quedó **implementado y validado
+técnicamente** sobre las 6 pantallas:
+
+- Inicio
+- Recintos
+- Lista Global de Elementos
+- Ficha de Elemento
+- Resumen de Observaciones
+- Mis Fotos
+
+**Congeladas desde este punto.** Solo admiten cambios por:
+1. Corrección de bugs.
+2. Problemas detectados durante las pruebas con usuarios reales de la
+   Fase 2 (ver `Fase2-Plan-Validacion-Producto.md`).
+3. Decisiones estratégicas explícitas de producto, aprobadas dentro de
+   un nuevo sprint formal.
+
+Ningún cambio visual, de layout o de comportamiento responsive sobre
+estas 6 pantallas se realiza fuera de esos tres caminos.
+
+**Regla permanente de triage** (confirmada al cerrar este hito):
+cualquier modificación futura sobre estas 6 pantallas se clasifica
+primero en una de tres categorías, antes de tocar código —
+consistente con los "3 caminos" ya definidos en
+`Fase2-Plan-Validacion-Producto.md` §4:
+1. **Bug funcional.**
+2. **Hallazgo de pruebas con usuarios reales** (Fase 2).
+3. **Decisión estratégica explícita**, aprobada dentro de un nuevo
+   sprint formal.
+
+Cualquier otra propuesta de mejora que no encaje en esas tres
+categorías **se registra como observación** (ver, por ejemplo, las dos
+observaciones del Design System ya anotadas arriba: offset del panel
+sticky, padding del contenedor a 1440px) — nunca se implementa de
+forma automática.
+
+---
 
 ### Milestone 1 — Experiencia Principal de Inspección
 
@@ -635,6 +699,112 @@ acepta correcciones de bugs.
   sin escritor) quedan sin resolver, documentados como tal desde la
   Etapa 4 — mismos hallazgos ya registrados en el Sprint 4, no nuevos
   de este sprint.
+
+---
+
+## Implementación del Sistema Visual (D1–D4, "Claude Design")
+
+Traducción a código del sistema responsive aprobado en una serie de
+documentos externos ("Claude Design": D1 Sistema Responsive, D2
+Inicio, D3 Recintos/Lista Global/Ficha, D4 Resumen de
+Observaciones/Mis Fotos, y una Auditoría Final transversal). No sigue
+el proceso de 6 etapas de este roadmap — es implementación directa de
+una spec ya aprobada por el usuario en otra sesión, con una etapa de
+conciliación previa contra la documentación oficial del repositorio
+(`DESIGN_SYSTEM_OBRABIEN.md`, `DESIGN_DECISIONS.md`,
+`PRODUCT_DECISIONS.md`, `USER_FLOW_OBRABIEN.md` — que prevalecen ante
+cualquier contradicción). Conciliación cerrada: color de acción real
+(`#dd7a36`, no los valores de D1), tipografía y escala de radios
+reales (no la simplificación de D1 a una familia/14px), P0 de la
+Auditoría verificado y corregido (colores de prioridad en la ficha de
+elemento). Commit baseline antes de empezar: `641e912`.
+
+Trabajo una pantalla a la vez, con aprobación explícita antes de
+continuar a la siguiente.
+
+- **Screen 1 — Inicio**: ✅ Aprobada. Patrón P2 (62/38) desde 1024px,
+  transformación de navegación tab bar → rail → sidebar (opt-in vía
+  prop `responsive` en `BottomNav`, para no afectar pantallas aún no
+  migradas), P0 de prioridad corregido. Pendiente, sin decidir por
+  cuenta propia: cabecera integrada a la sidebar (hoy se ve duplicada
+  a 1440px), bloque R8 de "inspección activa" en la sidebar, y los
+  hallazgos O1–O7 del análisis de D2 (requieren el documento "Etapa 2
+  · Objetivos de diseño" de D2, no disponible).
+- **Screen 2 — Recintos**: ✅ Aprobada. Patrón P3 maestro-detalle
+  implementado dentro de `recintos/[roomId]/page.tsx` (índice de
+  recintos + detalle), reutilizando `getRoomsListData`/`RoomListRow`
+  sin modificar sus contratos. Dos notas técnicas registradas por el
+  usuario al aprobar:
+  1. **`/recintos` (el índice suelto, sin recinto seleccionado) queda
+     explícitamente pendiente de revisión futura** — no tiene mockup
+     propio en D3 (el D3 mockeó "Recinto", "Lista global de
+     elementos" y "Ficha de elemento", nunca el índice de recintos
+     como pantalla aparte). Esto es una decisión consciente de
+     alcance, no una implementación incompleta.
+  2. **Si en el futuro se aprueba un diseño propio para `/recintos`,
+     la implementación actual del maestro-detalle debe reutilizarse
+     como base — nunca duplicarse.** El índice ya construido dentro
+     de `recintos/[roomId]/page.tsx` es la pieza a extender, no a
+     reescribir en paralelo.
+- **Screen 3 — Lista Global de Elementos**: ✅ Aprobada. Panel de
+  filtros (recinto/estado) 100% client-side sobre `ElementsListFiltered.tsx`,
+  fijo a la izquierda desde 1024px, compacto arriba de la lista en
+  móvil — sin tocar `get-elements-list-data.ts` ni `ElementListRow.tsx`.
+  Nota técnica registrada por el usuario al aprobar: **`ElementsListFiltered`
+  es parte del sistema reutilizable de navegación de la inspección —
+  cualquier vista futura que necesite filtrar la lista de elementos
+  debe reutilizarlo antes de crear una implementación paralela.**
+- **Screen 4 — Ficha de Elemento**: ✅ Aprobada. Patrón P1 (contenedor
+  de lectura, 640px centrado desde 1024px), checklist protegido sin
+  dividir en columnas, `ElementDetailAccordion` ("Cómo revisarlo") se
+  abre automáticamente desde 1024px vía `useSyncExternalStore` (evita
+  el desfase de hidratación de un `useEffect` con `setState` directo).
+  **Reserva técnica** (no un pendiente): `ChecklistItemCard` no se
+  modificó — D1 sugiere alinear los botones a la derecha de la
+  pregunta desde 1024px, pero sin una especificación inequívoca de
+  cómo conviven con el badge "Guardado ✓", el panel de observación
+  expandido y los controles de cámara, se mantuvo el comportamiento ya
+  aprobado. Solo revisar si en el futuro aparece una especificación
+  explícita, o si la Fase 2 (validación con usuarios reales) revela un
+  problema de uso real en este punto.
+- **Screen 5 — Resumen de Observaciones**: ✅ Aprobada. Patrón P2
+  (62/38: síntesis + grilla de observaciones en la columna principal,
+  cierre/invitación en la columna de contexto sticky) con el patrón P4
+  anidado (grilla de evidencia: 2 columnas notebook, 3 desktop) en
+  `ObservationsSummaryList`. Solo se reorganizaron contenedores — cero
+  componentes internos modificados.
+- **Screen 6 — Mis Fotos**: ✅ Aprobada. Patrón P4 (grilla de
+  evidencia: 2 columnas notebook, 3 desktop) con el filtro de
+  proyectos (`ProjectFilterChips`) convertido en índice vertical a la
+  izquierda desde 1024px — mismos destinos, misma cantidad, solo
+  cambia de scroll horizontal a columna (igual criterio que la
+  transformación de `BottomNav`).
+
+**Revisión integral (las 6 pantallas) — ✅ Aprobada.** Verificación
+cruzada de layouts, shell, navegación responsive, espaciados y
+reutilización de componentes, contra el código real (no contra
+memoria). Dos correcciones aplicadas tras la revisión:
+- **Bug real corregido**: `elementos/[elementId]/page.tsx` (Ficha de
+  Elemento) no tenía la prop `responsive` en `BottomNav` — era la
+  única de las 6 pantallas sin rail/sidebar visible en escritorio pese
+  a que su contenido ya reservaba el espacio. Ahora usa el mismo
+  mecanismo que las otras cinco.
+- **Inconsistencia corregida**: gutter de la grilla P4 en Mis Fotos
+  unificado a 24px (antes 20px), igual que Resumen de Observaciones —
+  valor oficial según D1 regla R4.
+
+**Observaciones del Design System registradas, fuera de alcance de
+esta implementación** (no corregidas, a revisar en una futura
+consolidación del sistema, no pantalla por pantalla):
+- El offset `top` del panel sticky varía entre 24px (Inicio, Resumen,
+  Mis Fotos) y 32px (Recintos, Lista Global de Elementos).
+- El padding del contenedor a 1440px crece en Inicio/Resumen (`40px
+  32px`) pero se mantiene en el valor de 1024px (`32px 24px`) en Lista
+  Global de Elementos/Mis Fotos.
+
+**Con esto, la implementación visual de las 6 pantallas principales
+(D1–D4) queda cerrada.** Solo admite correcciones de bugs desde este
+punto, mismo criterio que cualquier sprint cerrado de este roadmap.
 
 ---
 

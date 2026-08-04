@@ -52,7 +52,7 @@ export default async function ElementInstancePage({ params }: PageProps) {
           />
         )}
       </div>
-      <BottomNav active="inspecciones" />
+      <BottomNav active="inspecciones" responsive />
     </div>
   );
 }

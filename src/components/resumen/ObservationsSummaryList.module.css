@@ -58,3 +58,32 @@
   color: var(--ink-400);
   font-weight: 500;
 }
+
+/*
+  Patrón P4 · Grilla de evidencia (D1 §11): solo para fotos y
+  observaciones -- 2 columnas en notebook, 3 en desktop, gutter de
+  24px, tarjetas de misma altura, nunca más de 3 columnas.
+*/
+@media (min-width: 1024px) {
+  .list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .filters {
+    padding: 0 0 16px;
+  }
+
+  .empty {
+    margin: 0;
+  }
+}
+
+@media (min-width: 1440px) {
+  .list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

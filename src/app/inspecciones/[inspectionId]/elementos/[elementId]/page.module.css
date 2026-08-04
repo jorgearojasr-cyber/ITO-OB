@@ -12,3 +12,29 @@
   flex: 1;
   padding-bottom: 24px;
 }
+
+/*
+  Patrón P1 · contenedor de lectura (D1 §11), aplicado a la Ficha de
+  Elemento (D1 §10: naturaleza "Mobile First" -- se optimiza para
+  terreno, en escritorio solo respira). El checklist nunca se divide
+  en columnas -- es la pantalla más protegida del sistema (D1 §10) --
+  solo se centra y limita su ancho.
+*/
+@media (min-width: 1024px) {
+  .screen {
+    max-width: none;
+    padding-left: 88px;
+  }
+
+  .content {
+    max-width: 640px;
+    margin: 0 auto;
+    padding-top: 24px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .screen {
+    padding-left: 248px;
+  }
+}
