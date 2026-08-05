@@ -5,6 +5,7 @@ import { RoomProgressBar } from "@/components/recinto/RoomProgressBar";
 import { ElementListItem } from "@/components/recinto/ElementListItem";
 import { RoomCompletionBanner } from "@/components/recinto/RoomCompletionBanner";
 import { RoomListRow } from "@/components/recinto/RoomListRow";
+import { RoomSwitcherSheet } from "@/components/recinto/RoomSwitcherSheet";
 import { getRoomInstanceData } from "@/lib/inspections/get-room-instance-data";
 import { getRoomsListData } from "@/lib/inspections/get-rooms-list-data";
 import styles from "./page.module.css";
@@ -52,9 +53,14 @@ export default async function RoomInstancePage({ params }: PageProps) {
             subtitle={`${room.projectName} — ${room.unitLabel}`}
             backHref={`/inspecciones/${inspectionId}/recintos`}
             action={
-              <span className={styles.positionPill}>
-                Recinto {room.position} de {room.totalRooms}
-              </span>
+              <div className={styles.headerActions}>
+                {rooms && rooms.length > 0 && (
+                  <RoomSwitcherSheet inspectionId={inspectionId} currentRoomId={roomId} rooms={rooms} />
+                )}
+                <span className={styles.positionPill}>
+                  Recinto {room.position} de {room.totalRooms}
+                </span>
+              </div>
             }
           />
           <RoomProgressBar {...room.progress} />

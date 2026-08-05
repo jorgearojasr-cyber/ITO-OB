@@ -808,6 +808,31 @@ punto, mismo criterio que cualquier sprint cerrado de este roadmap.
 
 ---
 
+## Sprint UX-02 — Primera ronda de validación con usuario real
+
+**Estado: 🔜 Plan de implementación entregado, esperando aprobación y
+3 decisiones pendientes.** Nace de la primera validación funcional
+real sobre la app desplegada en Vercel (iPad + computador), dentro de
+la Fase 2 — Validación del Producto. Documentos: `Sprint-UX02-Analisis.md`
+(Etapa 1, triage) y `Sprint-UX02-Plan-Implementacion.md` (orden,
+dependencias, impacto técnico, riesgos).
+
+9 puntos triados (regla de `PRODUCT_DECISIONS.md`/cierre del Milestone
+2: Bug / Hallazgo de usuario / Decisión estratégica): 1 bug aislado
+(biblioteca técnica mezclando ejemplos Interior/Exterior), 4 hallazgos
+de usuario, 3 decisiones estratégicas, y 2 puntos que requieren
+aclaración del usuario antes de poder priorizarse (alcance exacto de
+la revisión desktop del resto de pantallas; fuente de la paleta "del
+ecosistema ObraBien" a unificar). Plan de implementación propuesto en
+el documento, sin código escrito todavía.
+
+Dos de los 9 puntos tocan pantallas del Milestone 1 ya congeladas
+(Recintos, Ficha de Elemento) — se abren acá porque este sprint
+explícito es exactamente uno de los tres caminos permitidos por esa
+regla de congelamiento, no una excepción informal.
+
+---
+
 ## Próximas pantallas (sin iniciar)
 
 Pendientes de numerarse como sprint una vez que el Sprint 3 cierre.

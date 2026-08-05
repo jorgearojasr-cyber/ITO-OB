@@ -7,7 +7,7 @@ import { DonJoseLuisCard } from "@/components/ui/DonJoseLuisCard";
 import { ElementLibraryCard } from "./ElementLibraryCard";
 import { GoodBadExamplesSection } from "@/components/biblioteca/GoodBadExamplesSection";
 import { ElementChecklist } from "./ElementChecklist";
-import { goodBadExamplesByCategorySlug } from "@/lib/library/good-bad-examples";
+import { goodBadExamplesByArticleSlug, goodBadExamplesByCategorySlug } from "@/lib/library/good-bad-examples";
 import type { ElementInstanceData } from "@/lib/inspections/get-element-instance-data";
 import styles from "./ElementInspectionExperience.module.css";
 
@@ -57,7 +57,13 @@ export function ElementInspectionExperience({ inspectionId, element, backHref }:
       : `Vamos a revisar ${element.name}. Fíjate especialmente en: ${firstTip.toLowerCase()}.`
     : `Vamos a revisar ${element.name}. Marca "Está bien" en cada punto, o cuéntame si encuentras un problema.`;
 
-  const examples = element.categorySlug ? goodBadExamplesByCategorySlug[element.categorySlug] : undefined;
+  // Se prueba primero por artículo (más específico -- distingue, p.
+  // ej., pintura interior de exterior dentro de la misma categoría) y
+  // solo se cae a la categoría completa cuando no hay una entrada
+  // puntual para ese artículo (Sprint UX-02, P0).
+  const examples =
+    (element.articleSlug ? goodBadExamplesByArticleSlug[element.articleSlug] : undefined) ??
+    (element.categorySlug ? goodBadExamplesByCategorySlug[element.categorySlug] : undefined);
 
   return (
     <>

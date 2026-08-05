@@ -20,6 +20,13 @@
   padding: 0 20px;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .positionPill {
   flex-shrink: 0;
   font-size: 11px;

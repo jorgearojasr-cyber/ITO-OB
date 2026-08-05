@@ -20,10 +20,16 @@ export type ElementInstanceData = {
     body: string;
     quickCheckItems: string[];
   } | null;
-  // Slug de LibraryCategory, solo para resolver ejemplos Bien/Mal
-  // reutilizando goodBadExamplesByCategorySlug -- no forma parte del
-  // modelo de datos de la inspección, es puramente de lectura.
+  // Slug de LibraryCategory, para resolver ejemplos Bien/Mal cuando la
+  // categoría completa comparte un solo ámbito (la mayoría de los
+  // casos) -- no forma parte del modelo de datos de la inspección, es
+  // puramente de lectura.
   categorySlug: string | null;
+  // Slug del propio LibraryArticle -- distingue casos donde una misma
+  // categoría (ej. "pinturas") agrupa ámbitos distintos (interior vs.
+  // exterior) que no deben mezclarse en los ejemplos Bien/Mal. Ver
+  // goodBadExamplesByArticleSlug.
+  articleSlug: string | null;
   lacksNormativeBacking: boolean;
   checklist: {
     checklistItemTemplateId: string;
@@ -138,6 +144,7 @@ export async function getElementInstanceData(
         }
       : null,
     categorySlug: element.elementTemplate.referenceLibraryArticle?.category?.slug ?? null,
+    articleSlug: element.elementTemplate.referenceLibraryArticle?.slug ?? null,
     lacksNormativeBacking: element.elementTemplate.lacksNormativeBacking,
     checklist,
   };

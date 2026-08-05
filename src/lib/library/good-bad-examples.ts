@@ -13,6 +13,40 @@ export type GoodBadExample = {
   bad: { caption: string; imageUrl?: string };
 };
 
+// Excepción a la regla de "una categoría, un ámbito": "pinturas" agrupa
+// interior y exterior bajo la misma LibraryCategory, pero son ámbitos
+// que no deben mezclarse (Sprint UX-02, P0 -- una Fachada no puede
+// mostrar ejemplos de pintura interior). Se resuelven por slug de
+// LibraryArticle, no de categoría; ElementInspectionExperience.tsx
+// prueba primero este mapa y solo cae a goodBadExamplesByCategorySlug
+// si no hay una entrada específica por artículo.
+export const goodBadExamplesByArticleSlug: Partial<Record<string, GoodBadExample[]>> = {
+  "pintura-interior": [
+    {
+      title: "Interior",
+      toleranceRef: "Sombras con luz angulada, máx. 1 mm de espesor y 5 mm de largo, observadas a 1 m",
+      good: {
+        caption: "Superficie pareja con luz angulada desde 1 metro, sin sombras marcadas.",
+      },
+      bad: {
+        caption: "Sombra visible con luz angulada a 1 metro, mayor a 1 mm de espesor o 5 mm de largo — defecto no tolerable.",
+      },
+    },
+  ],
+  "pintura-exterior": [
+    {
+      title: "Exterior",
+      toleranceRef: "Se aceptan imperfecciones no detectables a distancia mínima de 5 m",
+      good: {
+        caption: "Sin imperfecciones visibles a 5 metros de distancia.",
+      },
+      bad: {
+        caption: "Mancha o corrimiento visible a 5 metros — no cumple la tolerancia.",
+      },
+    },
+  ],
+};
+
 export const goodBadExamplesByCategorySlug: Partial<Record<string, GoodBadExample[]>> = {
   ventanas: [
     {
@@ -124,28 +158,6 @@ export const goodBadExamplesByCategorySlug: Partial<Record<string, GoodBadExampl
       },
       bad: {
         caption: "Palmeta con tono claramente distinto al resto — supera el 5% de variación aceptable.",
-      },
-    },
-  ],
-  pinturas: [
-    {
-      title: "Interior",
-      toleranceRef: "Sombras con luz angulada, máx. 1 mm de espesor y 5 mm de largo, observadas a 1 m",
-      good: {
-        caption: "Superficie pareja con luz angulada desde 1 metro, sin sombras marcadas.",
-      },
-      bad: {
-        caption: "Sombra visible con luz angulada a 1 metro, mayor a 1 mm de espesor o 5 mm de largo — defecto no tolerable.",
-      },
-    },
-    {
-      title: "Exterior",
-      toleranceRef: "Se aceptan imperfecciones no detectables a distancia mínima de 5 m",
-      good: {
-        caption: "Sin imperfecciones visibles a 5 metros de distancia.",
-      },
-      bad: {
-        caption: "Mancha o corrimiento visible a 5 metros — no cumple la tolerancia.",
       },
     },
   ],
