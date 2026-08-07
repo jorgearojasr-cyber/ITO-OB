@@ -650,11 +650,40 @@ const roomTemplates: SeedRoomDef[] = [
     requiredFeature: RoomFeatureRequirement.NINGUNA,
     elements: [
       {
+        // Elemento genérico (pre-respuesta) de la pregunta de material de
+        // fachada -- mismo rol que "piso"/"muros-y-cielos": es el único
+        // que se instancia al crear la inspección, y su checklist propio
+        // solo se ve si algún día se agrega una opción "Otro" sin familia
+        // (no existe todavía en este vertical slice). materialSlot
+        // FACADE lo engancha a setRoomMaterial (Sprint UX-03, Etapa B).
         slug: "fachada",
         name: "Fachada",
         libraryArticleSlug: "pintura-exterior",
+        materialSlot: MaterialSlot.FACADE,
         checklist: [
           "¿La pintura o revestimiento está uniforme, sin manchas ni grietas visibles?",
+          "¿No hay filtraciones visibles en la unión entre muros y aleros?",
+          "¿Las esquinas y contornos de puertas y ventanas tienen buena terminación, sin bordes irregulares?",
+        ],
+      },
+      // Familia "Húmeda sobre estuco" (Sprint UX-03, Etapa C) -- un solo
+      // ElementTemplate para los 4 materiales de FACADE_FINISH_OPTIONS
+      // con ese familySlug (Pintura lisa, Marmolina, Graniplast,
+      // Revestimiento texturado): comparten exactamente este checklist,
+      // sin extensiones por material todavía (esas llegan en una etapa
+      // futura, vía la relación N:N ya aprobada en el modelo de dominio).
+      // slug = familySlug del catálogo, es lo que setRoomMaterial usa
+      // para reasignar el ElementInstance tras responder la pregunta.
+      {
+        slug: "humeda-sobre-estuco",
+        name: "Fachada",
+        libraryArticleSlug: null,
+        materialSlot: MaterialSlot.FACADE,
+        isMaterialVariant: true,
+        checklist: [
+          "¿La superficie está a plomo, sin ondulaciones visibles al pasar una regla?",
+          "¿Hay fisuras de retracción visibles en el estuco base?",
+          "¿El color y la textura del acabado son uniformes en toda la superficie, sin manchas ni parches visibles?",
           "¿No hay filtraciones visibles en la unión entre muros y aleros?",
           "¿Las esquinas y contornos de puertas y ventanas tienen buena terminación, sin bordes irregulares?",
         ],
@@ -1847,6 +1876,52 @@ async function backfillRoomMaterials() {
   }
 }
 
+// Catálogo de terminaciones de fachada (Sprint UX-03, Etapa C) --
+// primer vertical slice: solo la familia "humeda-sobre-estuco", los 4
+// materiales que comparten exactamente el checklist del ElementTemplate
+// del mismo slug (ver roomTemplates > exterior). Agregar un material
+// nuevo acá es una fila, no una migración -- "Opción B" ya aprobada.
+const FACADE_FINISH_OPTIONS: { slug: string; label: string; familySlug: string; order: number }[] = [
+  { slug: "pintura-lisa", label: "Pintura lisa", familySlug: "humeda-sobre-estuco", order: 0 },
+  { slug: "marmolina", label: "Marmolina", familySlug: "humeda-sobre-estuco", order: 1 },
+  { slug: "graniplast", label: "Graniplast", familySlug: "humeda-sobre-estuco", order: 2 },
+  { slug: "revestimiento-texturado", label: "Revestimiento texturado", familySlug: "humeda-sobre-estuco", order: 3 },
+];
+
+async function seedFacadeFinishOptions() {
+  for (const option of FACADE_FINISH_OPTIONS) {
+    await prisma.facadeFinishOption.upsert({
+      where: { slug: option.slug },
+      update: { label: option.label, familySlug: option.familySlug, order: option.order, active: true },
+      create: {
+        slug: option.slug,
+        label: option.label,
+        familySlug: option.familySlug,
+        order: option.order,
+      },
+    });
+  }
+}
+
+// Mismo problema y misma solución que backfillRoomMaterials, aplicado a
+// FACADE: el elemento "fachada" ya existente (demo y cualquier
+// inspección real) ahora tiene materialSlot -- sin este backfill, la
+// próxima vez que alguien abra Fachada en un recinto ya inspeccionado
+// vería la pregunta bloqueante en vez de su checklist, con la
+// observación real ya guardada quedando oculta detrás. Idempotente
+// (solo toca facadeFinishOptionId null) y NO reasigna
+// ElementInstance.elementTemplateId -- el contenido que se ve sigue
+// siendo exactamente el mismo de antes de este cambio.
+async function backfillFacadeFinish() {
+  const defaultOption = await prisma.facadeFinishOption.findUnique({ where: { slug: "pintura-lisa" } });
+  if (!defaultOption) return;
+
+  await prisma.roomInstance.updateMany({
+    where: { facadeFinishOptionId: null, roomTemplate: { slug: "exterior" } },
+    data: { facadeFinishOptionId: defaultOption.id },
+  });
+}
+
 // SEED_CATALOG_ONLY=true salta seedDemoInspection() -- esa función crea
 // la organización/usuario demo con una contraseña hardcodeada
 // (DEMO_USER_PASSWORD) en el código fuente, apta solo para dev/local.
@@ -1856,10 +1931,12 @@ async function backfillRoomMaterials() {
 // password conocido.
 async function main() {
   const seededRooms = await seedCatalog();
+  await seedFacadeFinishOptions();
   if (process.env.SEED_CATALOG_ONLY !== "true") {
     await seedDemoInspection(seededRooms);
   }
   await backfillRoomMaterials();
+  await backfillFacadeFinish();
 }
 
 main()

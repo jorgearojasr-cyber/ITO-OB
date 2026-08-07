@@ -131,6 +131,7 @@ enum WallCoveringMaterial {
 enum MaterialSlot {
   FLOOR
   WALL
+  FACADE
 }
 
 // ---------- Tenant root ----------
@@ -170,9 +171,9 @@ model User {
   lifecycleUpdatedObservations Observation[]
   notificationsReceived        Notification[]           @relation("NotificationRecipient")
   notificationsSent            Notification[]           @relation("NotificationActor")
-  createdInvites                InspectionInvite[]      @relation("InviteCreator")
-  acceptedInvites               InspectionInvite[]      @relation("InviteAcceptor")
-  passwordResetTokens           PasswordResetToken[]
+  createdInvites               InspectionInvite[]       @relation("InviteCreator")
+  acceptedInvites              InspectionInvite[]       @relation("InviteAcceptor")
+  passwordResetTokens          PasswordResetToken[]
   accounts                     Account[]
   sessions                     Session[]
 
@@ -426,6 +427,27 @@ model ChecklistItemTemplate {
   @@map("checklist_item_templates")
 }
 
+// Catálogo de terminaciones de fachada (Sprint UX-03). A diferencia de
+// FloorMaterial/WallCoveringMaterial (enums), este catálogo vive en
+// tabla a propósito -- "Opción B" ya aprobada: agregar un material
+// nuevo es una fila, no una migración de schema. familySlug agrupa
+// materiales que comparten checklist base (ver ElementTemplate con
+// materialSlot: FACADE, isMaterialVariant: true, uno por familia).
+model FacadeFinishOption {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  label      String
+  familySlug String
+  order      Int      @default(0)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  roomInstances RoomInstance[]
+
+  @@map("facade_finish_options")
+}
+
 // ---------- Datos de la inspección (Instance) ----------
 
 model RoomInstance {
@@ -438,6 +460,14 @@ model RoomInstance {
   order                Int                   @default(0)
   floorMaterial        FloorMaterial?
   wallCoveringMaterial WallCoveringMaterial?
+  // Elección de terminación de fachada -- mismo patrón que floorMaterial/
+  // wallCoveringMaterial (una sola vez, sin UI para cambiarla después),
+  // pero contra un catálogo en tabla (FacadeFinishOption) en vez de un
+  // enum: agregar un material nuevo es una fila, no una migración
+  // (Sprint UX-03, "Opción B"). Solo tiene sentido en el RoomInstance
+  // "Exterior", que ya es un recinto real y siempre presente.
+  facadeFinishOptionId String?
+  facadeFinishOption   FacadeFinishOption?   @relation(fields: [facadeFinishOptionId], references: [id])
   hasShower            Boolean? // null = no respondido; true/false = respondido (Baños)
   hasBathtub           Boolean?
   createdAt            DateTime              @default(now())

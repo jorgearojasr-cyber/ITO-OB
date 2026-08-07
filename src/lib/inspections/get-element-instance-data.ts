@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { MaterialSlot } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
 import { inspectionAccessWhere } from "@/lib/auth/inspection-access";
@@ -11,7 +12,7 @@ export type ElementInstanceData = {
   roomInstanceId: string;
   roomName: string;
   materialQuestion: {
-    slot: "FLOOR" | "WALL";
+    slot: MaterialSlot;
     options: { value: string; label: string }[];
   } | null;
   showerTubQuestion: boolean;
@@ -117,17 +118,32 @@ export async function getElementInstanceData(
       ? element.roomInstance.floorMaterial !== null
       : slot === "WALL"
         ? element.roomInstance.wallCoveringMaterial !== null
-        : true;
-  const materialQuestion =
-    slot && !answered
-      ? {
-          slot,
-          options:
-            slot === "FLOOR"
-              ? Object.entries(FLOOR_MATERIAL_LABELS).map(([value, label]) => ({ value, label }))
-              : Object.entries(WALL_MATERIAL_LABELS).map(([value, label]) => ({ value, label })),
-        }
-      : null;
+        : slot === "FACADE"
+          ? element.roomInstance.facadeFinishOptionId !== null
+          : true;
+
+  let materialQuestion: ElementInstanceData["materialQuestion"] = null;
+  if (slot && !answered) {
+    if (slot === "FLOOR") {
+      materialQuestion = { slot, options: Object.entries(FLOOR_MATERIAL_LABELS).map(([value, label]) => ({ value, label })) };
+    } else if (slot === "WALL") {
+      materialQuestion = { slot, options: Object.entries(WALL_MATERIAL_LABELS).map(([value, label]) => ({ value, label })) };
+    } else {
+      // FACADE -- a diferencia de FLOOR/WALL (enum + mapa fijo), las
+      // opciones salen del catálogo en tabla (Sprint UX-03, "Opción B"):
+      // agregar un material nuevo es una fila, no requiere tocar este
+      // archivo.
+      const facadeFinishOptions = await prisma.facadeFinishOption.findMany({
+        where: { active: true },
+        orderBy: { order: "asc" },
+        select: { slug: true, label: true },
+      });
+      materialQuestion = {
+        slot,
+        options: facadeFinishOptions.map((option) => ({ value: option.slug, label: option.label })),
+      };
+    }
+  }
 
   return {
     id: element.id,

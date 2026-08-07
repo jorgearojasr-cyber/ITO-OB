@@ -13,6 +13,7 @@ import type {
   ParkingLocation,
   FloorMaterial,
   WallCoveringMaterial,
+  MaterialSlot,
 } from "@prisma/client";
 import { del } from "@vercel/blob";
 import { prisma } from "@/lib/db/prisma";
@@ -481,16 +482,24 @@ type SetRoomMaterialInput = {
   inspectionId: string;
   roomInstanceId: string;
   elementInstanceId: string;
-  slot: "FLOOR" | "WALL";
+  slot: MaterialSlot;
+  // Valor del enum para FLOOR/WALL; slug de FacadeFinishOption para FACADE.
   material: string;
 };
 
-// Responde la pregunta de material de un recinto (Piso o Muros y
-// cielos) una sola vez — no hay UI para cambiarla después. Si el
-// material elegido tiene un variante propio (todo menos "Otro"),
-// reasigna el ElementInstance genérico al ElementTemplate del
-// variante — seguro porque esto se llama antes de que exista ninguna
-// Observation para ese elemento (la pregunta bloquea el checklist).
+// Responde la pregunta de material de un recinto (Piso, Muros y
+// cielos, o Fachada) una sola vez — no hay UI para cambiarla después.
+// Si el material elegido tiene un variante propio (todo menos "Otro"
+// en FLOOR/WALL; siempre en FACADE, vía la familia del material),
+// reasigna el ElementInstance genérico al ElementTemplate
+// correspondiente — seguro porque esto se llama antes de que exista
+// ninguna Observation para ese elemento (la pregunta bloquea el
+// checklist). FLOOR/WALL resuelven contra enum + mapa fijo
+// (material-selection.ts); FACADE resuelve contra el catálogo en
+// tabla FacadeFinishOption (Sprint UX-03, "Opción B") y reasigna al
+// ElementTemplate de la FAMILIA del material, no del material
+// puntual — el motor es el mismo para los tres slots, solo cambia de
+// dónde sale targetElementTemplateSlug.
 export async function setRoomMaterial(input: SetRoomMaterialInput): Promise<void> {
   const session = await requireSession();
 
@@ -514,31 +523,42 @@ export async function setRoomMaterial(input: SetRoomMaterialInput): Promise<void
     throw new Error("Elemento no encontrado en este recinto.");
   }
 
-  const isValidMaterial =
-    input.slot === "FLOOR"
-      ? Object.hasOwn(FLOOR_MATERIAL_LABELS, input.material)
-      : Object.hasOwn(WALL_MATERIAL_LABELS, input.material);
-  if (!isValidMaterial) {
-    throw new Error("Material seleccionado no es válido.");
-  }
+  let roomUpdateData: Prisma.RoomInstanceUpdateInput;
+  let targetElementTemplateSlug: string | null;
 
-  const targetSlug =
-    input.slot === "FLOOR"
-      ? FLOOR_MATERIAL_SLUG[input.material as FloorMaterial]
-      : WALL_MATERIAL_SLUG[input.material as WallCoveringMaterial];
+  if (input.slot === "FLOOR") {
+    if (!Object.hasOwn(FLOOR_MATERIAL_LABELS, input.material)) {
+      throw new Error("Material seleccionado no es válido.");
+    }
+    roomUpdateData = { floorMaterial: input.material as FloorMaterial };
+    targetElementTemplateSlug = FLOOR_MATERIAL_SLUG[input.material as FloorMaterial];
+  } else if (input.slot === "WALL") {
+    if (!Object.hasOwn(WALL_MATERIAL_LABELS, input.material)) {
+      throw new Error("Material seleccionado no es válido.");
+    }
+    roomUpdateData = { wallCoveringMaterial: input.material as WallCoveringMaterial };
+    targetElementTemplateSlug = WALL_MATERIAL_SLUG[input.material as WallCoveringMaterial];
+  } else {
+    const facadeFinish = await prisma.facadeFinishOption.findFirst({
+      where: { slug: input.material, active: true },
+      select: { id: true, familySlug: true },
+    });
+    if (!facadeFinish) {
+      throw new Error("Material seleccionado no es válido.");
+    }
+    roomUpdateData = { facadeFinishOption: { connect: { id: facadeFinish.id } } };
+    targetElementTemplateSlug = facadeFinish.familySlug;
+  }
 
   await prisma.$transaction(async (tx) => {
     await tx.roomInstance.update({
       where: { id: input.roomInstanceId },
-      data:
-        input.slot === "FLOOR"
-          ? { floorMaterial: input.material as FloorMaterial }
-          : { wallCoveringMaterial: input.material as WallCoveringMaterial },
+      data: roomUpdateData,
     });
 
-    if (targetSlug) {
+    if (targetElementTemplateSlug) {
       const variant = await tx.elementTemplate.findFirst({
-        where: { roomTemplateId: room.roomTemplateId, slug: targetSlug },
+        where: { roomTemplateId: room.roomTemplateId, slug: targetElementTemplateSlug },
         select: { id: true },
       });
       if (variant) {
