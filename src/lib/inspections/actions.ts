@@ -880,6 +880,87 @@ export async function deleteElementInstance(input: DeleteElementInstanceInput): 
   return { success: true };
 }
 
+type DeleteInspectionInput = {
+  inspectionId: string;
+};
+
+export type DeleteInspectionResult = { success: true };
+
+// Borrado completo e irreversible de una inspección (Sprint UX-02, P2)
+// -- mismo patrón de cascada manual + limpieza de Blob que
+// deleteRoomInstance/deleteElementInstance, pero con más superficie:
+// además de fotos/observaciones/elementos/recintos, borra el Report
+// (PDF + firmas en Blob) e invitaciones/colaboradores antes de la
+// Inspection misma. Un colaborador externo nunca llega a este código
+// -- el filtro por organizationId ya lo excluye (ver isCollaboration
+// en get-inspections-list-data.ts, que oculta la acción en la UI).
+export async function deleteInspection(input: DeleteInspectionInput): Promise<DeleteInspectionResult> {
+  const session = await requireSession();
+
+  const inspection = await prisma.inspection.findFirst({
+    where: { id: input.inspectionId, organizationId: session.user.organizationId },
+    include: { report: true },
+  });
+  if (!inspection) {
+    throw new Error("Inspección no encontrada en esta organización.");
+  }
+  if (!canManageInspection(session.user.role)) {
+    throw new Error("Solo el propietario o un administrador puede realizar esta acción.");
+  }
+
+  const rooms = await prisma.roomInstance.findMany({
+    where: { inspectionId: input.inspectionId },
+    select: { id: true },
+  });
+  const roomIds = rooms.map((room) => room.id);
+
+  const elements = await prisma.elementInstance.findMany({
+    where: { roomInstanceId: { in: roomIds } },
+    select: { id: true },
+  });
+  const elementIds = elements.map((element) => element.id);
+
+  const observations = await prisma.observation.findMany({
+    where: { elementInstanceId: { in: elementIds } },
+    select: { id: true },
+  });
+  const observationIds = observations.map((observation) => observation.id);
+
+  const photos = await prisma.photo.findMany({
+    where: { observationId: { in: observationIds } },
+    select: { id: true, url: true },
+  });
+
+  const reportBlobUrls = inspection.report
+    ? [inspection.report.pdfStorageKey, inspection.report.signatureOwnerUrl, inspection.report.signatureBuilderUrl].filter(
+        (url): url is string => Boolean(url),
+      )
+    : [];
+
+  // Best-effort, igual que en deleteRoomInstance/deleteElementInstance: si
+  // el borrado en Blob falla (token, red) no bloquea el borrado en la
+  // base -- la inspección igual desaparece de la app.
+  await Promise.allSettled([...photos.map((photo) => photo.url), ...reportBlobUrls].map((url) => del(url)));
+
+  await prisma.$transaction(async (tx) => {
+    await tx.photo.deleteMany({ where: { id: { in: photos.map((photo) => photo.id) } } });
+    await tx.observation.deleteMany({ where: { id: { in: observationIds } } });
+    await tx.elementInstance.deleteMany({ where: { id: { in: elementIds } } });
+    await tx.roomInstance.deleteMany({ where: { id: { in: roomIds } } });
+    if (inspection.report) {
+      await tx.report.delete({ where: { inspectionId: input.inspectionId } });
+    }
+    await tx.inspectionCollaborator.deleteMany({ where: { inspectionId: input.inspectionId } });
+    await tx.inspectionInvite.deleteMany({ where: { inspectionId: input.inspectionId } });
+    await tx.inspection.delete({ where: { id: input.inspectionId } });
+  });
+
+  revalidatePath("/inspecciones");
+  revalidatePath("/");
+
+  return { success: true };
+}
+
 // ---------- Características de la propiedad (7 flags) + tipo de vivienda ----------
 
 // Recintos completos que solo existen si su feature está activo.

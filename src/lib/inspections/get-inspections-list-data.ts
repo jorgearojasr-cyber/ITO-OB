@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/db/prisma";
 import { requireSession } from "@/lib/auth/session";
 import { inspectionAccessWhere } from "@/lib/auth/inspection-access";
+import { canManageInspection } from "@/lib/auth/permissions";
 
 export type InspectionListItemData = {
   id: string;
@@ -14,6 +15,11 @@ export type InspectionListItemData = {
   statusLabel: "EN_PROGRESO" | "COMPLETADA";
   firstRoomId: string | null;
   isCollaboration: boolean;
+  // Mismo criterio que /resumen (isOrgMember && canManageInspection) --
+  // gatilla acciones destructivas/de gestión (Eliminar) en el
+  // ActionMenu; un colaborador externo nunca las ve, aunque tenga
+  // acceso de lectura a la inspección.
+  canManage: boolean;
 };
 
 export async function getInspectionsListData(): Promise<InspectionListItemData[]> {
@@ -37,6 +43,7 @@ export async function getInspectionsListData(): Promise<InspectionListItemData[]
       0,
     );
     const percent = totalElements === 0 ? 0 : Math.round((doneElements / totalElements) * 100);
+    const isCollaboration = inspection.organizationId !== session.user.organizationId;
 
     return {
       id: inspection.id,
@@ -48,7 +55,8 @@ export async function getInspectionsListData(): Promise<InspectionListItemData[]
       statusLabel:
         inspection.status === "COMPLETED" || inspection.status === "CLOSED" ? "COMPLETADA" : "EN_PROGRESO",
       firstRoomId: inspection.rooms[0]?.id ?? null,
-      isCollaboration: inspection.organizationId !== session.user.organizationId,
+      isCollaboration,
+      canManage: !isCollaboration && canManageInspection(session.user.role),
     };
   });
 }

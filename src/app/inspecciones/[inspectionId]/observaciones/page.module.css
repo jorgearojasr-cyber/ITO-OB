@@ -1,0 +1,42 @@
+.screen {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+
+.content {
+  flex: 1;
+  padding-bottom: 24px;
+}
+
+/*
+  Patrón P1 · contenedor de lectura (D1 §11), aplicado a Observaciones
+  como pantalla nueva (Sprint UX-02, P1b) -- primera aplicación del
+  criterio de escritorio (P4) fuera de las 6 pantallas del Milestone 1.
+  El grid P4 de ObservationsSummaryList sigue reagrupando internamente
+  a partir de 1024px (regla S5), esta pantalla solo le da un ancho de
+  lectura razonable en vez del patrón centrado de 480px.
+*/
+@media (min-width: 1024px) {
+  .screen {
+    max-width: none;
+    padding-left: 88px;
+  }
+
+  .content {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding-top: 24px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .screen {
+    padding-left: 248px;
+  }
+}

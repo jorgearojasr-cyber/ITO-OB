@@ -1,5 +1,5 @@
 .card {
-  display: block;
+  position: relative;
   margin: 0 20px 12px;
   background: var(--white);
   border: 1px solid var(--ink-200);
@@ -7,15 +7,31 @@
   padding: 16px;
 }
 
+/*
+  Link "estirado" (Sprint UX-02): cubre toda la tarjeta para conservar
+  el click-to-navigate de siempre, sin volver a envolver el ActionMenu
+  dentro de un <a> (button dentro de anchor no es válido HTML). Sin
+  z-index explícito -- por las reglas de stacking, un absoluto sin
+  z-index pinta por encima del contenido en flujo normal (título,
+  meta, progreso) pero por debajo de .actionMenuWrap, que sí declara
+  z-index -- así que solo el botón de acciones queda clickeable aparte.
+*/
+.stretchedLink {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
 .top {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 10px;
   margin-bottom: 6px;
 }
 
 .title {
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 15px;
