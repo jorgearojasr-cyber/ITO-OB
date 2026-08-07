@@ -833,6 +833,56 @@ regla de congelamiento, no una excepción informal.
 
 ---
 
+## Sprint UX-03 — Sistema de Terminaciones Exteriores
+
+**Estado: ✅ Primer vertical slice cerrado y desplegado (commit
+`70f0fe3`).** Nace de Revestimientos Exteriores (Prioridad 5 / P2b de
+UX-02), pero el análisis creció hasta dejar de ser específico de
+fachadas: pasó a definir el **modelo de dominio técnico completo de
+ObraBien**, documentado como fuente de verdad independiente en
+`docs/ObraBien-Domain-Model-v1.md` (congelado, no se amplía salvo
+decisión explícita) y descompuesto en épicas técnicas en
+`docs/ObraBien-Technical-Implementation-Backlog.md`. El detalle del
+análisis/diseño que llevó a ese modelo queda en
+`Sprint-UX03-Analisis.md` y las tres capas de
+`Sprint-UX03-Diseno-Experiencia*.md`.
+
+**Primera épica implementada — vertical slice E0+E1+slice mínimo de
+E2 del backlog**, fusionados en una sola entrega con valor utilizable
+de punta a punta (no infraestructura sin valor), siguiendo el criterio
+explícito de que cada sprint sobre este modelo debe entregar
+funcionalidad usable, no capas técnicas sueltas:
+
+- `MaterialSlot.FACADE` + catálogo en tabla `FacadeFinishOption`
+  (`familySlug`, "Opción B" — agregar un material nuevo es una fila,
+  no una migración) + `RoomInstance.facadeFinishOptionId`.
+- Motor de pregunta de material generalizado a 3 slots
+  (`setRoomMaterial`, `get-element-instance-data.ts`,
+  `RoomMaterialQuestion.tsx`) — ya no hardcodeado a Piso/Muros.
+- Contenido real: familia **"Húmeda sobre estuco"** (Pintura lisa,
+  Marmolina, Graniplast, Revestimiento texturado) con un único
+  checklist base de 5 preguntas compartido entre los 4 — sin
+  extensiones por material, tolerancias, defectos, Resolution Guide,
+  evidencia contextual ni biblioteca enriquecida todavía (quedan como
+  próximas épicas del backlog).
+- Backfill de fachadas ya inspeccionadas, mismo patrón que
+  `backfillRoomMaterials` — verificado que conservan sus observaciones
+  reales sin alterar.
+
+**Validado de punta a punta** (matrices de regresión aprobadas en cada
+etapa): Piso y Muros sin ningún cambio de comportamiento; los 4
+materiales de fachada seleccionables con su checklist correcto; una
+inspección completa de fachada (respuestas correctas + una observación
+real con prioridad) integrada normalmente en resumen/informe, igual
+que cualquier otro elemento del sistema.
+
+**Próximo paso**: definir la siguiente familia de materiales a
+incorporar sobre esta misma base ya versionada y desplegada — no se
+reabre infraestructura, se amplía cobertura de contenido siguiendo el
+mismo motor.
+
+---
+
 ## Próximas pantallas (sin iniciar)
 
 Pendientes de numerarse como sprint una vez que el Sprint 3 cierre.
