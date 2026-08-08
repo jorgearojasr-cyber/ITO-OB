@@ -92,28 +92,59 @@
   object-fit: cover;
 }
 
+/* Envoltorio real de la imagen -- clickeable, abre el visor de
+   pantalla completa. position:relative solo para anclar el badge de
+   lupa; por lo demás debe verse idéntico a una imagen normal. */
+.imageBtn {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+
+.imageBtn:focus-visible {
+  outline: 2px solid var(--accent-600);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* Señal explícita de "esto se puede ampliar" -- sin esto, una imagen
+   real no se distingue visualmente de una fotografía estática. */
+.expandBadge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(16, 24, 40, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .imageSlot {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--paper);
   border: 1.5px dashed var(--ink-200);
 }
 
 .imageSlotBien {
   border-color: color-mix(in srgb, var(--green-500) 35%, var(--ink-200));
+  color: color-mix(in srgb, var(--green-500) 60%, var(--ink-400));
 }
 
 .imageSlotMal {
   border-color: color-mix(in srgb, var(--red-500) 35%, var(--ink-200));
-}
-
-.placeholderGlyph {
-  font-size: 22px;
-  opacity: 0.6;
-  filter: grayscale(1);
+  color: color-mix(in srgb, var(--red-500) 60%, var(--ink-400));
 }
 
 .placeholderText {

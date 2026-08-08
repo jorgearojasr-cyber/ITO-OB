@@ -1,0 +1,172 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 14, 24, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overscroll-behavior: contain;
+  touch-action: none;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.header {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 64px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.pointName {
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.tagBien {
+  background: var(--green-500);
+  color: #06331f;
+}
+
+.tagMal {
+  background: var(--red-500);
+  color: #fff;
+}
+
+.imageWrap {
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 96px);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  transition: transform 80ms ease-out;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    transition: none;
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.emptyState span {
+  font-size: 34px;
+}
+
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  z-index: 2;
+}
+
+.navBtnLeft {
+  left: 12px;
+}
+
+.navBtnRight {
+  right: 12px;
+}
+
+.navBtnDisabled {
+  opacity: 0.25;
+}
+
+.dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  padding: 0;
+}
+
+.dotActive {
+  background: #fff;
+}
+
+/* Pantallas anchas: la imagen no necesita estirarse a todo el ancho del
+   viewport, se limita a un marco cómodo de lectura, igual criterio que
+   el resto de superficies "protagonistas" de fotografía en la app. */
+@media (min-width: 900px) {
+  .imageWrap {
+    max-width: min(calc(100% - 32px), 900px);
+  }
+}
