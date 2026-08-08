@@ -134,7 +134,10 @@ export async function getInformeData(inspectionId: string): Promise<InformeData 
       propertyType: inspection.propertyType,
       receptionDate: inspection.receptionDate,
       organizationName: inspection.organization.name,
-      createdByName: inspection.createdBy.name,
+      // Igual resguardo que get-inspection-welcome-data.ts: name es
+      // obligatorio en el schema, pero un valor en blanco no debería
+      // dejar vacío el campo "Propietario" de un informe firmado.
+      createdByName: inspection.createdBy.name.trim() || "Propietario",
     },
     summary: {
       percent,

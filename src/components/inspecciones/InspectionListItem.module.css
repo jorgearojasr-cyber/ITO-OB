@@ -77,6 +77,17 @@
   background: var(--green-500);
 }
 
+/* Hallazgo 4 (Auditoría UX): estado propio para "cerrada pero no al
+   100%" -- no puede compartir el verde de "Finalizada", o vuelve a la
+   misma ambigüedad que se está corrigiendo. */
+.pendingClose {
+  background: var(--amber-100);
+  color: var(--accent-700);
+}
+.pendingClose .dot {
+  background: var(--amber-500);
+}
+
 .collabBadge {
   display: inline-flex;
   align-items: center;

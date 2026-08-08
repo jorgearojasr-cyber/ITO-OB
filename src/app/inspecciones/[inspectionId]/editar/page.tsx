@@ -17,7 +17,7 @@ export default async function EditInspectionHubPage({ params }: PageProps) {
 
   const inspection = await prisma.inspection.findFirst({
     where: { id: inspectionId, organizationId: session.user.organizationId },
-    select: { id: true },
+    select: { id: true, coverPhotoUrl: true },
   });
   if (!inspection) {
     notFound();
@@ -35,6 +35,12 @@ export default async function EditInspectionHubPage({ params }: PageProps) {
         <div className={styles.list}>
           {canManage && (
             <>
+              <Link href={`/inspecciones/${inspectionId}/editar/foto`} className={styles.row}>
+                <div className={styles.rowTitle}>Fotografía principal</div>
+                <div className={styles.rowDesc}>
+                  {inspection.coverPhotoUrl ? "Reemplazar o eliminar la foto de portada" : "Agregar una foto de portada del proyecto"}
+                </div>
+              </Link>
               <Link href={`/inspecciones/${inspectionId}/distribucion`} className={styles.row}>
                 <div className={styles.rowTitle}>Distribución</div>
                 <div className={styles.rowDesc}>N° de dormitorios y baños</div>

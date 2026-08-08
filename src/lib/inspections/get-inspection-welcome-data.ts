@@ -38,8 +38,13 @@ export async function getInspectionWelcomeData(inspectionId: string): Promise<In
     return null;
   }
 
+  // name es obligatorio en el schema, pero un espacio en blanco igual
+  // produciría un saludo vacío ("Hola, .") -- se resguarda con una
+  // alternativa profesional en vez de un texto de relleno genérico.
+  const firstName = user.name.trim().split(" ")[0];
+
   return {
-    userName: user.name.split(" ")[0],
+    userName: firstName || "Propietario",
     projectName: inspection.projectName,
     unitLabel: inspection.unitLabel,
     firstRoomId: firstRoom.id,

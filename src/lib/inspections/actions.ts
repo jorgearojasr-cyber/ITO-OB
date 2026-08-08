@@ -292,6 +292,88 @@ export async function attachPhoto(
   return { photoId: photo.id, url: photo.url };
 }
 
+// ---------- Fotografía principal del proyecto ----------
+
+type SetInspectionCoverPhotoInput = {
+  inspectionId: string;
+  url: string;
+  contentType?: string | null;
+};
+
+export async function setInspectionCoverPhoto(input: SetInspectionCoverPhotoInput): Promise<{ url: string }> {
+  const session = await requireSession();
+
+  const inspection = await prisma.inspection.findFirst({
+    where: {
+      id: input.inspectionId,
+      ...inspectionAccessWhere(session.user.id, session.user.organizationId),
+    },
+    select: { id: true, coverPhotoUrl: true },
+  });
+  if (!inspection) {
+    throw new Error("Inspección no encontrada en esta organización.");
+  }
+  if (!canManageInspection(session.user.role)) {
+    throw new Error("Solo el propietario o un administrador puede realizar esta acción.");
+  }
+
+  const previousUrl = inspection.coverPhotoUrl;
+
+  await prisma.inspection.update({
+    where: { id: input.inspectionId },
+    data: { coverPhotoUrl: input.url },
+  });
+
+  // Best-effort: si se reemplaza una foto ya existente, se borra la
+  // anterior del Blob -- si falla, no bloquea el reemplazo.
+  if (previousUrl && previousUrl !== input.url) {
+    await del(previousUrl).catch(() => undefined);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/inspecciones");
+  revalidatePath(`/inspecciones/${input.inspectionId}`);
+  revalidatePath(`/inspecciones/${input.inspectionId}/recintos`);
+  revalidatePath(`/inspecciones/${input.inspectionId}/resumen`);
+  revalidatePath(`/inspecciones/${input.inspectionId}/editar/foto`);
+
+  return { url: input.url };
+}
+
+export async function removeInspectionCoverPhoto(inspectionId: string): Promise<void> {
+  const session = await requireSession();
+
+  const inspection = await prisma.inspection.findFirst({
+    where: {
+      id: inspectionId,
+      ...inspectionAccessWhere(session.user.id, session.user.organizationId),
+    },
+    select: { id: true, coverPhotoUrl: true },
+  });
+  if (!inspection) {
+    throw new Error("Inspección no encontrada en esta organización.");
+  }
+  if (!canManageInspection(session.user.role)) {
+    throw new Error("Solo el propietario o un administrador puede realizar esta acción.");
+  }
+
+  await prisma.inspection.update({
+    where: { id: inspectionId },
+    data: { coverPhotoUrl: null },
+  });
+
+  if (inspection.coverPhotoUrl) {
+    await del(inspection.coverPhotoUrl).catch(() => undefined);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/inspecciones");
+  revalidatePath(`/inspecciones/${inspectionId}`);
+  revalidatePath(`/inspecciones/${inspectionId}/recintos`);
+  revalidatePath(`/inspecciones/${inspectionId}/resumen`);
+  revalidatePath(`/inspecciones/${inspectionId}/editar/foto`);
+}
+
 export type CreateInspectionState = { error?: string };
 
 export async function createInspection(
@@ -956,11 +1038,14 @@ export async function deleteInspection(input: DeleteInspectionInput): Promise<De
         (url): url is string => Boolean(url),
       )
     : [];
+  const coverPhotoUrls = inspection.coverPhotoUrl ? [inspection.coverPhotoUrl] : [];
 
   // Best-effort, igual que en deleteRoomInstance/deleteElementInstance: si
   // el borrado en Blob falla (token, red) no bloquea el borrado en la
   // base -- la inspección igual desaparece de la app.
-  await Promise.allSettled([...photos.map((photo) => photo.url), ...reportBlobUrls].map((url) => del(url)));
+  await Promise.allSettled(
+    [...photos.map((photo) => photo.url), ...reportBlobUrls, ...coverPhotoUrls].map((url) => del(url)),
+  );
 
   await prisma.$transaction(async (tx) => {
     await tx.photo.deleteMany({ where: { id: { in: photos.map((photo) => photo.id) } } });

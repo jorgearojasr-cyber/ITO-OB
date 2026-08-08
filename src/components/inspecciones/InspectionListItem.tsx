@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ActionMenu, type ActionMenuAction } from "@/components/ui/ActionMenu";
+import { CoverPhotoBanner } from "@/components/ui/CoverPhotoBanner";
 import { DeleteInspectionModal } from "./DeleteInspectionModal";
 import type { InspectionListItemData } from "@/lib/inspections/get-inspections-list-data";
 import styles from "./InspectionListItem.module.css";
@@ -18,15 +19,26 @@ const dateFormatter = new Intl.DateTimeFormat("es-CL", {
   year: "numeric",
 });
 
+// Hallazgo 4 (Auditoría UX): "Completada" era ambigua -- se usaba para
+// toda inspección cerrada, sin importar si quedó con el 100% revisado
+// o no. Ahora son 3 estados sin superposición posible.
+const STATUS_CHIP: Record<InspectionListItemData["statusLabel"], { label: string; className: "inProgress" | "completed" | "pendingClose" }> = {
+  EN_CURSO: { label: "En curso", className: "inProgress" },
+  FINALIZADA: { label: "Finalizada — 100% revisada", className: "completed" },
+  CERRADA_CON_PENDIENTES: { label: "Cerrada con pendientes", className: "pendingClose" },
+};
+
 export function InspectionListItem({ inspection }: InspectionListItemProps) {
   const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const isCompleted = inspection.statusLabel === "COMPLETADA";
+  const statusChip = STATUS_CHIP[inspection.statusLabel];
   // Un colaborador externo solo tiene acceso a /resumen y /elementos/[id] de
   // esta inspección (ver inspection-access.ts) — nunca al recorrido por
-  // recintos, así que su link siempre va directo al resumen.
+  // recintos, así que su link siempre va directo al resumen. isClosed (no
+  // el label de presentación) es lo que determina si el recorrido por
+  // recintos sigue siendo el destino natural.
   const href =
-    !inspection.isCollaboration && !isCompleted && inspection.firstRoomId
+    !inspection.isCollaboration && !inspection.isClosed && inspection.firstRoomId
       ? `/inspecciones/${inspection.id}/recintos/${inspection.firstRoomId}`
       : `/inspecciones/${inspection.id}/resumen`;
 
@@ -59,13 +71,18 @@ export function InspectionListItem({ inspection }: InspectionListItemProps) {
   return (
     <div className={styles.card}>
       <Link href={href} className={styles.stretchedLink} aria-label={`${inspection.projectName} — ${inspection.unitLabel}`} />
+      <CoverPhotoBanner
+        url={inspection.coverPhotoUrl}
+        alt={`${inspection.projectName} — ${inspection.unitLabel}`}
+        variant="card"
+      />
       <div className={styles.top}>
         <div className={styles.title}>
           {inspection.projectName} <span className={styles.unit}>— {inspection.unitLabel}</span>
         </div>
-        <span className={`${styles.chip} ${isCompleted ? styles.completed : styles.inProgress}`}>
+        <span className={`${styles.chip} ${styles[statusChip.className]}`}>
           <span className={styles.dot} />
-          {isCompleted ? "Completada" : "En progreso"}
+          {statusChip.label}
         </span>
         <ActionMenu actions={actions} ariaLabel={`Acciones de ${inspection.projectName}`} />
       </div>

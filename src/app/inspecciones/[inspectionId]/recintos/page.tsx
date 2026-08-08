@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
+import { CoverPhotoBanner } from "@/components/ui/CoverPhotoBanner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RoomListRow } from "@/components/recinto/RoomListRow";
 import { prisma } from "@/lib/db/prisma";
@@ -19,7 +20,7 @@ export default async function RoomsListPage({ params }: PageProps) {
 
   const inspection = await prisma.inspection.findFirst({
     where: { id: inspectionId, organizationId: session.user.organizationId },
-    select: { projectName: true, unitLabel: true },
+    select: { projectName: true, unitLabel: true, coverPhotoUrl: true },
   });
 
   if (!inspection) {
@@ -43,6 +44,11 @@ export default async function RoomsListPage({ params }: PageProps) {
               Editar inspección
             </Link>
           }
+        />
+        <CoverPhotoBanner
+          url={inspection.coverPhotoUrl}
+          alt={`${inspection.projectName} — ${inspection.unitLabel}`}
+          variant="header"
         />
         {rooms.length === 0 ? (
           <EmptyState

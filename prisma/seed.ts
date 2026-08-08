@@ -1687,13 +1687,17 @@ async function seedDemoInspection(seededRooms: SeededRoom[]) {
   // corrida anterior sin passwordHash, correr el seed de nuevo se lo
   // asigna igual, sin necesidad de recrear la inspección.
   const passwordHash = await bcrypt.hash(DEMO_USER_PASSWORD, 10);
+  // El nombre real (no "Usuario Demo") importa: se muestra tal cual en
+  // saludos personalizados (Bienvenida) y en el Informe firmado
+  // ("Propietario") -- un texto de demostración ahí se filtraba
+  // directo a la experiencia real (Auditoría UX, hallazgo 5).
   const user = await prisma.user.upsert({
     where: { email: "demo@obrabien.cl" },
-    update: { passwordHash },
+    update: { passwordHash, name: "Jorge Rojas" },
     create: {
       organizationId: organization.id,
       email: "demo@obrabien.cl",
-      name: "Usuario Demo",
+      name: "Jorge Rojas",
       role: "PROPIETARIO",
       passwordHash,
     },

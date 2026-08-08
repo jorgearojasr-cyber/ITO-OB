@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
+import { CoverPhotoBanner } from "@/components/ui/CoverPhotoBanner";
 import { ShareReportButton } from "@/components/ui/ShareReportButton";
 import { ObservationsSummaryList } from "@/components/resumen/ObservationsSummaryList";
 import { InspectionSynthesisCard } from "@/components/resumen/InspectionSynthesisCard";
@@ -33,7 +34,7 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
 
   const inspection = await prisma.inspection.findFirst({
     where: { id: inspectionId, ...inspectionAccessWhere(session.user.id, session.user.organizationId) },
-    select: { organizationId: true, projectName: true, unitLabel: true, status: true },
+    select: { organizationId: true, projectName: true, unitLabel: true, status: true, coverPhotoUrl: true },
   });
 
   if (!inspection) {
@@ -89,6 +90,11 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
           />
         </div>
         <div className={styles.main}>
+          <CoverPhotoBanner
+            url={inspection.coverPhotoUrl}
+            alt={`${inspection.projectName} — ${inspection.unitLabel}`}
+            variant="hero"
+          />
           <InspectionSynthesisCard
             tone={synthesis.tone}
             headline={synthesis.headline}

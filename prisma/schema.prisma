@@ -261,6 +261,7 @@ model Inspection {
   bathroomCount          Int              @default(1)
   receptionDate          DateTime?
   receptionNumber        String? // número de acta de recepción
+  coverPhotoUrl          String? // URL pública del blob en Vercel Blob -- foto principal del proyecto
   status                 InspectionStatus @default(DRAFT)
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt

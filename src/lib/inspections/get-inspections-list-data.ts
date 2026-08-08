@@ -10,9 +10,17 @@ export type InspectionListItemData = {
   projectName: string;
   unitLabel: string;
   address: string;
+  coverPhotoUrl: string | null;
   date: Date | null;
   percent: number;
-  statusLabel: "EN_PROGRESO" | "COMPLETADA";
+  // Hallazgo 4 (Auditoría UX): "Completada" no distinguía "cerrada con
+  // el 100% revisado" de "cerrada con elementos pendientes" -- ambas
+  // usaban la misma palabra. isClosed maneja la navegación (una
+  // inspección cerrada ya no se recorre por recintos); statusLabel es
+  // puramente de presentación, calculado con el mismo % que ya se
+  // muestra en la barra de avance de la tarjeta.
+  statusLabel: "EN_CURSO" | "FINALIZADA" | "CERRADA_CON_PENDIENTES";
+  isClosed: boolean;
   firstRoomId: string | null;
   isCollaboration: boolean;
   // Mismo criterio que /resumen (isOrgMember && canManageInspection) --
@@ -44,16 +52,18 @@ export async function getInspectionsListData(): Promise<InspectionListItemData[]
     );
     const percent = totalElements === 0 ? 0 : Math.round((doneElements / totalElements) * 100);
     const isCollaboration = inspection.organizationId !== session.user.organizationId;
+    const isClosed = inspection.status === "COMPLETED" || inspection.status === "CLOSED";
 
     return {
       id: inspection.id,
       projectName: inspection.projectName,
       unitLabel: inspection.unitLabel,
       address: inspection.address,
+      coverPhotoUrl: inspection.coverPhotoUrl,
       date: inspection.receptionDate ?? inspection.createdAt,
       percent,
-      statusLabel:
-        inspection.status === "COMPLETED" || inspection.status === "CLOSED" ? "COMPLETADA" : "EN_PROGRESO",
+      statusLabel: !isClosed ? "EN_CURSO" : percent === 100 ? "FINALIZADA" : "CERRADA_CON_PENDIENTES",
+      isClosed,
       firstRoomId: inspection.rooms[0]?.id ?? null,
       isCollaboration,
       canManage: !isCollaboration && canManageInspection(session.user.role),

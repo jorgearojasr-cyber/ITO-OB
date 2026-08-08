@@ -19,16 +19,19 @@ export async function POST(request: Request): Promise<NextResponse> {
       onBeforeGenerateToken: async (pathname) => {
         const photoMatch = /^observations\/([^/]+)\/[^/]+$/.exec(pathname);
         const signatureMatch = /^signatures\/([^/]+)\/(owner|builder)-[^/]+\.png$/.exec(pathname);
+        const coverMatch = /^inspections\/([^/]+)\/cover-[^/]+$/.exec(pathname);
         const isPhotoPath = photoMatch !== null;
         const isSignaturePath = signatureMatch !== null;
-        if (!isPhotoPath && !isSignaturePath) {
+        const isCoverPath = coverMatch !== null;
+        if (!isPhotoPath && !isSignaturePath && !isCoverPath) {
           throw new Error("Ruta de subida inválida");
         }
 
-        // Defensa en profundidad: attachPhoto ya revalida propiedad antes de
-        // escribir en la base, pero sin esto cualquier usuario autenticado
-        // (de cualquier organización) podía pedir un token de subida válido
-        // apuntando a un Observation.id/Inspection.id ajeno.
+        // Defensa en profundidad: attachPhoto/setInspectionCoverPhoto ya
+        // revalidan propiedad antes de escribir en la base, pero sin esto
+        // cualquier usuario autenticado (de cualquier organización) podía
+        // pedir un token de subida válido apuntando a un
+        // Observation.id/Inspection.id ajeno.
         if (photoMatch) {
           const observationId = photoMatch[1];
           const owned = await prisma.observation.findFirst({
@@ -41,8 +44,8 @@ export async function POST(request: Request): Promise<NextResponse> {
           if (!owned) {
             throw new Error("Observación no encontrada en esta organización.");
           }
-        } else if (signatureMatch) {
-          const inspectionId = signatureMatch[1];
+        } else if (signatureMatch || coverMatch) {
+          const inspectionId = (signatureMatch ?? coverMatch)![1];
           const owned = await prisma.inspection.findFirst({
             where: { id: inspectionId, organizationId },
             select: { id: true },

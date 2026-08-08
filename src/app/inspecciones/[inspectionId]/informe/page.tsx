@@ -132,6 +132,7 @@ export default async function InformePage({ params, searchParams }: PageProps) {
             <InformeCover
               inspection={data.inspection}
               percent={data.summary.percent}
+              isClosed={isClosed}
               generatedAt={isClosed ? report!.generatedAt : undefined}
             />
             <InformeSummary summary={data.summary} />

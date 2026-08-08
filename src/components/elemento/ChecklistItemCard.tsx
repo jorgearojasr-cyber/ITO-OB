@@ -198,12 +198,15 @@ export function ChecklistItemCard({
           {helpText && <div className={styles.helpText}>{helpText}</div>}
         </div>
         {saveState === "saved" && <span className={styles.savedBadge}>Guardado ✓</span>}
+        {saveState !== "saved" && status === null && (
+          <span className={styles.statusPillPending}>Sin responder</span>
+        )}
       </div>
 
       {status === null && (
         <div className={styles.fastpath}>
           <button type="button" className={styles.primaryBtn} onClick={handleMarkCorrect} disabled={isPending}>
-            ✓ Está bien
+            Marcar como correcto
           </button>
         </div>
       )}
@@ -221,7 +224,6 @@ export function ChecklistItemCard({
       {status === "OBSERVATION" && (
         <div className={styles.expandPanel}>
           <div className={styles.textareaWrap}>
-            <span className={styles.aiSlot}>✨ IA (futuro)</span>
             <textarea
               className={styles.textarea}
               placeholder="Describe lo que observaste…"
