@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import { CloseInspectionModal } from "@/components/inspecciones/CloseInspectionModal";
+import type { ObservationsSummaryData } from "@/lib/inspections/get-observations-summary-data";
 import styles from "./CloseInspectionSection.module.css";
 
 type CloseInspectionSectionProps = {
   inspectionId: string;
+  progress: ObservationsSummaryData["progress"];
+  observationsCount: number;
 };
 
-export function CloseInspectionSection({ inspectionId }: CloseInspectionSectionProps) {
+export function CloseInspectionSection({ inspectionId, progress, observationsCount }: CloseInspectionSectionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -21,7 +24,12 @@ export function CloseInspectionSection({ inspectionId }: CloseInspectionSectionP
         Esta acción no se puede deshacer.
       </div>
       {isModalOpen && (
-        <CloseInspectionModal inspectionId={inspectionId} onCancel={() => setIsModalOpen(false)} />
+        <CloseInspectionModal
+          inspectionId={inspectionId}
+          progress={progress}
+          observationsCount={observationsCount}
+          onCancel={() => setIsModalOpen(false)}
+        />
       )}
     </div>
   );

@@ -24,7 +24,16 @@ export type ObservationsSummaryData = {
   // Solo lectura, mismo cálculo que ya usan get-inicio-data.ts y
   // get-rooms-list-data.ts -- necesario para la síntesis del Sprint 4
   // ("¿Cómo quedó esta vivienda?"), no existía antes en este archivo.
-  progress: { totalElements: number; doneElements: number; percent: number };
+  // totalRooms/doneRooms se sumaron para el aviso previo al cierre
+  // (Sprint "Proteger el cierre") -- un recinto cuenta como revisado
+  // solo cuando TODOS sus elementos dejaron de estar PENDING.
+  progress: {
+    totalElements: number;
+    doneElements: number;
+    percent: number;
+    totalRooms: number;
+    doneRooms: number;
+  };
 };
 
 const PRIORITY_RANK: Record<Priority, number> = {
@@ -63,10 +72,16 @@ export async function getObservationsSummaryData(
   const allElements = rooms.flatMap((room) => room.elements);
   const totalElements = allElements.length;
   const doneElements = allElements.filter((element) => element.status !== "PENDING").length;
+  const totalRooms = rooms.length;
+  const doneRooms = rooms.filter(
+    (room) => room.elements.length > 0 && room.elements.every((element) => element.status !== "PENDING"),
+  ).length;
   const progress = {
     totalElements,
     doneElements,
     percent: totalElements === 0 ? 0 : Math.round((doneElements / totalElements) * 100),
+    totalRooms,
+    doneRooms,
   };
 
   const observations: ObservationSummaryItem[] = rows.map((row) => {

@@ -104,7 +104,13 @@ export default async function ObservationsSummaryPage({ params }: PageProps) {
           <ObservationsSummaryList inspectionId={inspectionId} data={data} />
         </div>
         <div className={styles.context}>
-          {inspection.status !== "CLOSED" && canManage && <CloseInspectionSection inspectionId={inspectionId} />}
+          {inspection.status !== "CLOSED" && canManage && (
+            <CloseInspectionSection
+              inspectionId={inspectionId}
+              progress={data.progress}
+              observationsCount={data.observations.length}
+            />
+          )}
           {inspection.status === "CLOSED" && isOrgMember && (
             <div className={styles.closedSection}>
               <span className={styles.closedBadge}>✓ Inspección cerrada</span>

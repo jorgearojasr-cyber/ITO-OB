@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import SignatureCanvas from "react-signature-canvas";
 import { upload } from "@vercel/blob/client";
 import { closeInspection } from "@/lib/inspections/actions";
+import type { ObservationsSummaryData } from "@/lib/inspections/get-observations-summary-data";
 import styles from "./CloseInspectionModal.module.css";
 
 type CloseInspectionModalProps = {
   inspectionId: string;
+  progress: ObservationsSummaryData["progress"];
+  observationsCount: number;
   onCancel: () => void;
 };
 
@@ -23,9 +26,20 @@ async function uploadSignature(inspectionId: string, role: "owner" | "builder", 
   return result.url;
 }
 
-export function CloseInspectionModal({ inspectionId, onCancel }: CloseInspectionModalProps) {
+export function CloseInspectionModal({
+  inspectionId,
+  progress,
+  observationsCount,
+  onCancel,
+}: CloseInspectionModalProps) {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  // Caso 1 (100% revisado): directo a la firma, sin aviso -- Caso 2
+  // (queda algo pendiente): el modal nace en "warning", nunca se salta.
+  // isComplete se calcula una sola vez -- si el usuario elige "Continuar
+  // igualmente" y el estado no cambia mientras el modal está abierto, no
+  // hay riesgo de que un re-render lo mande de vuelta al aviso.
+  const isComplete = progress.percent === 100;
+  const [step, setStep] = useState<"warning" | 1 | 2>(isComplete ? 1 : "warning");
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ownerHasSignature, setOwnerHasSignature] = useState(false);
@@ -68,6 +82,69 @@ export function CloseInspectionModal({ inspectionId, onCancel }: CloseInspection
       setError(caughtError instanceof Error ? caughtError.message : "No se pudo cerrar la inspección.");
       setIsPending(false);
     }
+  }
+
+  if (step === "warning") {
+    const pendingElements = progress.totalElements - progress.doneElements;
+    const pendingRooms = progress.totalRooms - progress.doneRooms;
+
+    return (
+      <div className={styles.overlay} onClick={isPending ? undefined : onCancel}>
+        <div
+          className={`${styles.card} ${styles.cardWarning}`}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className={styles.warningIcon} aria-hidden="true">
+            ⚠️
+          </div>
+          <div className={styles.warningTitle}>La inspección aún no está completamente revisada</div>
+
+          <div className={styles.statGrid}>
+            <div className={styles.statItem}>
+              <div className={styles.statValue}>{progress.percent}%</div>
+              <div className={styles.statLabel}>Revisado en total</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={styles.statValue}>
+                {progress.doneRooms} <span className={styles.statOf}>de {progress.totalRooms}</span>
+              </div>
+              <div className={styles.statLabel}>Recintos revisados</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={styles.statValue}>
+                {progress.doneElements} <span className={styles.statOf}>de {progress.totalElements}</span>
+              </div>
+              <div className={styles.statLabel}>Elementos revisados</div>
+            </div>
+            <div className={styles.statItem}>
+              <div className={`${styles.statValue} ${styles.statValuePending}`}>{pendingElements}</div>
+              <div className={styles.statLabel}>Elementos pendientes</div>
+            </div>
+          </div>
+
+          <div className={styles.observationsLine}>
+            {observationsCount === 0
+              ? "No se registraron observaciones."
+              : `${observationsCount} observación${observationsCount === 1 ? "" : "es"} registrada${observationsCount === 1 ? "" : "s"}.`}
+            {pendingRooms > 0 && ` Quedan ${pendingRooms} recinto${pendingRooms === 1 ? "" : "s"} sin revisar.`}
+          </div>
+
+          <div className={styles.consequenceLine}>
+            Al firmar esta inspección se entenderá que el propietario acepta cerrar el proceso con esos
+            elementos sin revisar.
+          </div>
+
+          <div className={styles.actions}>
+            <button type="button" className={styles.cancelBtn} onClick={onCancel}>
+              Volver a inspeccionar
+            </button>
+            <button type="button" className={styles.continueAnywayBtn} onClick={() => setStep(1)}>
+              Continuar igualmente
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
