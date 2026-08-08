@@ -1,0 +1,107 @@
+.wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  font-family: var(--font-body);
+  color: var(--ink-900);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--ink-400);
+  margin: 0 0 24px;
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.summaryCard {
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.summaryValue {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.summaryLabel {
+  font-size: 11px;
+  color: var(--ink-400);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--paper);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-400);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--ink-200);
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ink-200);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.link {
+  color: var(--accent-700);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.progressBar {
+  display: inline-block;
+  width: 80px;
+  height: 6px;
+  background: var(--ink-200);
+  border-radius: 999px;
+  overflow: hidden;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--green-500);
+}
+
+.progressLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-600);
+}
