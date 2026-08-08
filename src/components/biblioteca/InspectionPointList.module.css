@@ -1,0 +1,18 @@
+.section {
+  padding: 4px 20px 8px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}

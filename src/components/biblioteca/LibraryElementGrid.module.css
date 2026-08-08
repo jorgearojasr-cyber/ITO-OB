@@ -32,7 +32,12 @@
   border: 1px solid var(--ink-200);
 }
 
+.cardDisabled {
+  opacity: 0.55;
+}
+
 .thumb {
+  position: relative;
   height: 88px;
   width: 100%;
   overflow: hidden;
@@ -42,6 +47,19 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.pendingBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(20, 20, 20, 0.72);
+  color: var(--white);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 7px;
+  border-radius: 999px;
 }
 
 .body {

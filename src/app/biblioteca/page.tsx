@@ -1,7 +1,7 @@
 import { BackHeader } from "@/components/ui/BackHeader";
 import { BottomNav } from "@/components/inicio/BottomNav";
-import { LibraryCategoryGrid } from "@/components/biblioteca/LibraryCategoryGrid";
-import { getLibraryCategories } from "@/lib/library/get-library-categories";
+import { LibraryElementGrid } from "@/components/biblioteca/LibraryElementGrid";
+import { getLibraryElementSummaries } from "@/lib/library/get-library-elements";
 import styles from "./page.module.css";
 
 // Sin cookies/sesión de por medio, Next.js la prerenderiza en build por
@@ -13,13 +13,13 @@ import styles from "./page.module.css";
 export const dynamic = "force-dynamic";
 
 export default async function BibliotecaPage() {
-  const categories = await getLibraryCategories();
+  const elements = await getLibraryElementSummaries();
 
   return (
     <div className={styles.screen}>
       <div className={styles.content}>
         <BackHeader title="Biblioteca técnica" backHref="/" />
-        <LibraryCategoryGrid categories={categories} />
+        <LibraryElementGrid elements={elements} />
       </div>
       <BottomNav active="biblioteca" />
     </div>

@@ -1,0 +1,25 @@
+.screen {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+
+.content {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.notice {
+  margin: 4px 20px 18px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--amber-100);
+  color: var(--accent-700);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
